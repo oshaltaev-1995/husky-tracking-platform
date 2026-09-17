@@ -1,0 +1,64 @@
+.map-legend {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+}
+
+.legend-label {
+  color: var(--text-muted);
+  font-size: var(--font-caption);
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.legend-items {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.legend-item b {
+  display: grid;
+  width: 1.35rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  font-size: 0.58rem;
+}
+
+.legend-item[data-tone='female'] b { color: var(--map-gender-female); background: var(--map-gender-female-soft); }
+.legend-item[data-tone='male'] b { color: var(--map-gender-male); background: var(--map-gender-male-soft); }
+.legend-item[data-tone='intact'] b { color: var(--map-intact); background: var(--map-intact-soft); }
+.legend-item[data-tone='neutered'] b { color: var(--map-neutered); background: var(--map-neutered-soft); }
+.legend-item[data-tone='puppy'] b { color: var(--class-puppy); background: var(--class-puppy-soft); }
+.legend-item[data-tone='junior'] b { color: var(--class-junior); background: var(--class-junior-soft); }
+.legend-item[data-tone='training'] b { color: var(--class-training); background: var(--class-training-soft); }
+.legend-item[data-tone='standard'] b,
+.legend-item[data-tone='available'] b { color: var(--class-standard); background: var(--class-standard-soft); }
+.legend-item[data-tone='injured'] b { color: var(--danger); background: var(--danger-soft); }
+.legend-item[data-tone='rest'] b { color: var(--warning); background: var(--warning-soft); }
+.legend-item[data-tone='restricted'] b { color: var(--archived); background: var(--archived-soft); }
+.legend-item[data-tone='retired'] b { color: var(--disabled); background: var(--disabled-soft); }
+
+@media (max-width: 30rem) {
+  .map-legend { align-items: flex-start; flex-direction: column; gap: var(--space-2); }
+}

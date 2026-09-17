@@ -41,6 +41,7 @@ describe('AppComponent', () => {
       'Winter 2025–2026',
     );
     expect(fixture.nativeElement.textContent).toContain('Dogs');
+    expect(fixture.nativeElement.textContent).toContain('Kennel Map');
     expect(fixture.nativeElement.textContent).toContain('Archive');
     expect(fixture.nativeElement.querySelector('.desktop-sidebar')).not.toBeNull();
     http.verify();

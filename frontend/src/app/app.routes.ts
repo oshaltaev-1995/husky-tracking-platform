@@ -19,6 +19,15 @@ export const routes: Routes = [
     title: 'Dog Profile · Husky Tracking',
   },
   {
+    path: 'kennel',
+    loadComponent: () =>
+      import('./features/kennel-map/kennel-map-page.component').then(
+        (component) => component.KennelMapPageComponent,
+      ),
+    title: 'Kennel Map · Husky Tracking',
+    data: { layout: 'wide' },
+  },
+  {
     path: 'archive',
     loadComponent: () =>
       import('./features/archive/archive-registry.component').then(

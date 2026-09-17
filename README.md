@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P3.5 application foundation
+## P4 application foundation
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -21,7 +21,7 @@ reference project.
   fictional dogs
 - persistent desktop application sidebar, accessible mobile drawer, and standard/wide
   content modes ready for later operational modules
-- responsive `/dogs`, `/archive`, and deep-linked `/dogs/:dogId` product routes
+- responsive `/dogs`, `/archive`, `/kennel`, and deep-linked `/dogs/:dogId` product routes
 - server-supported registry/archive search, domain filters, and focused sorting
 - one lifecycle-aware Dog Profile with Overview, Pedigree, Work, and History views
 - clickable parents, grandparents, litter siblings, offspring, and archived relatives
@@ -30,11 +30,15 @@ reference project.
 - reusable neutral dog media placeholder ready for P10 synthetic portraits
 - semantic validation and checksum independent of database identities and timestamps
 - reusable actual-work guardrail enforcing at most 30 km per dog per calendar date
+- historical Kennel Map snapshots with A1/A2/B1/B2 rows, two puppy buildings,
+  dated housing/state resolution, dog finding, and Default/Gender/Neutered/Class/
+  Unavailable visual layers
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P4 Kennel Map. P3.5 deliberately adds no map geometry,
-editing surface, plans, team building, entry, or kennel analytics. See
+The next product package is P5 Daily Plan. P4 is deliberately read-only: it adds no
+housing editing, drag-and-drop movement, plans, team building, entry, or kennel
+analytics. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -66,6 +70,8 @@ Then open:
 - dataset summary: <http://localhost:8030/api/v1/demo-dataset>
 - dogs registry API: <http://localhost:8030/api/v1/dogs>
 - archive API: <http://localhost:8030/api/v1/archive>
+- Kennel Map: <http://localhost:4300/kennel>
+- dated map API: <http://localhost:8030/api/v1/kennel-map?date=2026-03-31>
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is

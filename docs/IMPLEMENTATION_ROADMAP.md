@@ -130,6 +130,12 @@ toolbar, dated projection, and responsive kennel canvas.
 
 ## P4 — Kennel Map
 
+**Status:** completed. P4 delivers the read-only historical `/kennel` wide workspace,
+one bounded-query dated snapshot API, canonical A1/A2/B1/B2 and puppy-area topology,
+resident search/highlight, stable Dog Profile links, and Default, Gender, Neutered,
+Class, and Unavailable layers with responsive legends. It reuses the central effective
+state resolver and does not change the P2 schema, seed rows, or checksum.
+
 **Objective:** provide the primary dated spatial entry point into the product loop.
 
 **Required behavior:** neutral map plus Gender, Neutered, Class, and Unavailable layers;
@@ -153,6 +159,12 @@ date and opens its profile.
 
 **Exclusions:** no real kennel geometry; no complex drag/pan editor unless later evidence
 justifies it; map layer changes never write data.
+
+**P5 handoff:** Daily Plan can reuse the demo-season date bounds, shared
+`EffectiveDogState` policy, stable dog/profile identities, layer/status visual tokens,
+wide-workspace toolbar patterns, and the dated location/resident snapshot shape for
+context links. P5 adds plan persistence and activity editing separately; it must not
+turn the P4 map into a housing or planning editor.
 
 ## P5 — Daily Plan
 

@@ -54,7 +54,13 @@ export class AppComponent {
   protected readonly menuOpen = signal(false);
   protected readonly layoutMode = signal<'standard' | 'wide'>('standard');
   protected readonly navigation: NavigationSection[] = [
-    { label: 'Kennel', items: [{ label: 'Dogs', route: '/dogs', mark: 'D' }] },
+    {
+      label: 'Kennel',
+      items: [
+        { label: 'Dogs', route: '/dogs', mark: 'D' },
+        { label: 'Kennel Map', route: '/kennel', mark: 'K' },
+      ],
+    },
     { label: 'Records', items: [{ label: 'Archive', route: '/archive', mark: 'A' }] },
   ];
 

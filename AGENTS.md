@@ -45,6 +45,9 @@ These instructions apply to the entire repository.
 - Product read APIs use explicit response schemas and feature read services. Resolve
   effective class, lifecycle, availability, and housing centrally against `DemoClock`;
   do not duplicate current-state logic in routes or Angular.
+- Kennel Map is the read-only `/kennel` wide workspace. Its `date` and `layer` URL
+  state must remain demo-season bounded, and its DOM/CSS layout must preserve the
+  A1/A2/B1/B2 grouping without horizontal page overflow on narrow screens.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a

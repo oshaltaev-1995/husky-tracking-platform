@@ -39,6 +39,24 @@
   --sidebar-online: #72c09e;
   --sidebar-offline: #e18070;
 
+  /* Kennel Map layer palette: quiet surfaces paired with readable text markers. */
+  --map-gender-female: #765985;
+  --map-gender-female-soft: #eee8f1;
+  --map-gender-male: #28706d;
+  --map-gender-male-soft: #e0efec;
+  --map-intact: #8a6724;
+  --map-intact-soft: #f4ecd7;
+  --map-neutered: #346b73;
+  --map-neutered-soft: #e1edf0;
+  --class-puppy: #6c5b90;
+  --class-puppy-soft: #ebe7f3;
+  --class-junior: #956c28;
+  --class-junior-soft: #f4ebd8;
+  --class-training: #386b78;
+  --class-training-soft: #e2edf0;
+  --class-standard: #3d6c56;
+  --class-standard-soft: #e3eee8;
+
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;

@@ -91,12 +91,17 @@ version, reference date, counts, and checksum. P3 adds focused read APIs:
 - `GET /api/v1/dogs/{dog_id}/work` — dog-level season ledger and weekly summary;
 - `GET /api/v1/dogs/{dog_id}/history` — dated class, availability, lifecycle, housing,
   and archive metadata.
+- `GET /api/v1/kennel-map?date=YYYY-MM-DD` — one demo-season-bounded location snapshot
+  with effective residents, lifecycle, class, availability, housing, and layer counts.
 
-The `DogReadService` is the central projection boundary. It resolves effective periods
-using the canonical DemoClock once, bulk-loads related histories for registry/profile
-views, and derives work totals from `WorkSession` plus `WorkParticipation`. Routes only
-validate query/path values, invoke this service, and serialize explicit Pydantic DTOs.
-No current class/status/housing fields or workload aggregates are duplicated on Dog.
+`EffectiveDogState` is the shared half-open-period resolver used by both
+`DogReadService` and `KennelMapReadService`, so Profile and Map agree for the same dog
+and date. Dog reads bulk-load related histories and derive work totals from
+`WorkSession` plus `WorkParticipation`. The map read service bulk-loads all locations,
+dogs, effective histories, litters, and housing in a bounded seven-query projection;
+it never queries once per enclosure or resident. Routes validate query/path values,
+invoke these services, and serialize explicit Pydantic DTOs. No current
+class/status/housing fields or workload aggregates are duplicated on Dog.
 
 ## Demo clock
 
@@ -172,6 +177,30 @@ contrast, meaningful empty/error/loading states, and automated checks plus manua
 The Kennel Map should be DOM/CSS based for accessible dog links and responsive layouts.
 Its geometry is fictional configuration; visual layer changes are pure presentation
 and cannot mutate housing or status.
+
+### Historical Kennel Map
+
+P4 adds `/kennel` as a `.content-wide` route. `date` and `layer` query parameters make
+historical views reload-safe and shareable; invalid values normalize to the reference
+date and Default layer. Public browsing is constrained to `2025-12-01` through
+`2026-03-31`. Every snapshot resolves birth, lifecycle, class, availability, and
+housing on that same calendar date. A historical housing gap stays empty rather than
+falling back to a current assignment.
+
+The desktop DOM groups five enclosure cards into each horizontal A1, A2, B1, and B2
+row, with two larger puppy-building cards below. Tablet keeps row identity while
+wrapping cards; phone widths stack cards within named row sections and never require
+page-wide horizontal scrolling. Default, Gender, Neutered, Class, and Unavailable are
+single-select presentation layers over the same payload. Text markers and compact
+legends accompany shared semantic colors. Search focuses a dated resident and its
+enclosure; every resident name is a normal `/dogs/{public_id}` link.
+
+The canonical archived dogs keep valid housing history, but their assignments all end
+before the public demo season. P4 therefore truthfully shows no archived resident in a
+December–March snapshot; lifecycle resolution remains historical and never substitutes
+current lifecycle or last-known housing. Future datasets can show a currently archived
+dog on an earlier map date without changing the API shape when its active lifecycle and
+housing intervals overlap that date.
 
 ## Plans, actuals, and analytics
 

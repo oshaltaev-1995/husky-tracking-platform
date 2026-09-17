@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from collections.abc import Sequence
 from datetime import date, timedelta
-from typing import Protocol, TypeVar
 from uuid import UUID
 
 from sqlalchemy import select
@@ -44,26 +42,7 @@ from app.schemas.dogs import (
     PeriodHistoryRead,
     RelatedDogRead,
 )
-
-
-class EffectivePeriod(Protocol):
-    valid_from: date
-    valid_to: date | None
-
-
-PeriodT = TypeVar("PeriodT", bound=EffectivePeriod)
-
-
-def effective_period(periods: Sequence[PeriodT], on_date: date) -> PeriodT | None:
-    return next(
-        (
-            period
-            for period in periods
-            if period.valid_from <= on_date
-            and (period.valid_to is None or on_date < period.valid_to)
-        ),
-        None,
-    )
+from app.services.effective_state import EffectiveDogState, effective_period
 
 
 def age_at(birth_date: date, reference_date: date) -> tuple[int, int, str]:
@@ -159,24 +138,18 @@ class DogReadService:
         return self._pedigree_dogs
 
     def _lifecycle(self, dog: Dog) -> str:
-        period = effective_period(dog.lifecycle_periods, self.clock.reference_date)
-        return period.lifecycle_state if period else "unknown"
+        return EffectiveDogState(self.clock.reference_date).lifecycle(dog) or "unknown"
 
     def _class(self, dog: Dog) -> tuple[str | None, bool]:
-        period = effective_period(dog.class_periods, self.clock.reference_date)
-        if period:
-            return period.dog_class, False
-        historical = max(
-            dog.class_periods, key=lambda row: row.valid_from, default=None
+        return EffectiveDogState(self.clock.reference_date).dog_class(
+            dog, historical_fallback=True
         )
-        return (historical.dog_class if historical else None), historical is not None
 
     def _availability(self, dog: Dog) -> str | None:
-        period = effective_period(dog.availability_periods, self.clock.reference_date)
-        return period.availability_state if period else None
+        return EffectiveDogState(self.clock.reference_date).availability(dog)
 
     def _current_housing_assignment(self, dog: Dog) -> HousingAssignment | None:
-        return effective_period(dog.housing_assignments, self.clock.reference_date)
+        return EffectiveDogState(self.clock.reference_date).housing(dog)
 
     def _last_housing_assignment(self, dog: Dog) -> HousingAssignment | None:
         return max(

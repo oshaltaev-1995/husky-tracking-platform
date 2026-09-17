@@ -1,0 +1,65 @@
+.resident-dog {
+  display: grid;
+  min-width: 0;
+  min-height: 3.15rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  padding: 0.45rem;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  text-decoration: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.resident-dog:hover { border-color: var(--brand); background: var(--surface-brand-soft); }
+.resident-dog.highlighted { border-color: var(--focus); box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--focus) 28%, transparent); }
+.resident-dog.receded { opacity: 0.58; }
+
+.resident-initial,
+.resident-marker {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.7rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--brand-strong);
+  background: var(--surface-brand-soft);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.resident-marker { width: 1.45rem; border: 1px solid currentColor; }
+.resident-copy { min-width: 0; }
+.resident-copy strong,
+.resident-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resident-copy strong { font-size: 0.78rem; line-height: 1.25; }
+.resident-copy small { margin-top: 0.1rem; color: var(--text-muted); font-size: 0.63rem; }
+
+.resident-dog[data-tone='female'] { background: var(--map-gender-female-soft); }
+.resident-dog[data-tone='female'] .resident-marker { color: var(--map-gender-female); }
+.resident-dog[data-tone='male'] { background: var(--map-gender-male-soft); }
+.resident-dog[data-tone='male'] .resident-marker { color: var(--map-gender-male); }
+.resident-dog[data-tone='intact'] { background: var(--map-intact-soft); }
+.resident-dog[data-tone='intact'] .resident-marker { color: var(--map-intact); }
+.resident-dog[data-tone='neutered'] { background: var(--map-neutered-soft); }
+.resident-dog[data-tone='neutered'] .resident-marker { color: var(--map-neutered); }
+.resident-dog[data-tone='puppy'] { background: var(--class-puppy-soft); }
+.resident-dog[data-tone='puppy'] .resident-marker { color: var(--class-puppy); }
+.resident-dog[data-tone='junior'] { background: var(--class-junior-soft); }
+.resident-dog[data-tone='junior'] .resident-marker { color: var(--class-junior); }
+.resident-dog[data-tone='training'] { background: var(--class-training-soft); }
+.resident-dog[data-tone='training'] .resident-marker { color: var(--class-training); }
+.resident-dog[data-tone='standard'] { background: var(--class-standard-soft); }
+.resident-dog[data-tone='standard'] .resident-marker { color: var(--class-standard); }
+.resident-dog[data-tone='injured'] { background: var(--danger-soft); }
+.resident-dog[data-tone='injured'] .resident-marker { color: var(--danger); }
+.resident-dog[data-tone='rest'] { background: var(--warning-soft); }
+.resident-dog[data-tone='rest'] .resident-marker { color: var(--warning); }
+.resident-dog[data-tone='restricted'] { background: var(--archived-soft); }
+.resident-dog[data-tone='restricted'] .resident-marker { color: var(--archived); }
+.resident-dog[data-tone='retired'] { background: var(--disabled-soft); }
+.resident-dog[data-tone='retired'] .resident-marker { color: var(--disabled); }

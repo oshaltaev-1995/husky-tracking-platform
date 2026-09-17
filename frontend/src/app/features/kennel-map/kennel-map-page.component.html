@@ -1,0 +1,145 @@
+<header class="page-header map-header">
+  <div>
+    <p class="eyebrow">Dated housing snapshot</p>
+    <h1>Kennel Map</h1>
+    <p>Winter 2025–2026 · housing and operational state on the selected date</p>
+  </div>
+  <label class="date-control form-field">
+    <span>Map date</span>
+    <input
+      type="date"
+      name="map-date"
+      min="2025-12-01"
+      max="2026-03-31"
+      [(ngModel)]="selectedDate"
+      (ngModelChange)="changeDate($event)"
+    />
+  </label>
+</header>
+
+<section class="map-toolbar surface" aria-label="Kennel map controls">
+  <div class="layer-control" role="group" aria-label="Visual layer">
+    <span>Layer</span>
+    <div>
+      @for (layer of layers; track layer.value) {
+        <button
+          type="button"
+          [class.active]="activeLayer === layer.value"
+          [attr.aria-pressed]="activeLayer === layer.value"
+          (click)="selectLayer(layer.value)"
+        >{{ layer.label }}</button>
+      }
+    </div>
+  </div>
+
+  @if (state$ | async; as state) {
+    @if (state.kind === 'ready') {
+      <form class="dog-finder" (submit)="$event.preventDefault(); findDog(state.data)">
+        <label>
+          <span class="visually-hidden">Find a resident dog on the map</span>
+          <input
+            type="search"
+            name="dog-search"
+            list="resident-dogs"
+            placeholder="Find a dog…"
+            [(ngModel)]="searchTerm"
+          />
+          <datalist id="resident-dogs">
+            @for (dog of residents(state.data); track dog.id) { <option [value]="dog.name"></option> }
+          </datalist>
+        </label>
+        <button class="button secondary" type="submit">Find</button>
+        @if (searchTerm || highlightedDogId) {
+          <button class="button quiet" type="button" (click)="clearSearch()">Clear</button>
+        }
+      </form>
+    }
+  }
+</section>
+
+<ht-map-legend [layer]="activeLayer" />
+
+@if (state$ | async; as state) {
+  @switch (state.kind) {
+    @case ('loading') {
+      <div class="page-state" aria-live="polite">Loading the dated kennel snapshot…</div>
+    }
+    @case ('error') {
+      <div class="page-state error" role="alert">
+        <h2>The kennel map is temporarily unavailable</h2>
+        <p>Check the demo API connection, then try this date again.</p>
+        <button class="button secondary" type="button" (click)="retry()">Try again</button>
+      </div>
+    }
+    @case ('ready') {
+      <section class="snapshot-strip" aria-label="Map snapshot summary">
+        <div><strong>{{ state.data.summary.resident_dogs }}</strong><span>Resident dogs</span></div>
+        <div><strong>{{ state.data.summary.occupied_locations }}</strong><span>Occupied locations</span></div>
+        <div><strong>{{ state.data.summary.unavailable_dogs }}</strong><span>Unavailable</span></div>
+        <p>Snapshot · {{ (state.data.selected_date + 'T12:00:00Z') | date: 'longDate':'UTC' }}</p>
+      </section>
+
+      @if (highlightedDog(state.data); as match) {
+        <div class="search-announcement" aria-live="polite">
+          <span><strong>{{ match.dog.name }}</strong> is in {{ match.location.code }}.</span>
+          <span>Its enclosure is highlighted below.</span>
+        </div>
+      } @else if (searchTerm.trim()) {
+        <div class="search-announcement not-found" aria-live="polite">
+          No resident dog matches “{{ searchTerm }}” on this date.
+        </div>
+      }
+
+      @if (state.data.summary.resident_dogs === 0) {
+        <div class="empty-state">
+          <h2>No resident dogs on this date</h2>
+          <p>The kennel topology is still shown below; no effective housing assignments resolved.</p>
+        </div>
+      }
+
+      <div class="kennel-canvas" [attr.data-layer]="activeLayer">
+        @for (block of blocks(state.data); track block.zone) {
+          <section class="kennel-block" [attr.aria-labelledby]="'zone-' + block.zone">
+            <header>
+              <div><p class="eyebrow">Adult housing</p><h2 [id]="'zone-' + block.zone">{{ block.label }}</h2></div>
+              <span>Paired rows {{ block.zone }}1 / {{ block.zone }}2</span>
+            </header>
+            @for (row of block.rows; track row.code) {
+              <section class="kennel-row" [attr.aria-labelledby]="'row-' + row.code">
+                <div class="row-label">
+                  <h3 [id]="'row-' + row.code">{{ row.code }}</h3>
+                  <span>{{ row.locations.length }} enclosures</span>
+                </div>
+                <div class="enclosure-grid">
+                  @for (location of row.locations; track location.id) {
+                    <ht-kennel-location-card
+                      [location]="location"
+                      [layer]="activeLayer"
+                      [highlightedDogId]="highlightedDogId"
+                    />
+                  }
+                </div>
+              </section>
+            }
+          </section>
+        }
+
+        <section class="puppy-block" aria-labelledby="puppy-areas-title">
+          <header>
+            <div><p class="eyebrow">Separate buildings</p><h2 id="puppy-areas-title">Puppy areas</h2></div>
+            <span>Complete litters stay together</span>
+          </header>
+          <div class="puppy-grid">
+            @for (location of puppyAreas(state.data); track location.id) {
+              <ht-kennel-location-card
+                [location]="location"
+                [layer]="activeLayer"
+                [highlightedDogId]="highlightedDogId"
+              />
+            }
+          </div>
+        </section>
+      </div>
+    }
+  }
+}
