@@ -379,29 +379,49 @@ P10-ready media contract remains unchanged. Synthetic portraits can be introduce
 shared dog-media presentation (and optionally small Dashboard dog rows) without changing
 Dashboard persistence, metric services, or projection semantics.
 
-## P10 — Synthetic dog media
+## P10A — Synthetic dog media system and generation manifest
 
-**Objective:** add one safe, consistent snowy portrait for every canonical dog.
+**Status:** completed. P10A establishes the `dog-media-v1` contract without inventing
+placeholder photographs: a curated 60-dog pedigree-aware identity catalog, complete
+machine-readable generation manifest, shared photographic/anatomy/privacy guide, exact
+P10B inventory, structural WebP validator, and one reusable frontend media component.
 
-**Required behavior:** one canonical generated image per dog, deterministic manifest/
-ownership mapping, responsive display and fallback, alt text based on dog identity.
+**Media contract:** one UUID-named `1086×1448` WebP per Dog under
+`frontend/public/media/dogs/`, exposed by the existing nullable `photo_key`. A missing,
+unsafe, or failed key uses the fixed 3:4 placeholder without a broken icon. Lists load
+media lazily and Profile loads its hero eagerly. `dog-media-v1` is both manifest and
+cache version and remains independent of `winter-2025-2026-v1`.
 
-**Backend:** media URL/storage-key projection and integrity audit; storage adapter if
-deployment requires object storage.
+**Validation:** the CLI proves exact catalog/UUID/name/parent/litter/lifecycle mapping,
+required unique briefs and traits, safe unique filenames, forbidden-name exclusion,
+and—when P10B assets exist—exact file count, WebP structure, dimensions, integrity, and
+size distribution. Human review remains mandatory for anatomy, age, snow, source safety,
+family resemblance, and generation artifacts.
 
-**Frontend:** integrate the single image in registry/profile/map as appropriate without
-layout shift; retain neutral fallback.
+**Data/migrations:** none. All canonical seed `photo_key` values stay null in P10A, no
+image bytes enter PostgreSQL, and the semantic checksum remains unchanged.
 
-**Data/migrations:** populate `photo_storage_key`; generated media and manifest; no real
-reference photos.
+**Exclusions:** no generated, real, stock, scraped, or reference photographs; no SVG or
+procedural fake photos; no carousel, upload, editor, gallery, or P11 work.
 
-**Tests:** every dog has exactly one valid asset, no orphan/collision, media path safety,
-fallback and responsive image behavior.
+## P10B — Generated portrait ingestion and visual acceptance
 
-**Acceptance:** 60-ish portraits are visibly fictional/synthetic, publishable, correctly
-owned, and optimized.
+**Status:** pending generated image assets.
 
-**Exclusions:** no carousel, gallery, upload/editor, or background-processing product.
+**Objective:** generate, review, optimize, and integrate exactly one coherent synthetic
+snow portrait for every one of the 60 manifest identities.
+
+**Required behavior:** all exact filenames pass the strict validator and per-image human
+QA; `photo_key` activation makes the same portrait appear in Registry, Profile, and
+Archive; desktop/tablet/mobile layouts and bandwidth meet the documented budget.
+
+**Acceptance:** 50 active and 10 archived dogs each have one publishable synthetic
+portrait with credible age/anatomy/family resemblance, no source/privacy issue, and no
+fallback or failed asset. Follow `docs/P10B_MEDIA_HANDOFF.md`; do not mark full P10
+complete earlier.
+
+**Exclusions:** no carousel, gallery, user upload/editor, regeneration UI, real media,
+or P11 marketing work.
 
 ## P11 — Public SaaS/demo shell
 

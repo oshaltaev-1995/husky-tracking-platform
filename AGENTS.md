@@ -71,6 +71,10 @@ These instructions apply to the entire repository.
 - Dashboard is the fixed-reference `/dashboard` operational home. Its projection must
   compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
   services; do not persist dashboard totals or create alternate KPI/attention rules.
+- Dog media uses one optional canonical `photo_key` per Dog. Keys are UUID-based WebP
+  filenames served from `/media/dogs/`; absent or failed assets use the shared local
+  placeholder. The `dog-media-v1` manifest is separate from the domain dataset, and
+  real, stock, scraped, or reference-repository dog photographs are prohibited.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a

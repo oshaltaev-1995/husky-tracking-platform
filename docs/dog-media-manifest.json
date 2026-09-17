@@ -1,0 +1,2259 @@
+{
+  "manifest_version": "dog-media-v1",
+  "dataset_version": "winter-2025-2026-v1",
+  "reference_date": "2026-03-31",
+  "asset_contract": {
+    "repository_directory": "frontend/public/media/dogs",
+    "public_url_prefix": "/media/dogs/",
+    "format": "webp",
+    "width_px": 1086,
+    "height_px": 1448,
+    "aspect_ratio": "3:4",
+    "cache_version": "dog-media-v1",
+    "target_file_size_kb": 300,
+    "review_file_size_kb": 500
+  },
+  "dogs": [
+    {
+      "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+      "name": "Aurora",
+      "sex": "female",
+      "birth_date": "2016-01-10",
+      "age_at_reference": {
+        "years": 10,
+        "months": 2,
+        "label": "10 years, 2 months"
+      },
+      "operational_class": "standard",
+      "litter_code": null,
+      "mother": null,
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "9422673b-331b-5e72-a700-5fff0574a209.webp",
+      "visual_traits": {
+        "coat_base": "silver grey",
+        "coat_secondary": "clean white",
+        "facial_marking": "slim white blaze and soft grey mask",
+        "eye_color": "warm amber",
+        "coat_length": "medium dense",
+        "build": "lean mature",
+        "ear_presentation": "upright with softly rounded tips",
+        "tail_appearance": "full grey plume with white tip",
+        "approximate_visual_age": "healthy senior adult with light muzzle silvering",
+        "distinctive_marking": "small silver spot above the right eye",
+        "family_resemblance": "origin of the silver-grey Aurora line seen in C and H descendants",
+        "portrait_character": "calm square stance with an alert but gentle expression"
+      },
+      "generation_brief": "Portray Aurora, a female northern working sled dog at the healthy senior adult with light muzzle silvering stage, with lean mature proportions, a medium dense silver grey and clean white coat, slim white blaze and soft grey mask, and warm amber eyes. Show small silver spot above the right eye; origin of the silver-grey Aurora line seen in C and H descendants. Use calm square stance with an alert but gentle expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "ff40af5f-64c8-5c5a-9878-300c3ace89f1",
+      "name": "Atlas",
+      "sex": "male",
+      "birth_date": "2016-02-20",
+      "age_at_reference": {
+        "years": 10,
+        "months": 1,
+        "label": "10 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": null,
+      "mother": null,
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "ff40af5f-64c8-5c5a-9878-300c3ace89f1.webp",
+      "visual_traits": {
+        "coat_base": "deep black",
+        "coat_secondary": "warm cream white",
+        "facial_marking": "broad cream blaze under a dark cap",
+        "eye_color": "dark brown",
+        "coat_length": "short dense",
+        "build": "broad-chested working",
+        "ear_presentation": "high upright",
+        "tail_appearance": "heavy black brush with cream underside",
+        "approximate_visual_age": "healthy senior adult with a subtly greying chin",
+        "distinctive_marking": "narrow black bridge extending into the blaze",
+        "family_resemblance": "dark-coated foundation line echoed in the D and K families",
+        "portrait_character": "steady three-quarter stance with head held confidently"
+      },
+      "generation_brief": "Portray Atlas, a male northern working sled dog at the healthy senior adult with a subtly greying chin stage, with broad-chested working proportions, a short dense deep black and warm cream white coat, broad cream blaze under a dark cap, and dark brown eyes. Show narrow black bridge extending into the blaze; dark-coated foundation line echoed in the D and K families. Use steady three-quarter stance with head held confidently. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "fa2ac485-6690-50a0-a437-815b3f0b7dbb",
+      "name": "Freya",
+      "sex": "female",
+      "birth_date": "2016-04-18",
+      "age_at_reference": {
+        "years": 9,
+        "months": 11,
+        "label": "9 years, 11 months"
+      },
+      "operational_class": "standard",
+      "litter_code": null,
+      "mother": null,
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "fa2ac485-6690-50a0-a437-815b3f0b7dbb.webp",
+      "visual_traits": {
+        "coat_base": "copper red",
+        "coat_secondary": "ivory white",
+        "facial_marking": "open white face with red brow arcs",
+        "eye_color": "golden amber",
+        "coat_length": "medium plush",
+        "build": "athletic and balanced",
+        "ear_presentation": "upright and close-set",
+        "tail_appearance": "copper sickle tail with ivory tip",
+        "approximate_visual_age": "mature adult with a faintly pale muzzle",
+        "distinctive_marking": "asymmetric ivory patch climbing the left cheek",
+        "family_resemblance": "red-toned foundation line carried into the D and M families",
+        "portrait_character": "relaxed side-facing stance with attentive eyes"
+      },
+      "generation_brief": "Portray Freya, a female northern working sled dog at the mature adult with a faintly pale muzzle stage, with athletic and balanced proportions, a medium plush copper red and ivory white coat, open white face with red brow arcs, and golden amber eyes. Show asymmetric ivory patch climbing the left cheek; red-toned foundation line carried into the D and M families. Use relaxed side-facing stance with attentive eyes. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "35eaa15f-1862-5f9c-865e-5897177b384a",
+      "name": "Fjord",
+      "sex": "male",
+      "birth_date": "2016-05-12",
+      "age_at_reference": {
+        "years": 9,
+        "months": 10,
+        "label": "9 years, 10 months"
+      },
+      "operational_class": "standard",
+      "litter_code": null,
+      "mother": null,
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "35eaa15f-1862-5f9c-865e-5897177b384a.webp",
+      "visual_traits": {
+        "coat_base": "charcoal agouti",
+        "coat_secondary": "smoky cream",
+        "facial_marking": "dark wolf mask with cream spectacles",
+        "eye_color": "chestnut brown",
+        "coat_length": "dense northern",
+        "build": "strong compact",
+        "ear_presentation": "upright and slightly wide-set",
+        "tail_appearance": "dense charcoal plume",
+        "approximate_visual_age": "mature senior adult in robust condition",
+        "distinctive_marking": "cream crescent across the chest",
+        "family_resemblance": "agouti foundation line recurring in H, N, and later descendants",
+        "portrait_character": "quiet planted stance with a seasoned working-dog presence"
+      },
+      "generation_brief": "Portray Fjord, a male northern working sled dog at the mature senior adult in robust condition stage, with strong compact proportions, a dense northern charcoal agouti and smoky cream coat, dark wolf mask with cream spectacles, and chestnut brown eyes. Show cream crescent across the chest; agouti foundation line recurring in H, N, and later descendants. Use quiet planted stance with a seasoned working-dog presence. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "7addc940-1af5-5654-8307-e50355fdf717",
+      "name": "Cedar",
+      "sex": "male",
+      "birth_date": "2018-06-15",
+      "age_at_reference": {
+        "years": 7,
+        "months": 9,
+        "label": "7 years, 9 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "C",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "7addc940-1af5-5654-8307-e50355fdf717.webp",
+      "visual_traits": {
+        "coat_base": "sable grey",
+        "coat_secondary": "white",
+        "facial_marking": "narrow white blaze within a sable mask",
+        "eye_color": "amber",
+        "coat_length": "medium",
+        "build": "tall lean",
+        "ear_presentation": "upright",
+        "tail_appearance": "slender sable brush with white tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "dark cedar-brown stripe along the spine",
+        "family_resemblance": "Aurora's silver mask softened by the C-litter's sable external line",
+        "portrait_character": "alert forward stance with one forepaw slightly advanced"
+      },
+      "generation_brief": "Portray Cedar, a male northern working sled dog at the mature adult stage, with tall lean proportions, a medium sable grey and white coat, narrow white blaze within a sable mask, and amber eyes. Show dark cedar-brown stripe along the spine; Aurora's silver mask softened by the C-litter's sable external line. Use alert forward stance with one forepaw slightly advanced. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "a69a0e27-ca79-5532-9d18-ec2ee2d010ed",
+      "name": "Cinder",
+      "sex": "female",
+      "birth_date": "2018-06-15",
+      "age_at_reference": {
+        "years": 7,
+        "months": 9,
+        "label": "7 years, 9 months"
+      },
+      "operational_class": "training",
+      "litter_code": "C",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": null,
+      "lifecycle": "archived",
+      "target_filename": "a69a0e27-ca79-5532-9d18-ec2ee2d010ed.webp",
+      "visual_traits": {
+        "coat_base": "smoky charcoal",
+        "coat_secondary": "silver white",
+        "facial_marking": "charcoal cap with a fine silver blaze",
+        "eye_color": "brown",
+        "coat_length": "short dense",
+        "build": "compact athletic",
+        "ear_presentation": "upright with one tip subtly relaxed",
+        "tail_appearance": "dark compact plume",
+        "approximate_visual_age": "healthy young adult at the time represented",
+        "distinctive_marking": "pale flecking around the nose",
+        "family_resemblance": "C-litter silver structure with the darkest external-sire expression",
+        "portrait_character": "natural side stance with a bright attentive look"
+      },
+      "generation_brief": "Portray Cinder, a female northern working sled dog at the healthy young adult at the time represented stage, with compact athletic proportions, a short dense smoky charcoal and silver white coat, charcoal cap with a fine silver blaze, and brown eyes. Show pale flecking around the nose; C-litter silver structure with the darkest external-sire expression. Use natural side stance with a bright attentive look. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "cceb0d6e-57d4-59d1-b48f-3b00f659bf32",
+      "name": "Cosmo",
+      "sex": "male",
+      "birth_date": "2018-06-15",
+      "age_at_reference": {
+        "years": 7,
+        "months": 9,
+        "label": "7 years, 9 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "C",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "cceb0d6e-57d4-59d1-b48f-3b00f659bf32.webp",
+      "visual_traits": {
+        "coat_base": "blue grey",
+        "coat_secondary": "bright white",
+        "facial_marking": "wide white blaze and rounded grey eye patches",
+        "eye_color": "one blue and one amber",
+        "coat_length": "medium dense",
+        "build": "long-legged lean",
+        "ear_presentation": "tall upright",
+        "tail_appearance": "blue-grey plume with broad white tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "small grey freckle on the white muzzle",
+        "family_resemblance": "C-litter silver palette with Aurora's open expression",
+        "portrait_character": "curious three-quarter stance with ears fully forward"
+      },
+      "generation_brief": "Portray Cosmo, a male northern working sled dog at the mature adult stage, with long-legged lean proportions, a medium dense blue grey and bright white coat, wide white blaze and rounded grey eye patches, and one blue and one amber eyes. Show small grey freckle on the white muzzle; C-litter silver palette with Aurora's open expression. Use curious three-quarter stance with ears fully forward. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+      "name": "Clover",
+      "sex": "female",
+      "birth_date": "2018-06-15",
+      "age_at_reference": {
+        "years": 7,
+        "months": 9,
+        "label": "7 years, 9 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "C",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": null,
+      "lifecycle": "active",
+      "target_filename": "c89f3719-ed0a-56fc-bffb-a5205aab98c9.webp",
+      "visual_traits": {
+        "coat_base": "soft wolf grey",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream heart-shaped forehead blaze",
+        "eye_color": "hazel",
+        "coat_length": "medium plush",
+        "build": "balanced athletic",
+        "ear_presentation": "upright and slightly rounded",
+        "tail_appearance": "soft grey curl with cream underside",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "four small dark freckles on the muzzle",
+        "family_resemblance": "C-litter grey face and Aurora's amber-family warmth",
+        "portrait_character": "friendly relaxed stance with a gentle head tilt"
+      },
+      "generation_brief": "Portray Clover, a female northern working sled dog at the mature adult stage, with balanced athletic proportions, a medium plush soft wolf grey and cream white coat, cream heart-shaped forehead blaze, and hazel eyes. Show four small dark freckles on the muzzle; C-litter grey face and Aurora's amber-family warmth. Use friendly relaxed stance with a gentle head tilt. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "13cd6536-29c9-57d7-8213-432ae65646ab",
+      "name": "Coast",
+      "sex": "male",
+      "birth_date": "2018-06-15",
+      "age_at_reference": {
+        "years": 7,
+        "months": 9,
+        "label": "7 years, 9 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "C",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": null,
+      "lifecycle": "archived",
+      "target_filename": "13cd6536-29c9-57d7-8213-432ae65646ab.webp",
+      "visual_traits": {
+        "coat_base": "pale silver",
+        "coat_secondary": "snow white",
+        "facial_marking": "nearly open white face with silver temples",
+        "eye_color": "ice blue",
+        "coat_length": "medium",
+        "build": "rangy working",
+        "ear_presentation": "upright and wide-set",
+        "tail_appearance": "pale silver plume",
+        "approximate_visual_age": "healthy mature adult at the time represented",
+        "distinctive_marking": "thin silver line beneath the left eye",
+        "family_resemblance": "lightest C-litter expression and source of pale markings in the M line",
+        "portrait_character": "calm profile stance looking just past the camera"
+      },
+      "generation_brief": "Portray Coast, a male northern working sled dog at the healthy mature adult at the time represented stage, with rangy working proportions, a medium pale silver and snow white coat, nearly open white face with silver temples, and ice blue eyes. Show thin silver line beneath the left eye; lightest C-litter expression and source of pale markings in the M line. Use calm profile stance looking just past the camera. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "abe8a601-e107-54c8-87dc-c5a4291a8a2a",
+      "name": "Dune",
+      "sex": "male",
+      "birth_date": "2019-01-02",
+      "age_at_reference": {
+        "years": 7,
+        "months": 2,
+        "label": "7 years, 2 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "D",
+      "mother": {
+        "dog_id": "fa2ac485-6690-50a0-a437-815b3f0b7dbb",
+        "name": "Freya"
+      },
+      "father": {
+        "dog_id": "ff40af5f-64c8-5c5a-9878-300c3ace89f1",
+        "name": "Atlas"
+      },
+      "lifecycle": "active",
+      "target_filename": "abe8a601-e107-54c8-87dc-c5a4291a8a2a.webp",
+      "visual_traits": {
+        "coat_base": "sand red",
+        "coat_secondary": "cream",
+        "facial_marking": "cream blaze split by a fine red center line",
+        "eye_color": "amber brown",
+        "coat_length": "short dense",
+        "build": "muscular athletic",
+        "ear_presentation": "upright",
+        "tail_appearance": "red brush with cream tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "darker rust saddle over the shoulders",
+        "family_resemblance": "Freya's copper palette combined with Atlas's broad frame",
+        "portrait_character": "grounded front three-quarter stance with a focused gaze"
+      },
+      "generation_brief": "Portray Dune, a male northern working sled dog at the mature adult stage, with muscular athletic proportions, a short dense sand red and cream coat, cream blaze split by a fine red center line, and amber brown eyes. Show darker rust saddle over the shoulders; Freya's copper palette combined with Atlas's broad frame. Use grounded front three-quarter stance with a focused gaze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "c05522e9-9eb4-53c1-b5d7-81b502d8219d",
+      "name": "Delta",
+      "sex": "female",
+      "birth_date": "2019-01-02",
+      "age_at_reference": {
+        "years": 7,
+        "months": 2,
+        "label": "7 years, 2 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "D",
+      "mother": {
+        "dog_id": "fa2ac485-6690-50a0-a437-815b3f0b7dbb",
+        "name": "Freya"
+      },
+      "father": {
+        "dog_id": "ff40af5f-64c8-5c5a-9878-300c3ace89f1",
+        "name": "Atlas"
+      },
+      "lifecycle": "active",
+      "target_filename": "c05522e9-9eb4-53c1-b5d7-81b502d8219d.webp",
+      "visual_traits": {
+        "coat_base": "dark copper",
+        "coat_secondary": "white",
+        "facial_marking": "sharp white arrow blaze",
+        "eye_color": "golden amber",
+        "coat_length": "medium",
+        "build": "lean powerful",
+        "ear_presentation": "high upright",
+        "tail_appearance": "dark copper plume with white tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "small white notch on the right ear edge",
+        "family_resemblance": "D-litter red line with Atlas-like dark cap and structure",
+        "portrait_character": "poised side stance with an energetic attentive expression"
+      },
+      "generation_brief": "Portray Delta, a female northern working sled dog at the mature adult stage, with lean powerful proportions, a medium dark copper and white coat, sharp white arrow blaze, and golden amber eyes. Show small white notch on the right ear edge; D-litter red line with Atlas-like dark cap and structure. Use poised side stance with an energetic attentive expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+      "name": "Django",
+      "sex": "male",
+      "birth_date": "2019-01-02",
+      "age_at_reference": {
+        "years": 7,
+        "months": 2,
+        "label": "7 years, 2 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "D",
+      "mother": {
+        "dog_id": "fa2ac485-6690-50a0-a437-815b3f0b7dbb",
+        "name": "Freya"
+      },
+      "father": {
+        "dog_id": "ff40af5f-64c8-5c5a-9878-300c3ace89f1",
+        "name": "Atlas"
+      },
+      "lifecycle": "archived",
+      "target_filename": "b265ec9a-985f-5533-9142-7ba9d59f899f.webp",
+      "visual_traits": {
+        "coat_base": "black sable",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream goggles beneath a black forehead",
+        "eye_color": "deep brown",
+        "coat_length": "short dense",
+        "build": "broad athletic",
+        "ear_presentation": "upright and close-set",
+        "tail_appearance": "black brush with copper fringes",
+        "approximate_visual_age": "healthy mature adult at the time represented",
+        "distinctive_marking": "single copper patch over the left shoulder",
+        "family_resemblance": "D-litter dark Atlas expression with subtle Freya copper",
+        "portrait_character": "confident square stance in calm winter light"
+      },
+      "generation_brief": "Portray Django, a male northern working sled dog at the healthy mature adult at the time represented stage, with broad athletic proportions, a short dense black sable and cream white coat, cream goggles beneath a black forehead, and deep brown eyes. Show single copper patch over the left shoulder; D-litter dark Atlas expression with subtle Freya copper. Use confident square stance in calm winter light. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "cd928571-5774-5f21-95c6-d4a5817b28ed",
+      "name": "Daisy",
+      "sex": "female",
+      "birth_date": "2019-01-02",
+      "age_at_reference": {
+        "years": 7,
+        "months": 2,
+        "label": "7 years, 2 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "D",
+      "mother": {
+        "dog_id": "fa2ac485-6690-50a0-a437-815b3f0b7dbb",
+        "name": "Freya"
+      },
+      "father": {
+        "dog_id": "ff40af5f-64c8-5c5a-9878-300c3ace89f1",
+        "name": "Atlas"
+      },
+      "lifecycle": "active",
+      "target_filename": "cd928571-5774-5f21-95c6-d4a5817b28ed.webp",
+      "visual_traits": {
+        "coat_base": "light copper",
+        "coat_secondary": "ivory",
+        "facial_marking": "open ivory face with delicate copper eyebrows",
+        "eye_color": "hazel green",
+        "coat_length": "medium soft",
+        "build": "slender athletic",
+        "ear_presentation": "upright with rounded tips",
+        "tail_appearance": "light copper sickle tail",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "small copper beauty spot beside the right cheek",
+        "family_resemblance": "D-litter red-white family face with Freya's finer build",
+        "portrait_character": "easy natural stance with a soft direct gaze"
+      },
+      "generation_brief": "Portray Daisy, a female northern working sled dog at the mature adult stage, with slender athletic proportions, a medium soft light copper and ivory coat, open ivory face with delicate copper eyebrows, and hazel green eyes. Show small copper beauty spot beside the right cheek; D-litter red-white family face with Freya's finer build. Use easy natural stance with a soft direct gaze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "ef3ad3d3-4f6e-5b9d-bd77-296901b586c7",
+      "name": "Drift",
+      "sex": "male",
+      "birth_date": "2019-01-02",
+      "age_at_reference": {
+        "years": 7,
+        "months": 2,
+        "label": "7 years, 2 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "D",
+      "mother": {
+        "dog_id": "fa2ac485-6690-50a0-a437-815b3f0b7dbb",
+        "name": "Freya"
+      },
+      "father": {
+        "dog_id": "ff40af5f-64c8-5c5a-9878-300c3ace89f1",
+        "name": "Atlas"
+      },
+      "lifecycle": "active",
+      "target_filename": "ef3ad3d3-4f6e-5b9d-bd77-296901b586c7.webp",
+      "visual_traits": {
+        "coat_base": "black",
+        "coat_secondary": "white and pale copper",
+        "facial_marking": "bold white blaze with pale copper cheek points",
+        "eye_color": "one brown and one blue",
+        "coat_length": "medium dense",
+        "build": "tall athletic",
+        "ear_presentation": "upright and wide-set",
+        "tail_appearance": "black plume with white end",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "white socks rise higher on the front legs",
+        "family_resemblance": "D-litter dark coat balanced by Freya's warm cheek color",
+        "portrait_character": "alert diagonal stance as if pausing during a walk"
+      },
+      "generation_brief": "Portray Drift, a male northern working sled dog at the mature adult stage, with tall athletic proportions, a medium dense black and white and pale copper coat, bold white blaze with pale copper cheek points, and one brown and one blue eyes. Show white socks rise higher on the front legs; D-litter dark coat balanced by Freya's warm cheek color. Use alert diagonal stance as if pausing during a walk. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "cc6697cf-2d7d-53ad-8102-e34ace73657f",
+      "name": "Harbor",
+      "sex": "male",
+      "birth_date": "2020-05-20",
+      "age_at_reference": {
+        "years": 5,
+        "months": 10,
+        "label": "5 years, 10 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "H",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": {
+        "dog_id": "35eaa15f-1862-5f9c-865e-5897177b384a",
+        "name": "Fjord"
+      },
+      "lifecycle": "active",
+      "target_filename": "cc6697cf-2d7d-53ad-8102-e34ace73657f.webp",
+      "visual_traits": {
+        "coat_base": "steel grey",
+        "coat_secondary": "cream white",
+        "facial_marking": "broad cream blaze and charcoal eye rims",
+        "eye_color": "brown",
+        "coat_length": "dense medium",
+        "build": "strong long-bodied",
+        "ear_presentation": "upright",
+        "tail_appearance": "dense grey plume",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "dark charcoal patch at the base of the tail",
+        "family_resemblance": "Aurora silver and Fjord agouti blended through the H litter",
+        "portrait_character": "steady working stance with a calm level head"
+      },
+      "generation_brief": "Portray Harbor, a male northern working sled dog at the mature adult stage, with strong long-bodied proportions, a dense medium steel grey and cream white coat, broad cream blaze and charcoal eye rims, and brown eyes. Show dark charcoal patch at the base of the tail; Aurora silver and Fjord agouti blended through the H litter. Use steady working stance with a calm level head. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+      "name": "Hazel",
+      "sex": "female",
+      "birth_date": "2020-05-20",
+      "age_at_reference": {
+        "years": 5,
+        "months": 10,
+        "label": "5 years, 10 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "H",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": {
+        "dog_id": "35eaa15f-1862-5f9c-865e-5897177b384a",
+        "name": "Fjord"
+      },
+      "lifecycle": "active",
+      "target_filename": "f588e62a-368d-5f14-a5b4-b641f1b18cae.webp",
+      "visual_traits": {
+        "coat_base": "warm agouti",
+        "coat_secondary": "soft cream",
+        "facial_marking": "cream spectacles inside a fine dark mask",
+        "eye_color": "hazel amber",
+        "coat_length": "medium plush",
+        "build": "lean balanced",
+        "ear_presentation": "upright with soft tips",
+        "tail_appearance": "agouti plume with cream fringe",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "pale cream diamond on the chest",
+        "family_resemblance": "H-litter agouti structure linking Fjord to the N descendants",
+        "portrait_character": "composed three-quarter stance with a warm observant expression"
+      },
+      "generation_brief": "Portray Hazel, a female northern working sled dog at the mature adult stage, with lean balanced proportions, a medium plush warm agouti and soft cream coat, cream spectacles inside a fine dark mask, and hazel amber eyes. Show pale cream diamond on the chest; H-litter agouti structure linking Fjord to the N descendants. Use composed three-quarter stance with a warm observant expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "92c788d0-4a84-53ec-8ec4-6962a1cddaa4",
+      "name": "Hugo",
+      "sex": "male",
+      "birth_date": "2020-05-20",
+      "age_at_reference": {
+        "years": 5,
+        "months": 10,
+        "label": "5 years, 10 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "H",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": {
+        "dog_id": "35eaa15f-1862-5f9c-865e-5897177b384a",
+        "name": "Fjord"
+      },
+      "lifecycle": "active",
+      "target_filename": "92c788d0-4a84-53ec-8ec4-6962a1cddaa4.webp",
+      "visual_traits": {
+        "coat_base": "silver charcoal",
+        "coat_secondary": "white",
+        "facial_marking": "symmetrical charcoal cap and white blaze",
+        "eye_color": "blue grey",
+        "coat_length": "dense medium",
+        "build": "broad working",
+        "ear_presentation": "high upright",
+        "tail_appearance": "charcoal plume with white tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "thin charcoal line down the white nose",
+        "family_resemblance": "H-litter silver face with Fjord's dense coat",
+        "portrait_character": "strong square stance with ears sharply attentive"
+      },
+      "generation_brief": "Portray Hugo, a male northern working sled dog at the mature adult stage, with broad working proportions, a dense medium silver charcoal and white coat, symmetrical charcoal cap and white blaze, and blue grey eyes. Show thin charcoal line down the white nose; H-litter silver face with Fjord's dense coat. Use strong square stance with ears sharply attentive. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "f78ce4cd-6cef-5ae8-a1bd-19a9005114f9",
+      "name": "Hilda",
+      "sex": "female",
+      "birth_date": "2020-05-20",
+      "age_at_reference": {
+        "years": 5,
+        "months": 10,
+        "label": "5 years, 10 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "H",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": {
+        "dog_id": "35eaa15f-1862-5f9c-865e-5897177b384a",
+        "name": "Fjord"
+      },
+      "lifecycle": "archived",
+      "target_filename": "f78ce4cd-6cef-5ae8-a1bd-19a9005114f9.webp",
+      "visual_traits": {
+        "coat_base": "pale agouti",
+        "coat_secondary": "cream white",
+        "facial_marking": "soft cream face with agouti brow shading",
+        "eye_color": "light amber",
+        "coat_length": "longer northern",
+        "build": "compact balanced",
+        "ear_presentation": "upright and close-set",
+        "tail_appearance": "full pale plume",
+        "approximate_visual_age": "healthy adult at the time represented",
+        "distinctive_marking": "small white star below the throat",
+        "family_resemblance": "H-litter cream-agouti blend and Aurora's open face",
+        "portrait_character": "gentle relaxed stance with tail naturally lowered"
+      },
+      "generation_brief": "Portray Hilda, a female northern working sled dog at the healthy adult at the time represented stage, with compact balanced proportions, a longer northern pale agouti and cream white coat, soft cream face with agouti brow shading, and light amber eyes. Show small white star below the throat; H-litter cream-agouti blend and Aurora's open face. Use gentle relaxed stance with tail naturally lowered. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "210e10ac-e9e9-557c-b4ff-960b89383091",
+      "name": "Halo",
+      "sex": "female",
+      "birth_date": "2020-05-20",
+      "age_at_reference": {
+        "years": 5,
+        "months": 10,
+        "label": "5 years, 10 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "H",
+      "mother": {
+        "dog_id": "9422673b-331b-5e72-a700-5fff0574a209",
+        "name": "Aurora"
+      },
+      "father": {
+        "dog_id": "35eaa15f-1862-5f9c-865e-5897177b384a",
+        "name": "Fjord"
+      },
+      "lifecycle": "active",
+      "target_filename": "210e10ac-e9e9-557c-b4ff-960b89383091.webp",
+      "visual_traits": {
+        "coat_base": "pearl grey",
+        "coat_secondary": "white",
+        "facial_marking": "white face encircled by a thin grey halo mask",
+        "eye_color": "one pale blue and one amber",
+        "coat_length": "medium plush",
+        "build": "slender long-legged",
+        "ear_presentation": "upright and wide-set",
+        "tail_appearance": "pearl plume with a white curl",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "round grey spot high on the left shoulder",
+        "family_resemblance": "light H-litter expression from Aurora with Fjord's eye mask",
+        "portrait_character": "bright front-facing stance with a curious expression"
+      },
+      "generation_brief": "Portray Halo, a female northern working sled dog at the mature adult stage, with slender long-legged proportions, a medium plush pearl grey and white coat, white face encircled by a thin grey halo mask, and one pale blue and one amber eyes. Show round grey spot high on the left shoulder; light H-litter expression from Aurora with Fjord's eye mask. Use bright front-facing stance with a curious expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+      "name": "Koda",
+      "sex": "male",
+      "birth_date": "2021-02-15",
+      "age_at_reference": {
+        "years": 5,
+        "months": 1,
+        "label": "5 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": "K",
+      "mother": {
+        "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+        "name": "Clover"
+      },
+      "father": {
+        "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+        "name": "Django"
+      },
+      "lifecycle": "active",
+      "target_filename": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0.webp",
+      "visual_traits": {
+        "coat_base": "dark sable",
+        "coat_secondary": "cream",
+        "facial_marking": "cream blaze beneath a dark triangular cap",
+        "eye_color": "dark amber",
+        "coat_length": "medium dense",
+        "build": "powerful lean",
+        "ear_presentation": "upright",
+        "tail_appearance": "sable brush with dark tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "copper band across the upper back",
+        "family_resemblance": "C-line silver structure crossed with Django's dark D-line coloring",
+        "portrait_character": "focused working stance angled slightly toward the camera"
+      },
+      "generation_brief": "Portray Koda, a male northern working sled dog at the mature adult stage, with powerful lean proportions, a medium dense dark sable and cream coat, cream blaze beneath a dark triangular cap, and dark amber eyes. Show copper band across the upper back; C-line silver structure crossed with Django's dark D-line coloring. Use focused working stance angled slightly toward the camera. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+      "name": "Kira",
+      "sex": "female",
+      "birth_date": "2021-02-15",
+      "age_at_reference": {
+        "years": 5,
+        "months": 1,
+        "label": "5 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": "K",
+      "mother": {
+        "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+        "name": "Clover"
+      },
+      "father": {
+        "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+        "name": "Django"
+      },
+      "lifecycle": "active",
+      "target_filename": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b.webp",
+      "visual_traits": {
+        "coat_base": "silver sable",
+        "coat_secondary": "white",
+        "facial_marking": "delicate white blaze and sable eye points",
+        "eye_color": "hazel",
+        "coat_length": "medium",
+        "build": "athletic balanced",
+        "ear_presentation": "upright with rounded tips",
+        "tail_appearance": "silver-sable plume",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "white crescent on the right shoulder",
+        "family_resemblance": "K-litter blend with Clover's soft face and Django's cap",
+        "portrait_character": "quiet poised stance with a direct intelligent gaze"
+      },
+      "generation_brief": "Portray Kira, a female northern working sled dog at the mature adult stage, with athletic balanced proportions, a medium silver sable and white coat, delicate white blaze and sable eye points, and hazel eyes. Show white crescent on the right shoulder; K-litter blend with Clover's soft face and Django's cap. Use quiet poised stance with a direct intelligent gaze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "24d0c5f3-1900-5e63-bde2-a54f8be09833",
+      "name": "Kenzo",
+      "sex": "male",
+      "birth_date": "2021-02-15",
+      "age_at_reference": {
+        "years": 5,
+        "months": 1,
+        "label": "5 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": "K",
+      "mother": {
+        "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+        "name": "Clover"
+      },
+      "father": {
+        "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+        "name": "Django"
+      },
+      "lifecycle": "active",
+      "target_filename": "24d0c5f3-1900-5e63-bde2-a54f8be09833.webp",
+      "visual_traits": {
+        "coat_base": "black grey",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream spectacles and narrow central blaze",
+        "eye_color": "brown",
+        "coat_length": "short dense",
+        "build": "broad-chested",
+        "ear_presentation": "upright and close-set",
+        "tail_appearance": "dark brush with cream underside",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "two cream toe marks on the left forepaw",
+        "family_resemblance": "dark K-litter expression closest to Django, with Clover's grey guard hairs",
+        "portrait_character": "confident natural stance with head slightly turned"
+      },
+      "generation_brief": "Portray Kenzo, a male northern working sled dog at the mature adult stage, with broad-chested proportions, a short dense black grey and cream white coat, cream spectacles and narrow central blaze, and brown eyes. Show two cream toe marks on the left forepaw; dark K-litter expression closest to Django, with Clover's grey guard hairs. Use confident natural stance with head slightly turned. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "d6505bb8-c94f-5936-81e0-df524d160f07",
+      "name": "Kaia",
+      "sex": "female",
+      "birth_date": "2021-02-15",
+      "age_at_reference": {
+        "years": 5,
+        "months": 1,
+        "label": "5 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": "K",
+      "mother": {
+        "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+        "name": "Clover"
+      },
+      "father": {
+        "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+        "name": "Django"
+      },
+      "lifecycle": "active",
+      "target_filename": "d6505bb8-c94f-5936-81e0-df524d160f07.webp",
+      "visual_traits": {
+        "coat_base": "warm sable",
+        "coat_secondary": "ivory",
+        "facial_marking": "open ivory muzzle and fine sable mask",
+        "eye_color": "amber",
+        "coat_length": "medium soft",
+        "build": "slender",
+        "ear_presentation": "upright with one ear softly angled",
+        "tail_appearance": "warm sable curl with ivory tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "small dark teardrop below the right eye",
+        "family_resemblance": "K-litter warmth combining Clover's softness and the D-line copper cast",
+        "portrait_character": "relaxed side stance with an approachable expression"
+      },
+      "generation_brief": "Portray Kaia, a female northern working sled dog at the mature adult stage, with slender proportions, a medium soft warm sable and ivory coat, open ivory muzzle and fine sable mask, and amber eyes. Show small dark teardrop below the right eye; K-litter warmth combining Clover's softness and the D-line copper cast. Use relaxed side stance with an approachable expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "978fa7d2-9252-51d3-8296-29631b3c116e",
+      "name": "Kepler",
+      "sex": "male",
+      "birth_date": "2021-02-15",
+      "age_at_reference": {
+        "years": 5,
+        "months": 1,
+        "label": "5 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": "K",
+      "mother": {
+        "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+        "name": "Clover"
+      },
+      "father": {
+        "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+        "name": "Django"
+      },
+      "lifecycle": "active",
+      "target_filename": "978fa7d2-9252-51d3-8296-29631b3c116e.webp",
+      "visual_traits": {
+        "coat_base": "iron grey",
+        "coat_secondary": "white and tan",
+        "facial_marking": "white blaze with tan eyebrow points",
+        "eye_color": "one blue and one brown",
+        "coat_length": "medium dense",
+        "build": "tall rangy",
+        "ear_presentation": "large upright",
+        "tail_appearance": "iron-grey plume with white tip",
+        "approximate_visual_age": "mature adult",
+        "distinctive_marking": "thin tan collar marking behind the ears",
+        "family_resemblance": "K-litter grey build with a distinctive D-line tan accent",
+        "portrait_character": "alert forward stance with a slightly lifted tail"
+      },
+      "generation_brief": "Portray Kepler, a male northern working sled dog at the mature adult stage, with tall rangy proportions, a medium dense iron grey and white and tan coat, white blaze with tan eyebrow points, and one blue and one brown eyes. Show thin tan collar marking behind the ears; K-litter grey build with a distinctive D-line tan accent. Use alert forward stance with a slightly lifted tail. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "0864342e-3c74-557f-921e-34b470977871",
+      "name": "Kismet",
+      "sex": "female",
+      "birth_date": "2021-02-15",
+      "age_at_reference": {
+        "years": 5,
+        "months": 1,
+        "label": "5 years, 1 month"
+      },
+      "operational_class": "standard",
+      "litter_code": "K",
+      "mother": {
+        "dog_id": "c89f3719-ed0a-56fc-bffb-a5205aab98c9",
+        "name": "Clover"
+      },
+      "father": {
+        "dog_id": "b265ec9a-985f-5533-9142-7ba9d59f899f",
+        "name": "Django"
+      },
+      "lifecycle": "archived",
+      "target_filename": "0864342e-3c74-557f-921e-34b470977871.webp",
+      "visual_traits": {
+        "coat_base": "cream sable",
+        "coat_secondary": "white",
+        "facial_marking": "mostly white face with cream-sable temples",
+        "eye_color": "golden brown",
+        "coat_length": "longer soft",
+        "build": "compact athletic",
+        "ear_presentation": "upright and rounded",
+        "tail_appearance": "full cream plume",
+        "approximate_visual_age": "healthy adult at the time represented",
+        "distinctive_marking": "faint sable patch shaped like a comma on the flank",
+        "family_resemblance": "light K-litter expression inherited from Clover",
+        "portrait_character": "serene three-quarter stance in soft falling snow"
+      },
+      "generation_brief": "Portray Kismet, a female northern working sled dog at the healthy adult at the time represented stage, with compact athletic proportions, a longer soft cream sable and white coat, mostly white face with cream-sable temples, and golden brown eyes. Show faint sable patch shaped like a comma on the flank; light K-litter expression inherited from Clover. Use serene three-quarter stance in soft falling snow. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+      "name": "Maple",
+      "sex": "female",
+      "birth_date": "2022-04-14",
+      "age_at_reference": {
+        "years": 3,
+        "months": 11,
+        "label": "3 years, 11 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "M",
+      "mother": {
+        "dog_id": "c05522e9-9eb4-53c1-b5d7-81b502d8219d",
+        "name": "Delta"
+      },
+      "father": {
+        "dog_id": "13cd6536-29c9-57d7-8213-432ae65646ab",
+        "name": "Coast"
+      },
+      "lifecycle": "active",
+      "target_filename": "d8e8f71e-f334-5a35-b160-c0a453b3b092.webp",
+      "visual_traits": {
+        "coat_base": "maple red",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream blaze with red cheek panels",
+        "eye_color": "amber",
+        "coat_length": "medium",
+        "build": "lean athletic",
+        "ear_presentation": "upright",
+        "tail_appearance": "red plume with cream fringe",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "pale maple leaf-shaped chest patch",
+        "family_resemblance": "Delta's red D-line softened by Coast's pale C-line markings",
+        "portrait_character": "balanced standing pose with a bright resilient expression"
+      },
+      "generation_brief": "Portray Maple, a female northern working sled dog at the young adult stage, with lean athletic proportions, a medium maple red and cream white coat, cream blaze with red cheek panels, and amber eyes. Show pale maple leaf-shaped chest patch; Delta's red D-line softened by Coast's pale C-line markings. Use balanced standing pose with a bright resilient expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+      "name": "Magnus",
+      "sex": "male",
+      "birth_date": "2022-04-14",
+      "age_at_reference": {
+        "years": 3,
+        "months": 11,
+        "label": "3 years, 11 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "M",
+      "mother": {
+        "dog_id": "c05522e9-9eb4-53c1-b5d7-81b502d8219d",
+        "name": "Delta"
+      },
+      "father": {
+        "dog_id": "13cd6536-29c9-57d7-8213-432ae65646ab",
+        "name": "Coast"
+      },
+      "lifecycle": "active",
+      "target_filename": "700ce6b9-68d3-57f4-9bce-93371f229e22.webp",
+      "visual_traits": {
+        "coat_base": "charcoal red sable",
+        "coat_secondary": "white",
+        "facial_marking": "broad white blaze under a dark sable cap",
+        "eye_color": "dark brown",
+        "coat_length": "short dense",
+        "build": "large powerful",
+        "ear_presentation": "high upright",
+        "tail_appearance": "heavy dark-sable brush",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "rust-red band around the lower neck",
+        "family_resemblance": "M-litter cross showing Delta's warmth and Coast's high white blaze",
+        "portrait_character": "strong square stance with a calm dependable presence"
+      },
+      "generation_brief": "Portray Magnus, a male northern working sled dog at the young adult stage, with large powerful proportions, a short dense charcoal red sable and white coat, broad white blaze under a dark sable cap, and dark brown eyes. Show rust-red band around the lower neck; M-litter cross showing Delta's warmth and Coast's high white blaze. Use strong square stance with a calm dependable presence. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "54ccbc70-8919-5b5f-8fcc-ef6a92b4237b",
+      "name": "Mabel",
+      "sex": "female",
+      "birth_date": "2022-04-14",
+      "age_at_reference": {
+        "years": 3,
+        "months": 11,
+        "label": "3 years, 11 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "M",
+      "mother": {
+        "dog_id": "c05522e9-9eb4-53c1-b5d7-81b502d8219d",
+        "name": "Delta"
+      },
+      "father": {
+        "dog_id": "13cd6536-29c9-57d7-8213-432ae65646ab",
+        "name": "Coast"
+      },
+      "lifecycle": "archived",
+      "target_filename": "54ccbc70-8919-5b5f-8fcc-ef6a92b4237b.webp",
+      "visual_traits": {
+        "coat_base": "pale copper",
+        "coat_secondary": "white",
+        "facial_marking": "wide white face with pale copper brow patches",
+        "eye_color": "hazel",
+        "coat_length": "medium plush",
+        "build": "balanced",
+        "ear_presentation": "upright with soft tips",
+        "tail_appearance": "pale copper sickle tail",
+        "approximate_visual_age": "healthy young adult at the time represented",
+        "distinctive_marking": "tiny copper dot centered above the nose",
+        "family_resemblance": "light M-litter expression combining both parents' open faces",
+        "portrait_character": "gentle side stance with ears relaxed but attentive"
+      },
+      "generation_brief": "Portray Mabel, a female northern working sled dog at the healthy young adult at the time represented stage, with balanced proportions, a medium plush pale copper and white coat, wide white face with pale copper brow patches, and hazel eyes. Show tiny copper dot centered above the nose; light M-litter expression combining both parents' open faces. Use gentle side stance with ears relaxed but attentive. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "4946b7f5-0841-5ae4-8e2d-52025de0d191",
+      "name": "Milo",
+      "sex": "male",
+      "birth_date": "2022-04-14",
+      "age_at_reference": {
+        "years": 3,
+        "months": 11,
+        "label": "3 years, 11 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "M",
+      "mother": {
+        "dog_id": "c05522e9-9eb4-53c1-b5d7-81b502d8219d",
+        "name": "Delta"
+      },
+      "father": {
+        "dog_id": "13cd6536-29c9-57d7-8213-432ae65646ab",
+        "name": "Coast"
+      },
+      "lifecycle": "active",
+      "target_filename": "4946b7f5-0841-5ae4-8e2d-52025de0d191.webp",
+      "visual_traits": {
+        "coat_base": "silver red",
+        "coat_secondary": "cream",
+        "facial_marking": "cream muzzle and narrow silver-red blaze",
+        "eye_color": "amber brown",
+        "coat_length": "medium dense",
+        "build": "rangy athletic",
+        "ear_presentation": "upright and wide-set",
+        "tail_appearance": "silver-red plume with dark tip",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "silver saddle fading into red shoulders",
+        "family_resemblance": "M-litter blend that passes red-grey contrast into the T puppies",
+        "portrait_character": "alert three-quarter stance with a lively working expression"
+      },
+      "generation_brief": "Portray Milo, a male northern working sled dog at the young adult stage, with rangy athletic proportions, a medium dense silver red and cream coat, cream muzzle and narrow silver-red blaze, and amber brown eyes. Show silver saddle fading into red shoulders; M-litter blend that passes red-grey contrast into the T puppies. Use alert three-quarter stance with a lively working expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "dba1a0cb-e8d8-5782-90cc-eb91cd7f5cc5",
+      "name": "Mistral",
+      "sex": "male",
+      "birth_date": "2022-04-14",
+      "age_at_reference": {
+        "years": 3,
+        "months": 11,
+        "label": "3 years, 11 months"
+      },
+      "operational_class": "standard",
+      "litter_code": "M",
+      "mother": {
+        "dog_id": "c05522e9-9eb4-53c1-b5d7-81b502d8219d",
+        "name": "Delta"
+      },
+      "father": {
+        "dog_id": "13cd6536-29c9-57d7-8213-432ae65646ab",
+        "name": "Coast"
+      },
+      "lifecycle": "active",
+      "target_filename": "dba1a0cb-e8d8-5782-90cc-eb91cd7f5cc5.webp",
+      "visual_traits": {
+        "coat_base": "storm grey",
+        "coat_secondary": "white",
+        "facial_marking": "windswept asymmetric white blaze",
+        "eye_color": "ice blue",
+        "coat_length": "medium",
+        "build": "slender fast",
+        "ear_presentation": "tall upright",
+        "tail_appearance": "long grey brush with white end",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "dark streak sweeping back from the left eye",
+        "family_resemblance": "cool-toned M-litter variation influenced by Coast's silver",
+        "portrait_character": "dynamic but stationary stance with coat lightly lifted by breeze"
+      },
+      "generation_brief": "Portray Mistral, a male northern working sled dog at the young adult stage, with slender fast proportions, a medium storm grey and white coat, windswept asymmetric white blaze, and ice blue eyes. Show dark streak sweeping back from the left eye; cool-toned M-litter variation influenced by Coast's silver. Use dynamic but stationary stance with coat lightly lifted by breeze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "6415eb4a-17f2-5878-b2cc-d04803f30245",
+      "name": "Nova",
+      "sex": "female",
+      "birth_date": "2023-03-01",
+      "age_at_reference": {
+        "years": 3,
+        "months": 0,
+        "label": "3 years"
+      },
+      "operational_class": "training",
+      "litter_code": "N",
+      "mother": {
+        "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+        "name": "Hazel"
+      },
+      "father": {
+        "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+        "name": "Koda"
+      },
+      "lifecycle": "active",
+      "target_filename": "6415eb4a-17f2-5878-b2cc-d04803f30245.webp",
+      "visual_traits": {
+        "coat_base": "silver agouti",
+        "coat_secondary": "white",
+        "facial_marking": "white star blaze inside an agouti mask",
+        "eye_color": "one blue and one amber",
+        "coat_length": "medium dense",
+        "build": "lean athletic",
+        "ear_presentation": "upright",
+        "tail_appearance": "silver-agouti plume",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "small white star-shaped chest mark",
+        "family_resemblance": "Hazel's H-line agouti and Koda's dark sable form the N family signature",
+        "portrait_character": "composed forward stance with an inquisitive direct gaze"
+      },
+      "generation_brief": "Portray Nova, a female northern working sled dog at the young adult stage, with lean athletic proportions, a medium dense silver agouti and white coat, white star blaze inside an agouti mask, and one blue and one amber eyes. Show small white star-shaped chest mark; Hazel's H-line agouti and Koda's dark sable form the N family signature. Use composed forward stance with an inquisitive direct gaze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "aa6ffc26-e516-5f00-92aa-38402aa4ce80",
+      "name": "Niko",
+      "sex": "male",
+      "birth_date": "2023-03-01",
+      "age_at_reference": {
+        "years": 3,
+        "months": 0,
+        "label": "3 years"
+      },
+      "operational_class": "training",
+      "litter_code": "N",
+      "mother": {
+        "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+        "name": "Hazel"
+      },
+      "father": {
+        "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+        "name": "Koda"
+      },
+      "lifecycle": "active",
+      "target_filename": "aa6ffc26-e516-5f00-92aa-38402aa4ce80.webp",
+      "visual_traits": {
+        "coat_base": "dark agouti",
+        "coat_secondary": "cream",
+        "facial_marking": "cream spectacles with a dark forehead wedge",
+        "eye_color": "amber",
+        "coat_length": "short dense",
+        "build": "strong athletic",
+        "ear_presentation": "upright and close-set",
+        "tail_appearance": "dark agouti brush",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "thin cream line along the lower jaw",
+        "family_resemblance": "N-litter dark expression with Koda's build and Hazel's eye mask",
+        "portrait_character": "steady side-facing stance with head turned toward camera"
+      },
+      "generation_brief": "Portray Niko, a male northern working sled dog at the young adult stage, with strong athletic proportions, a short dense dark agouti and cream coat, cream spectacles with a dark forehead wedge, and amber eyes. Show thin cream line along the lower jaw; N-litter dark expression with Koda's build and Hazel's eye mask. Use steady side-facing stance with head turned toward camera. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "fdd0eebf-1aa0-59b6-88d0-6435cb941394",
+      "name": "Nala",
+      "sex": "female",
+      "birth_date": "2023-03-01",
+      "age_at_reference": {
+        "years": 3,
+        "months": 0,
+        "label": "3 years"
+      },
+      "operational_class": "training",
+      "litter_code": "N",
+      "mother": {
+        "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+        "name": "Hazel"
+      },
+      "father": {
+        "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+        "name": "Koda"
+      },
+      "lifecycle": "active",
+      "target_filename": "fdd0eebf-1aa0-59b6-88d0-6435cb941394.webp",
+      "visual_traits": {
+        "coat_base": "warm grey",
+        "coat_secondary": "ivory",
+        "facial_marking": "ivory butterfly blaze with soft grey cheeks",
+        "eye_color": "hazel green",
+        "coat_length": "medium soft",
+        "build": "slender balanced",
+        "ear_presentation": "upright with rounded tips",
+        "tail_appearance": "warm-grey plume with ivory tip",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "small grey patch on the left foreleg",
+        "family_resemblance": "softer N-litter expression closest to Hazel",
+        "portrait_character": "graceful relaxed stance with a calm open expression"
+      },
+      "generation_brief": "Portray Nala, a female northern working sled dog at the young adult stage, with slender balanced proportions, a medium soft warm grey and ivory coat, ivory butterfly blaze with soft grey cheeks, and hazel green eyes. Show small grey patch on the left foreleg; softer N-litter expression closest to Hazel. Use graceful relaxed stance with a calm open expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+      "name": "Nimbus",
+      "sex": "male",
+      "birth_date": "2023-03-01",
+      "age_at_reference": {
+        "years": 3,
+        "months": 0,
+        "label": "3 years"
+      },
+      "operational_class": "training",
+      "litter_code": "N",
+      "mother": {
+        "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+        "name": "Hazel"
+      },
+      "father": {
+        "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+        "name": "Koda"
+      },
+      "lifecycle": "archived",
+      "target_filename": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804.webp",
+      "visual_traits": {
+        "coat_base": "cloud grey",
+        "coat_secondary": "bright white",
+        "facial_marking": "broad white blaze beneath a cloud-grey cap",
+        "eye_color": "pale blue",
+        "coat_length": "longer dense",
+        "build": "tall athletic",
+        "ear_presentation": "large upright",
+        "tail_appearance": "full cloud-grey plume",
+        "approximate_visual_age": "healthy young adult at the time represented",
+        "distinctive_marking": "dark silver cloud-shaped saddle",
+        "family_resemblance": "N-litter silver-agouti traits later echoed through the S litter",
+        "portrait_character": "proud three-quarter stance against a softly misted winter background"
+      },
+      "generation_brief": "Portray Nimbus, a male northern working sled dog at the healthy young adult at the time represented stage, with tall athletic proportions, a longer dense cloud grey and bright white coat, broad white blaze beneath a cloud-grey cap, and pale blue eyes. Show dark silver cloud-shaped saddle; N-litter silver-agouti traits later echoed through the S litter. Use proud three-quarter stance against a softly misted winter background. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "0975fe83-5ff2-51e1-86c6-79dd3e766b43",
+      "name": "Nora",
+      "sex": "female",
+      "birth_date": "2023-03-01",
+      "age_at_reference": {
+        "years": 3,
+        "months": 0,
+        "label": "3 years"
+      },
+      "operational_class": "standard",
+      "litter_code": "N",
+      "mother": {
+        "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+        "name": "Hazel"
+      },
+      "father": {
+        "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+        "name": "Koda"
+      },
+      "lifecycle": "active",
+      "target_filename": "0975fe83-5ff2-51e1-86c6-79dd3e766b43.webp",
+      "visual_traits": {
+        "coat_base": "brown agouti",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream blaze and fine brown mask",
+        "eye_color": "golden amber",
+        "coat_length": "medium",
+        "build": "lean balanced",
+        "ear_presentation": "upright and slightly wide-set",
+        "tail_appearance": "brown-agouti plume",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "cream diagonal slash on the right shoulder",
+        "family_resemblance": "N-litter agouti lineage carried into the V puppies",
+        "portrait_character": "alert natural stance with a warm attentive expression"
+      },
+      "generation_brief": "Portray Nora, a female northern working sled dog at the young adult stage, with lean balanced proportions, a medium brown agouti and cream white coat, cream blaze and fine brown mask, and golden amber eyes. Show cream diagonal slash on the right shoulder; N-litter agouti lineage carried into the V puppies. Use alert natural stance with a warm attentive expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "ca7a8773-bf89-5a40-bea7-904e8103c46c",
+      "name": "North",
+      "sex": "male",
+      "birth_date": "2023-03-01",
+      "age_at_reference": {
+        "years": 3,
+        "months": 0,
+        "label": "3 years"
+      },
+      "operational_class": "standard",
+      "litter_code": "N",
+      "mother": {
+        "dog_id": "f588e62a-368d-5f14-a5b4-b641f1b18cae",
+        "name": "Hazel"
+      },
+      "father": {
+        "dog_id": "e5f9df9a-4e6d-5aef-b3c7-f1134e73aec0",
+        "name": "Koda"
+      },
+      "lifecycle": "active",
+      "target_filename": "ca7a8773-bf89-5a40-bea7-904e8103c46c.webp",
+      "visual_traits": {
+        "coat_base": "black silver",
+        "coat_secondary": "white",
+        "facial_marking": "sharp white blaze within a black-silver mask",
+        "eye_color": "steel blue",
+        "coat_length": "short dense",
+        "build": "broad athletic",
+        "ear_presentation": "high upright",
+        "tail_appearance": "black-silver brush with white tip",
+        "approximate_visual_age": "young adult",
+        "distinctive_marking": "white compass-point marking on the chest",
+        "family_resemblance": "coolest N-litter expression combining Hazel's mask and Koda's dark coat",
+        "portrait_character": "focused front three-quarter stance looking into the distance"
+      },
+      "generation_brief": "Portray North, a male northern working sled dog at the young adult stage, with broad athletic proportions, a short dense black silver and white coat, sharp white blaze within a black-silver mask, and steel blue eyes. Show white compass-point marking on the chest; coolest N-litter expression combining Hazel's mask and Koda's dark coat. Use focused front three-quarter stance looking into the distance. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "e8cd64de-938f-561a-b230-f8f45005c9a6",
+      "name": "Orion",
+      "sex": "male",
+      "birth_date": "2024-06-20",
+      "age_at_reference": {
+        "years": 1,
+        "months": 9,
+        "label": "1 year, 9 months"
+      },
+      "operational_class": "training",
+      "litter_code": "O",
+      "mother": {
+        "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+        "name": "Kira"
+      },
+      "father": {
+        "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+        "name": "Magnus"
+      },
+      "lifecycle": "active",
+      "target_filename": "e8cd64de-938f-561a-b230-f8f45005c9a6.webp",
+      "visual_traits": {
+        "coat_base": "black sable",
+        "coat_secondary": "white and copper",
+        "facial_marking": "white blaze with copper eyebrow dots",
+        "eye_color": "amber brown",
+        "coat_length": "medium dense",
+        "build": "adolescent athletic",
+        "ear_presentation": "upright and tall",
+        "tail_appearance": "black-sable plume with copper fringe",
+        "approximate_visual_age": "late-adolescent training dog",
+        "distinctive_marking": "three small white stars down the chest",
+        "family_resemblance": "Kira's K-line mask crossed with Magnus's substantial M-line frame",
+        "portrait_character": "energetic square stance with a youthful alert expression"
+      },
+      "generation_brief": "Portray Orion, a male northern working sled dog at the late-adolescent training dog stage, with adolescent athletic proportions, a medium dense black sable and white and copper coat, white blaze with copper eyebrow dots, and amber brown eyes. Show three small white stars down the chest; Kira's K-line mask crossed with Magnus's substantial M-line frame. Use energetic square stance with a youthful alert expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "344798a3-2776-5ecc-9683-189b196e5d2c",
+      "name": "Olive",
+      "sex": "female",
+      "birth_date": "2024-06-20",
+      "age_at_reference": {
+        "years": 1,
+        "months": 9,
+        "label": "1 year, 9 months"
+      },
+      "operational_class": "training",
+      "litter_code": "O",
+      "mother": {
+        "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+        "name": "Kira"
+      },
+      "father": {
+        "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+        "name": "Magnus"
+      },
+      "lifecycle": "active",
+      "target_filename": "344798a3-2776-5ecc-9683-189b196e5d2c.webp",
+      "visual_traits": {
+        "coat_base": "olive agouti",
+        "coat_secondary": "cream",
+        "facial_marking": "cream spectacles under olive-brown brow shading",
+        "eye_color": "hazel",
+        "coat_length": "medium",
+        "build": "slender adolescent",
+        "ear_presentation": "upright with soft tips",
+        "tail_appearance": "olive-agouti brush",
+        "approximate_visual_age": "late-adolescent training dog",
+        "distinctive_marking": "pale cream oval on the throat",
+        "family_resemblance": "O-litter sable-agouti blend with Kira's fine face",
+        "portrait_character": "relaxed youthful stance with a slight head tilt"
+      },
+      "generation_brief": "Portray Olive, a female northern working sled dog at the late-adolescent training dog stage, with slender adolescent proportions, a medium olive agouti and cream coat, cream spectacles under olive-brown brow shading, and hazel eyes. Show pale cream oval on the throat; O-litter sable-agouti blend with Kira's fine face. Use relaxed youthful stance with a slight head tilt. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "b45443ea-4a34-53f3-929a-99e5ce4779f0",
+      "name": "Otis",
+      "sex": "male",
+      "birth_date": "2024-06-20",
+      "age_at_reference": {
+        "years": 1,
+        "months": 9,
+        "label": "1 year, 9 months"
+      },
+      "operational_class": "training",
+      "litter_code": "O",
+      "mother": {
+        "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+        "name": "Kira"
+      },
+      "father": {
+        "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+        "name": "Magnus"
+      },
+      "lifecycle": "active",
+      "target_filename": "b45443ea-4a34-53f3-929a-99e5ce4779f0.webp",
+      "visual_traits": {
+        "coat_base": "dark copper sable",
+        "coat_secondary": "white",
+        "facial_marking": "white blaze and dark copper cheek panels",
+        "eye_color": "dark brown",
+        "coat_length": "short dense",
+        "build": "broad adolescent",
+        "ear_presentation": "upright",
+        "tail_appearance": "dark copper brush",
+        "approximate_visual_age": "late-adolescent training dog",
+        "distinctive_marking": "black saddle patch ending at mid-back",
+        "family_resemblance": "O-litter warm variation closest to Magnus's red-sable coat",
+        "portrait_character": "confident youthful stance with forelegs evenly planted"
+      },
+      "generation_brief": "Portray Otis, a male northern working sled dog at the late-adolescent training dog stage, with broad adolescent proportions, a short dense dark copper sable and white coat, white blaze and dark copper cheek panels, and dark brown eyes. Show black saddle patch ending at mid-back; O-litter warm variation closest to Magnus's red-sable coat. Use confident youthful stance with forelegs evenly planted. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "be15fe1c-dfa1-5a3a-b0f9-b01e6416c928",
+      "name": "Opal",
+      "sex": "female",
+      "birth_date": "2024-06-20",
+      "age_at_reference": {
+        "years": 1,
+        "months": 9,
+        "label": "1 year, 9 months"
+      },
+      "operational_class": "training",
+      "litter_code": "O",
+      "mother": {
+        "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+        "name": "Kira"
+      },
+      "father": {
+        "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+        "name": "Magnus"
+      },
+      "lifecycle": "active",
+      "target_filename": "be15fe1c-dfa1-5a3a-b0f9-b01e6416c928.webp",
+      "visual_traits": {
+        "coat_base": "pearl silver",
+        "coat_secondary": "white",
+        "facial_marking": "mostly white face with pearl-silver temples",
+        "eye_color": "one pale blue and one hazel",
+        "coat_length": "medium plush",
+        "build": "balanced adolescent",
+        "ear_presentation": "upright and wide-set",
+        "tail_appearance": "pearl plume",
+        "approximate_visual_age": "late-adolescent training dog",
+        "distinctive_marking": "soft silver ring around the right eye",
+        "family_resemblance": "light O-litter variation echoing Kira's silver ancestry",
+        "portrait_character": "calm front-facing stance in diffuse winter light"
+      },
+      "generation_brief": "Portray Opal, a female northern working sled dog at the late-adolescent training dog stage, with balanced adolescent proportions, a medium plush pearl silver and white coat, mostly white face with pearl-silver temples, and one pale blue and one hazel eyes. Show soft silver ring around the right eye; light O-litter variation echoing Kira's silver ancestry. Use calm front-facing stance in diffuse winter light. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "be9feb31-2360-5ecc-8ea6-351eeea4149d",
+      "name": "Onyx",
+      "sex": "male",
+      "birth_date": "2024-06-20",
+      "age_at_reference": {
+        "years": 1,
+        "months": 9,
+        "label": "1 year, 9 months"
+      },
+      "operational_class": "training",
+      "litter_code": "O",
+      "mother": {
+        "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+        "name": "Kira"
+      },
+      "father": {
+        "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+        "name": "Magnus"
+      },
+      "lifecycle": "active",
+      "target_filename": "be9feb31-2360-5ecc-8ea6-351eeea4149d.webp",
+      "visual_traits": {
+        "coat_base": "near black",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream muzzle with a narrow black-split blaze",
+        "eye_color": "deep brown",
+        "coat_length": "short dense",
+        "build": "muscular adolescent",
+        "ear_presentation": "high upright",
+        "tail_appearance": "near-black brush with cream underside",
+        "approximate_visual_age": "late-adolescent training dog",
+        "distinctive_marking": "small white diamond between the shoulders",
+        "family_resemblance": "darkest O-litter expression from both K and M family lines",
+        "portrait_character": "intense but calm three-quarter stance with ears forward"
+      },
+      "generation_brief": "Portray Onyx, a male northern working sled dog at the late-adolescent training dog stage, with muscular adolescent proportions, a short dense near black and cream white coat, cream muzzle with a narrow black-split blaze, and deep brown eyes. Show small white diamond between the shoulders; darkest O-litter expression from both K and M family lines. Use intense but calm three-quarter stance with ears forward. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "d8b6ecbc-305e-5c45-a45c-1699f1094b44",
+      "name": "Oona",
+      "sex": "female",
+      "birth_date": "2024-06-20",
+      "age_at_reference": {
+        "years": 1,
+        "months": 9,
+        "label": "1 year, 9 months"
+      },
+      "operational_class": "junior",
+      "litter_code": "O",
+      "mother": {
+        "dog_id": "2b0c952d-dc98-521d-a9e7-95f99fedcd0b",
+        "name": "Kira"
+      },
+      "father": {
+        "dog_id": "700ce6b9-68d3-57f4-9bce-93371f229e22",
+        "name": "Magnus"
+      },
+      "lifecycle": "archived",
+      "target_filename": "d8b6ecbc-305e-5c45-a45c-1699f1094b44.webp",
+      "visual_traits": {
+        "coat_base": "soft sable",
+        "coat_secondary": "ivory",
+        "facial_marking": "ivory heart blaze and sable cheek shading",
+        "eye_color": "amber",
+        "coat_length": "medium soft",
+        "build": "slender juvenile",
+        "ear_presentation": "upright with rounded tips",
+        "tail_appearance": "soft-sable curl with ivory tip",
+        "approximate_visual_age": "healthy juvenile at the time represented",
+        "distinctive_marking": "small ivory crescent above the left paw",
+        "family_resemblance": "gentle O-litter family face with Kira's softer markings",
+        "portrait_character": "bright relaxed juvenile stance with a playful expression"
+      },
+      "generation_brief": "Portray Oona, a female northern working sled dog at the healthy juvenile at the time represented stage, with slender juvenile proportions, a medium soft soft sable and ivory coat, ivory heart blaze and sable cheek shading, and amber eyes. Show small ivory crescent above the left paw; gentle O-litter family face with Kira's softer markings. Use bright relaxed juvenile stance with a playful expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "81f40308-27c9-5d9a-82f1-7c4317727cc8",
+      "name": "Sanchez",
+      "sex": "male",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "junior",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "active",
+      "target_filename": "81f40308-27c9-5d9a-82f1-7c4317727cc8.webp",
+      "visual_traits": {
+        "coat_base": "red agouti",
+        "coat_secondary": "cream",
+        "facial_marking": "cream blaze under a red-agouti cap",
+        "eye_color": "amber brown",
+        "coat_length": "short dense",
+        "build": "lean yearling",
+        "ear_presentation": "upright and large",
+        "tail_appearance": "red-agouti brush",
+        "approximate_visual_age": "one-year-old junior",
+        "distinctive_marking": "dark red stripe centered along the back",
+        "family_resemblance": "S-litter blend of Maple red and Nimbus grey-agouti",
+        "portrait_character": "alert yearling stance with a confident curious expression"
+      },
+      "generation_brief": "Portray Sanchez, a male northern working sled dog at the one-year-old junior stage, with lean yearling proportions, a short dense red agouti and cream coat, cream blaze under a red-agouti cap, and amber brown eyes. Show dark red stripe centered along the back; S-litter blend of Maple red and Nimbus grey-agouti. Use alert yearling stance with a confident curious expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "4caef1f4-0ea3-5896-ba0a-f8294016501d",
+      "name": "Sergio",
+      "sex": "male",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "puppy",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "archived",
+      "target_filename": "4caef1f4-0ea3-5896-ba0a-f8294016501d.webp",
+      "visual_traits": {
+        "coat_base": "dark cloud grey",
+        "coat_secondary": "white",
+        "facial_marking": "wide white blaze with dark cloud-grey cheeks",
+        "eye_color": "blue grey",
+        "coat_length": "medium dense",
+        "build": "broad yearling",
+        "ear_presentation": "upright",
+        "tail_appearance": "cloud-grey plume with white tip",
+        "approximate_visual_age": "healthy near-yearling at the time represented",
+        "distinctive_marking": "small white splash on the right shoulder",
+        "family_resemblance": "S-litter grey expression closest to Nimbus",
+        "portrait_character": "calm near-yearling stance with a steady direct gaze"
+      },
+      "generation_brief": "Portray Sergio, a male northern working sled dog at the healthy near-yearling at the time represented stage, with broad yearling proportions, a medium dense dark cloud grey and white coat, wide white blaze with dark cloud-grey cheeks, and blue grey eyes. Show small white splash on the right shoulder; S-litter grey expression closest to Nimbus. Use calm near-yearling stance with a steady direct gaze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "62e1e83f-ccb1-53f8-8ed3-cb21243db22d",
+      "name": "Sampo",
+      "sex": "male",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "junior",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "active",
+      "target_filename": "62e1e83f-ccb1-53f8-8ed3-cb21243db22d.webp",
+      "visual_traits": {
+        "coat_base": "maple sable",
+        "coat_secondary": "ivory",
+        "facial_marking": "ivory muzzle and narrow maple-sable blaze",
+        "eye_color": "golden amber",
+        "coat_length": "medium",
+        "build": "compact yearling",
+        "ear_presentation": "upright with rounded tips",
+        "tail_appearance": "maple-sable curl",
+        "approximate_visual_age": "one-year-old junior",
+        "distinctive_marking": "ivory socks with one higher left front sock",
+        "family_resemblance": "S-litter warm expression closest to Maple",
+        "portrait_character": "friendly yearling stance with head slightly turned"
+      },
+      "generation_brief": "Portray Sampo, a male northern working sled dog at the one-year-old junior stage, with compact yearling proportions, a medium maple sable and ivory coat, ivory muzzle and narrow maple-sable blaze, and golden amber eyes. Show ivory socks with one higher left front sock; S-litter warm expression closest to Maple. Use friendly yearling stance with head slightly turned. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "8e1bab41-e384-5d5b-b4a7-87453dfc2d9f",
+      "name": "Sancho",
+      "sex": "male",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "junior",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "active",
+      "target_filename": "8e1bab41-e384-5d5b-b4a7-87453dfc2d9f.webp",
+      "visual_traits": {
+        "coat_base": "silver sable",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream spectacles and a silver forehead wedge",
+        "eye_color": "one amber and one blue",
+        "coat_length": "medium dense",
+        "build": "tall yearling",
+        "ear_presentation": "large upright",
+        "tail_appearance": "silver-sable plume",
+        "approximate_visual_age": "one-year-old junior",
+        "distinctive_marking": "thin dark ring around the blue eye",
+        "family_resemblance": "S-litter cross combining Nimbus silver and Maple's warm undercoat",
+        "portrait_character": "lively but still full-body stance with an attentive gaze"
+      },
+      "generation_brief": "Portray Sancho, a male northern working sled dog at the one-year-old junior stage, with tall yearling proportions, a medium dense silver sable and cream white coat, cream spectacles and a silver forehead wedge, and one amber and one blue eyes. Show thin dark ring around the blue eye; S-litter cross combining Nimbus silver and Maple's warm undercoat. Use lively but still full-body stance with an attentive gaze. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "c0c5f0d1-7a8c-569e-8e2c-71b5f059b457",
+      "name": "Siri",
+      "sex": "female",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "junior",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "active",
+      "target_filename": "c0c5f0d1-7a8c-569e-8e2c-71b5f059b457.webp",
+      "visual_traits": {
+        "coat_base": "light red",
+        "coat_secondary": "white",
+        "facial_marking": "open white face with delicate red brow arcs",
+        "eye_color": "hazel",
+        "coat_length": "medium soft",
+        "build": "slender yearling",
+        "ear_presentation": "upright and close-set",
+        "tail_appearance": "light-red plume with white tip",
+        "approximate_visual_age": "one-year-old junior",
+        "distinctive_marking": "small red freckle cluster on the muzzle",
+        "family_resemblance": "S-litter light Maple-red expression with Nimbus's fine mask",
+        "portrait_character": "graceful relaxed yearling stance in soft snow"
+      },
+      "generation_brief": "Portray Siri, a female northern working sled dog at the one-year-old junior stage, with slender yearling proportions, a medium soft light red and white coat, open white face with delicate red brow arcs, and hazel eyes. Show small red freckle cluster on the muzzle; S-litter light Maple-red expression with Nimbus's fine mask. Use graceful relaxed yearling stance in soft snow. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "01666ade-0cce-50da-aa31-57004729acee",
+      "name": "Sophie",
+      "sex": "female",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "junior",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "active",
+      "target_filename": "01666ade-0cce-50da-aa31-57004729acee.webp",
+      "visual_traits": {
+        "coat_base": "warm grey",
+        "coat_secondary": "cream",
+        "facial_marking": "cream butterfly blaze with warm-grey cheeks",
+        "eye_color": "amber",
+        "coat_length": "medium plush",
+        "build": "balanced yearling",
+        "ear_presentation": "upright with soft tips",
+        "tail_appearance": "warm-grey full plume",
+        "approximate_visual_age": "one-year-old junior",
+        "distinctive_marking": "pale cream collar marking",
+        "family_resemblance": "S-litter balanced grey-red family look, paired visually with Sanchez but not identical",
+        "portrait_character": "calm approachable stance with a subtle head tilt"
+      },
+      "generation_brief": "Portray Sophie, a female northern working sled dog at the one-year-old junior stage, with balanced yearling proportions, a medium plush warm grey and cream coat, cream butterfly blaze with warm-grey cheeks, and amber eyes. Show pale cream collar marking; S-litter balanced grey-red family look, paired visually with Sanchez but not identical. Use calm approachable stance with a subtle head tilt. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "bdf70e56-7fb8-5638-b0ec-0210b324cabf",
+      "name": "Storm",
+      "sex": "male",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "junior",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "active",
+      "target_filename": "bdf70e56-7fb8-5638-b0ec-0210b324cabf.webp",
+      "visual_traits": {
+        "coat_base": "charcoal agouti",
+        "coat_secondary": "bright white",
+        "facial_marking": "bold white lightning blaze",
+        "eye_color": "ice blue",
+        "coat_length": "short dense",
+        "build": "rangy yearling",
+        "ear_presentation": "high upright",
+        "tail_appearance": "charcoal brush with white end",
+        "approximate_visual_age": "one-year-old junior",
+        "distinctive_marking": "jagged white chest stripe",
+        "family_resemblance": "S-litter dark Nimbus influence with Maple's high-white chest",
+        "portrait_character": "alert energetic stance with coat lightly stirred by wind"
+      },
+      "generation_brief": "Portray Storm, a male northern working sled dog at the one-year-old junior stage, with rangy yearling proportions, a short dense charcoal agouti and bright white coat, bold white lightning blaze, and ice blue eyes. Show jagged white chest stripe; S-litter dark Nimbus influence with Maple's high-white chest. Use alert energetic stance with coat lightly stirred by wind. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "ddd5579f-3c0d-5938-b99e-1ca24d459180",
+      "name": "Sage",
+      "sex": "female",
+      "birth_date": "2025-03-10",
+      "age_at_reference": {
+        "years": 1,
+        "months": 0,
+        "label": "1 year"
+      },
+      "operational_class": "puppy",
+      "litter_code": "S",
+      "mother": {
+        "dog_id": "d8e8f71e-f334-5a35-b160-c0a453b3b092",
+        "name": "Maple"
+      },
+      "father": {
+        "dog_id": "ee68c2ea-71a5-5da0-b552-0d0d3dc31804",
+        "name": "Nimbus"
+      },
+      "lifecycle": "archived",
+      "target_filename": "ddd5579f-3c0d-5938-b99e-1ca24d459180.webp",
+      "visual_traits": {
+        "coat_base": "pale sable",
+        "coat_secondary": "ivory",
+        "facial_marking": "ivory face with pale sable temples",
+        "eye_color": "light brown",
+        "coat_length": "medium soft",
+        "build": "small juvenile",
+        "ear_presentation": "upright with rounded tips",
+        "tail_appearance": "pale-sable curl",
+        "approximate_visual_age": "healthy nine-month juvenile at the time represented",
+        "distinctive_marking": "tiny ivory spot above the nose",
+        "family_resemblance": "softest S-litter expression combining both parents' pale markings",
+        "portrait_character": "gentle juvenile stance with a curious open expression"
+      },
+      "generation_brief": "Portray Sage, a female northern working sled dog at the healthy nine-month juvenile at the time represented stage, with small juvenile proportions, a medium soft pale sable and ivory coat, ivory face with pale sable temples, and light brown eyes. Show tiny ivory spot above the nose; softest S-litter expression combining both parents' pale markings. Use gentle juvenile stance with a curious open expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "41be6542-8265-537b-aa54-aade6547be13",
+      "name": "Taro",
+      "sex": "male",
+      "birth_date": "2026-01-12",
+      "age_at_reference": {
+        "years": 0,
+        "months": 2,
+        "label": "2 months"
+      },
+      "operational_class": "puppy",
+      "litter_code": "T",
+      "mother": {
+        "dog_id": "6415eb4a-17f2-5878-b2cc-d04803f30245",
+        "name": "Nova"
+      },
+      "father": {
+        "dog_id": "4946b7f5-0841-5ae4-8e2d-52025de0d191",
+        "name": "Milo"
+      },
+      "lifecycle": "active",
+      "target_filename": "41be6542-8265-537b-aa54-aade6547be13.webp",
+      "visual_traits": {
+        "coat_base": "silver red",
+        "coat_secondary": "white",
+        "facial_marking": "round white puppy blaze with silver-red ears",
+        "eye_color": "amber",
+        "coat_length": "fluffy puppy",
+        "build": "sturdy young puppy",
+        "ear_presentation": "large upright puppy ears",
+        "tail_appearance": "short fluffy curl",
+        "approximate_visual_age": "eleven-week-old puppy",
+        "distinctive_marking": "red patch over the left shoulder",
+        "family_resemblance": "T-litter combines Nova's silver-agouti mask with Milo's red-grey coat",
+        "portrait_character": "natural four-paw puppy stance, curious and steady rather than posed as an adult"
+      },
+      "generation_brief": "Portray Taro, a male northern working sled dog at the eleven-week-old puppy stage, with sturdy young puppy proportions, a fluffy puppy silver red and white coat, round white puppy blaze with silver-red ears, and amber eyes. Show red patch over the left shoulder; T-litter combines Nova's silver-agouti mask with Milo's red-grey coat. Use natural four-paw puppy stance, curious and steady rather than posed as an adult. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "186814a5-1082-5b3d-97bc-d3cc39cb7bae",
+      "name": "Tessa",
+      "sex": "female",
+      "birth_date": "2026-01-12",
+      "age_at_reference": {
+        "years": 0,
+        "months": 2,
+        "label": "2 months"
+      },
+      "operational_class": "puppy",
+      "litter_code": "T",
+      "mother": {
+        "dog_id": "6415eb4a-17f2-5878-b2cc-d04803f30245",
+        "name": "Nova"
+      },
+      "father": {
+        "dog_id": "4946b7f5-0841-5ae4-8e2d-52025de0d191",
+        "name": "Milo"
+      },
+      "lifecycle": "active",
+      "target_filename": "186814a5-1082-5b3d-97bc-d3cc39cb7bae.webp",
+      "visual_traits": {
+        "coat_base": "soft grey",
+        "coat_secondary": "cream white",
+        "facial_marking": "cream puppy face with soft grey eye patches",
+        "eye_color": "one pale blue and one amber",
+        "coat_length": "fluffy puppy",
+        "build": "small balanced puppy",
+        "ear_presentation": "upright ears still slightly oversized",
+        "tail_appearance": "soft grey puppy plume",
+        "approximate_visual_age": "eleven-week-old puppy",
+        "distinctive_marking": "white-tipped right ear",
+        "family_resemblance": "T-litter silver face closest to Nova with Milo's warm cream",
+        "portrait_character": "gentle puppy stance with a small attentive head tilt"
+      },
+      "generation_brief": "Portray Tessa, a female northern working sled dog at the eleven-week-old puppy stage, with small balanced puppy proportions, a fluffy puppy soft grey and cream white coat, cream puppy face with soft grey eye patches, and one pale blue and one amber eyes. Show white-tipped right ear; T-litter silver face closest to Nova with Milo's warm cream. Use gentle puppy stance with a small attentive head tilt. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "f79dc4e6-3be6-5823-af1e-148b359f5c4c",
+      "name": "Theo",
+      "sex": "male",
+      "birth_date": "2026-01-12",
+      "age_at_reference": {
+        "years": 0,
+        "months": 2,
+        "label": "2 months"
+      },
+      "operational_class": "puppy",
+      "litter_code": "T",
+      "mother": {
+        "dog_id": "6415eb4a-17f2-5878-b2cc-d04803f30245",
+        "name": "Nova"
+      },
+      "father": {
+        "dog_id": "4946b7f5-0841-5ae4-8e2d-52025de0d191",
+        "name": "Milo"
+      },
+      "lifecycle": "active",
+      "target_filename": "f79dc4e6-3be6-5823-af1e-148b359f5c4c.webp",
+      "visual_traits": {
+        "coat_base": "warm sable",
+        "coat_secondary": "white",
+        "facial_marking": "broad white blaze beneath sable forehead",
+        "eye_color": "brown",
+        "coat_length": "short fluffy puppy",
+        "build": "broad young puppy",
+        "ear_presentation": "upright rounded puppy ears",
+        "tail_appearance": "short sable brush",
+        "approximate_visual_age": "eleven-week-old puppy",
+        "distinctive_marking": "dark sable spot at the tail base",
+        "family_resemblance": "T-litter warm variation drawing strongly from Milo's M line",
+        "portrait_character": "confident puppy stance with all paws planted in textured snow"
+      },
+      "generation_brief": "Portray Theo, a male northern working sled dog at the eleven-week-old puppy stage, with broad young puppy proportions, a short fluffy puppy warm sable and white coat, broad white blaze beneath sable forehead, and brown eyes. Show dark sable spot at the tail base; T-litter warm variation drawing strongly from Milo's M line. Use confident puppy stance with all paws planted in textured snow. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "f5bd6d5c-e00a-5371-997b-b0935d8222ec",
+      "name": "Tindra",
+      "sex": "female",
+      "birth_date": "2026-01-12",
+      "age_at_reference": {
+        "years": 0,
+        "months": 2,
+        "label": "2 months"
+      },
+      "operational_class": "puppy",
+      "litter_code": "T",
+      "mother": {
+        "dog_id": "6415eb4a-17f2-5878-b2cc-d04803f30245",
+        "name": "Nova"
+      },
+      "father": {
+        "dog_id": "4946b7f5-0841-5ae4-8e2d-52025de0d191",
+        "name": "Milo"
+      },
+      "lifecycle": "active",
+      "target_filename": "f5bd6d5c-e00a-5371-997b-b0935d8222ec.webp",
+      "visual_traits": {
+        "coat_base": "pale silver",
+        "coat_secondary": "snow white",
+        "facial_marking": "mostly white puppy face with silver temples",
+        "eye_color": "blue grey",
+        "coat_length": "fluffy puppy",
+        "build": "slender young puppy",
+        "ear_presentation": "large upright puppy ears",
+        "tail_appearance": "pale fluffy curl",
+        "approximate_visual_age": "eleven-week-old puppy",
+        "distinctive_marking": "small silver star between the ears",
+        "family_resemblance": "light T-litter expression echoing Nova's blue-eye line",
+        "portrait_character": "bright curious puppy stance looking directly at camera"
+      },
+      "generation_brief": "Portray Tindra, a female northern working sled dog at the eleven-week-old puppy stage, with slender young puppy proportions, a fluffy puppy pale silver and snow white coat, mostly white puppy face with silver temples, and blue grey eyes. Show small silver star between the ears; light T-litter expression echoing Nova's blue-eye line. Use bright curious puppy stance looking directly at camera. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "c216a991-9c17-5ef9-a2f6-5a2debe9200f",
+      "name": "Toast",
+      "sex": "male",
+      "birth_date": "2026-01-12",
+      "age_at_reference": {
+        "years": 0,
+        "months": 2,
+        "label": "2 months"
+      },
+      "operational_class": "puppy",
+      "litter_code": "T",
+      "mother": {
+        "dog_id": "6415eb4a-17f2-5878-b2cc-d04803f30245",
+        "name": "Nova"
+      },
+      "father": {
+        "dog_id": "4946b7f5-0841-5ae4-8e2d-52025de0d191",
+        "name": "Milo"
+      },
+      "lifecycle": "active",
+      "target_filename": "c216a991-9c17-5ef9-a2f6-5a2debe9200f.webp",
+      "visual_traits": {
+        "coat_base": "toasted copper",
+        "coat_secondary": "cream",
+        "facial_marking": "cream muzzle and toasted-copper cap",
+        "eye_color": "dark amber",
+        "coat_length": "dense puppy",
+        "build": "compact sturdy puppy",
+        "ear_presentation": "upright ears with softly folding tips",
+        "tail_appearance": "short copper plume",
+        "approximate_visual_age": "eleven-week-old puppy",
+        "distinctive_marking": "cream toast-shaped patch on the chest",
+        "family_resemblance": "warmest T-litter expression inherited from Milo and the M line",
+        "portrait_character": "playful but stationary puppy stance with natural paw placement"
+      },
+      "generation_brief": "Portray Toast, a male northern working sled dog at the eleven-week-old puppy stage, with compact sturdy puppy proportions, a dense puppy toasted copper and cream coat, cream muzzle and toasted-copper cap, and dark amber eyes. Show cream toast-shaped patch on the chest; warmest T-litter expression inherited from Milo and the M line. Use playful but stationary puppy stance with natural paw placement. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "748a6bda-d09a-5642-825f-f5f1e0932d51",
+      "name": "Vega",
+      "sex": "female",
+      "birth_date": "2026-02-18",
+      "age_at_reference": {
+        "years": 0,
+        "months": 1,
+        "label": "1 month"
+      },
+      "operational_class": "puppy",
+      "litter_code": "V",
+      "mother": {
+        "dog_id": "0975fe83-5ff2-51e1-86c6-79dd3e766b43",
+        "name": "Nora"
+      },
+      "father": {
+        "dog_id": "24d0c5f3-1900-5e63-bde2-a54f8be09833",
+        "name": "Kenzo"
+      },
+      "lifecycle": "active",
+      "target_filename": "748a6bda-d09a-5642-825f-f5f1e0932d51.webp",
+      "visual_traits": {
+        "coat_base": "brown agouti",
+        "coat_secondary": "cream white",
+        "facial_marking": "tiny cream blaze and brown puppy mask",
+        "eye_color": "golden amber",
+        "coat_length": "very fluffy puppy",
+        "build": "small round young puppy",
+        "ear_presentation": "partly upright young puppy ears",
+        "tail_appearance": "short fluffy agouti tail",
+        "approximate_visual_age": "six-week-old puppy",
+        "distinctive_marking": "cream dot centered on the forehead",
+        "family_resemblance": "V-litter carries Nora's brown-agouti palette and Kenzo's dark mask",
+        "portrait_character": "very young stable puppy stance with low natural posture and all paws visible"
+      },
+      "generation_brief": "Portray Vega, a female northern working sled dog at the six-week-old puppy stage, with small round young puppy proportions, a very fluffy puppy brown agouti and cream white coat, tiny cream blaze and brown puppy mask, and golden amber eyes. Show cream dot centered on the forehead; V-litter carries Nora's brown-agouti palette and Kenzo's dark mask. Use very young stable puppy stance with low natural posture and all paws visible. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "510ac596-2611-5ae3-ab3b-add5a521f7b7",
+      "name": "Valor",
+      "sex": "male",
+      "birth_date": "2026-02-18",
+      "age_at_reference": {
+        "years": 0,
+        "months": 1,
+        "label": "1 month"
+      },
+      "operational_class": "puppy",
+      "litter_code": "V",
+      "mother": {
+        "dog_id": "0975fe83-5ff2-51e1-86c6-79dd3e766b43",
+        "name": "Nora"
+      },
+      "father": {
+        "dog_id": "24d0c5f3-1900-5e63-bde2-a54f8be09833",
+        "name": "Kenzo"
+      },
+      "lifecycle": "active",
+      "target_filename": "510ac596-2611-5ae3-ab3b-add5a521f7b7.webp",
+      "visual_traits": {
+        "coat_base": "black grey",
+        "coat_secondary": "white",
+        "facial_marking": "wide white puppy blaze inside a black-grey cap",
+        "eye_color": "brown",
+        "coat_length": "very fluffy puppy",
+        "build": "largest sturdy young puppy",
+        "ear_presentation": "one upright and one softly tipped ear",
+        "tail_appearance": "short dark fluffy tail",
+        "approximate_visual_age": "six-week-old puppy",
+        "distinctive_marking": "white shield-shaped chest patch",
+        "family_resemblance": "V-litter dark expression closest to Kenzo with Nora's high white blaze",
+        "portrait_character": "brave curious young-puppy stance, anatomically natural and not adult-like"
+      },
+      "generation_brief": "Portray Valor, a male northern working sled dog at the six-week-old puppy stage, with largest sturdy young puppy proportions, a very fluffy puppy black grey and white coat, wide white puppy blaze inside a black-grey cap, and brown eyes. Show white shield-shaped chest patch; V-litter dark expression closest to Kenzo with Nora's high white blaze. Use brave curious young-puppy stance, anatomically natural and not adult-like. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "d6e2c950-d166-5ca6-8f09-0a2297d68173",
+      "name": "Violet",
+      "sex": "female",
+      "birth_date": "2026-02-18",
+      "age_at_reference": {
+        "years": 0,
+        "months": 1,
+        "label": "1 month"
+      },
+      "operational_class": "puppy",
+      "litter_code": "V",
+      "mother": {
+        "dog_id": "0975fe83-5ff2-51e1-86c6-79dd3e766b43",
+        "name": "Nora"
+      },
+      "father": {
+        "dog_id": "24d0c5f3-1900-5e63-bde2-a54f8be09833",
+        "name": "Kenzo"
+      },
+      "lifecycle": "active",
+      "target_filename": "d6e2c950-d166-5ca6-8f09-0a2297d68173.webp",
+      "visual_traits": {
+        "coat_base": "soft sable grey",
+        "coat_secondary": "ivory",
+        "facial_marking": "ivory butterfly puppy blaze",
+        "eye_color": "one blue and one hazel",
+        "coat_length": "very fluffy puppy",
+        "build": "small delicate puppy",
+        "ear_presentation": "partly upright rounded ears",
+        "tail_appearance": "short sable-grey curl",
+        "approximate_visual_age": "six-week-old puppy",
+        "distinctive_marking": "faint violet-grey patch around the left eye",
+        "family_resemblance": "V-litter soft cross of Nora's warmth and Kenzo's grey guard hairs",
+        "portrait_character": "gentle very-young puppy stance with a calm direct look"
+      },
+      "generation_brief": "Portray Violet, a female northern working sled dog at the six-week-old puppy stage, with small delicate puppy proportions, a very fluffy puppy soft sable grey and ivory coat, ivory butterfly puppy blaze, and one blue and one hazel eyes. Show faint violet-grey patch around the left eye; V-litter soft cross of Nora's warmth and Kenzo's grey guard hairs. Use gentle very-young puppy stance with a calm direct look. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "e515f2cd-3c13-50cf-9dfa-560f943255da",
+      "name": "Viggo",
+      "sex": "male",
+      "birth_date": "2026-02-18",
+      "age_at_reference": {
+        "years": 0,
+        "months": 1,
+        "label": "1 month"
+      },
+      "operational_class": "puppy",
+      "litter_code": "V",
+      "mother": {
+        "dog_id": "0975fe83-5ff2-51e1-86c6-79dd3e766b43",
+        "name": "Nora"
+      },
+      "father": {
+        "dog_id": "24d0c5f3-1900-5e63-bde2-a54f8be09833",
+        "name": "Kenzo"
+      },
+      "lifecycle": "active",
+      "target_filename": "e515f2cd-3c13-50cf-9dfa-560f943255da.webp",
+      "visual_traits": {
+        "coat_base": "dark agouti",
+        "coat_secondary": "cream",
+        "facial_marking": "cream spectacles beneath a dark puppy brow",
+        "eye_color": "amber brown",
+        "coat_length": "dense fluffy puppy",
+        "build": "broad young puppy",
+        "ear_presentation": "upright oversized puppy ears",
+        "tail_appearance": "short dark-agouti brush",
+        "approximate_visual_age": "six-week-old puppy",
+        "distinctive_marking": "thin cream stripe under the chin",
+        "family_resemblance": "V-litter agouti mask joining both N and K ancestry",
+        "portrait_character": "low sturdy puppy stance with a serious but soft expression"
+      },
+      "generation_brief": "Portray Viggo, a male northern working sled dog at the six-week-old puppy stage, with broad young puppy proportions, a dense fluffy puppy dark agouti and cream coat, cream spectacles beneath a dark puppy brow, and amber brown eyes. Show thin cream stripe under the chin; V-litter agouti mask joining both N and K ancestry. Use low sturdy puppy stance with a serious but soft expression. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    },
+    {
+      "dog_id": "ce31a653-6ef7-55cc-ba79-c8b647c13694",
+      "name": "Viva",
+      "sex": "female",
+      "birth_date": "2026-02-18",
+      "age_at_reference": {
+        "years": 0,
+        "months": 1,
+        "label": "1 month"
+      },
+      "operational_class": "puppy",
+      "litter_code": "V",
+      "mother": {
+        "dog_id": "0975fe83-5ff2-51e1-86c6-79dd3e766b43",
+        "name": "Nora"
+      },
+      "father": {
+        "dog_id": "24d0c5f3-1900-5e63-bde2-a54f8be09833",
+        "name": "Kenzo"
+      },
+      "lifecycle": "active",
+      "target_filename": "ce31a653-6ef7-55cc-ba79-c8b647c13694.webp",
+      "visual_traits": {
+        "coat_base": "pale warm grey",
+        "coat_secondary": "white",
+        "facial_marking": "open white puppy face with pale-grey temples",
+        "eye_color": "light amber",
+        "coat_length": "very fluffy puppy",
+        "build": "small lively puppy",
+        "ear_presentation": "partly upright soft-tipped ears",
+        "tail_appearance": "short pale-grey plume",
+        "approximate_visual_age": "six-week-old puppy",
+        "distinctive_marking": "tiny grey comma on the right flank",
+        "family_resemblance": "lightest V-litter expression, retaining Nora's open face",
+        "portrait_character": "lively but still four-square young-puppy stance on believable snow"
+      },
+      "generation_brief": "Portray Viva, a female northern working sled dog at the six-week-old puppy stage, with small lively puppy proportions, a very fluffy puppy pale warm grey and white coat, open white puppy face with pale-grey temples, and light amber eyes. Show tiny grey comma on the right flank; lightest V-litter expression, retaining Nora's open face. Use lively but still four-square young-puppy stance on believable snow. One dog only, full body with all four anatomically correct legs, natural paws, ears, and complete tail visible, standing on textured snow in soft northern daylight; realistic modern outdoor dog photography with no person, other dog, text, watermark, frame, leash, harness, branded gear, or malformed anatomy."
+    }
+  ]
+}

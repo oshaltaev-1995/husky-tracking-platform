@@ -13,7 +13,7 @@
 .archive-row:first-child { border-top: 0; }
 .archive-row:hover { background: var(--surface-soft); }
 .archive-row:focus-visible { position: relative; z-index: 1; }
-.archive-media { filter: grayscale(.55); opacity: .88; }
+.archive-media { align-self: stretch; }
 .archive-identity h3 { margin: .12rem 0 .15rem; font-size: 1.18rem; }
 .archive-identity p { margin: 0; color: var(--text-secondary); font-size: .74rem; }
 .kicker { color: var(--archived) !important; font-size: .62rem !important; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }

@@ -10,7 +10,7 @@
     @case ('ready') {
       <a class="back-link" [routerLink]="state.data.profile.state.lifecycle === 'archived' ? '/archive' : '/dogs'">← Back to {{ state.data.profile.state.lifecycle === 'archived' ? 'Archive' : 'Dogs' }}</a>
       <header class="profile-header" [class.archived]="state.data.profile.state.lifecycle === 'archived'">
-        <div class="profile-media"><ht-dog-media [name]="state.data.profile.name" size="profile" /></div>
+        <div class="profile-media"><ht-dog-media [name]="state.data.profile.name" [photoKey]="state.data.profile.photo_key" size="profile" /></div>
         <div class="profile-identity">
           <div class="identity-flags"><span class="lifecycle-badge">{{ state.data.profile.state.lifecycle | titlecase }}</span>@if (state.data.profile.state.availability) { <span class="status-badge" [attr.data-status]="state.data.profile.state.availability">{{ state.data.profile.state.availability | titlecase }}</span> }</div>
           <p class="eyebrow">{{ state.data.profile.litter_code ? state.data.profile.litter_code + '-litter' : 'Foundation dog' }}</p>

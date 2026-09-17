@@ -14,7 +14,7 @@ Browser
                  ├─ deterministic demo generator
                  └─ PostgreSQL
 
-Generated dog media → local media volume in development / object storage later
+Generated dog media → Angular static `/media/dogs/` assets (object storage can retain the same URL contract later)
 ```
 
 The public reverse proxy serves the SPA, forwards `/api/`, terminates HTTPS, and applies
@@ -366,6 +366,30 @@ dogs in each attention category, and six weekly points. Every item links back to
 owning feature instead of duplicating editors, maps, profiles, or analytics. The wide
 workspace uses a compact responsive section grid; at phone width it becomes a single
 column with textual chart values and no page-level horizontal overflow.
+
+### Synthetic dog media
+
+P10A keeps one media identity per stable Dog UUID without adding a gallery or probing
+the filesystem during API reads. `Dog.photo_key` is the nullable activation contract;
+the existing read DTOs expose it unchanged. A null or unsafe key renders the polished
+placeholder and makes no image request. An activated key must be exactly
+`<public-uuid>.webp` and resolves in the shared Angular component to
+`/media/dogs/<key>?v=dog-media-v1`. A load error removes the failed image element and
+restores the same fixed-ratio fallback, so the browser never leaves a broken-image UI.
+
+Canonical assets live once in `frontend/public/media/dogs/`, which Angular copies for
+development and production builds. Registry/Archive instances load lazily; the Profile
+hero loads eagerly. Every context keeps a `3:4` frame, `object-fit: cover`, and identity
+alt text. The UUID filename is immutable identity while the separate media version query
+is the simple cache-invalidation boundary for a curated replacement set.
+
+`docs/dog-media-manifest.json` is a generated, reviewable projection of the curated
+60-dog visual-identity catalog. Its version is independent of
+`winter-2025-2026-v1`. The media CLI validates canonical ownership, filenames, required
+traits, pedigree/litter mapping, WebP container structure, exact 1086×1448 dimensions,
+and file-size distribution. It does not claim to automate subjective anatomy or source
+review; those remain explicit P10B human gates. P10A intentionally ships no photograph
+and leaves all seed `photo_key` values null, so the domain checksum is unchanged.
 
 ## Configuration and environments
 

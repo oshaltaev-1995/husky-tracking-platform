@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P9 application foundation
+## P10A application foundation
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -28,7 +28,11 @@ reference project.
 - clickable parents, grandparents, litter siblings, offspring, and archived relatives
 - season work summaries derived from work participation, plus effective-dated class,
   availability, lifecycle, and housing timelines
-- reusable neutral dog media placeholder ready for P10 synthetic portraits
+- one reusable Dog media component with a stable 3:4 frame, nullable activation,
+  versioned static URL, lazy/eager loading policy, accessible alt text, and load-error
+  fallback
+- complete `dog-media-v1` generation manifest for all 60 synthetic dogs, including
+  pedigree-aware visual identities and strict P10B asset validation
 - semantic validation and checksum independent of database identities and timestamps
 - reusable actual-work guardrail enforcing at most 30 km per dog per calendar date
 - historical Kennel Map snapshots with A1/A2/B1/B2 rows, two puppy buildings,
@@ -48,9 +52,11 @@ reference project.
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P10 synthetic dog media. Plans and saved teams remain
-intentions; only Daily Entry `WorkSession`/`WorkParticipation` rows are workload truth
-for analytics and the Dashboard. See
+P10A is complete without adding fake or sourced photographs; P10B remains responsible
+for generating, reviewing, optimizing, activating, and visually accepting all 60 final
+WebPs. Plans and saved teams remain intentions; only Daily Entry
+`WorkSession`/`WorkParticipation` rows are workload truth for analytics and the
+Dashboard. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -128,6 +134,32 @@ edits intentionally change the live semantic checksum because actual work is can
 truth. Demo reset clears plans/teams, reconstructs the baseline actual ledger, and
 restores `2ad3418ecb5edad1d4676a9a6e0cf43b2cfbfa167c0218e96d9749fd12e24af2`.
 
+## Synthetic dog media
+
+P10A keeps final media deliberately absent while the app remains fully usable through
+its polished placeholder. The canonical identity contract is
+[`docs/dog-media-manifest.json`](docs/dog-media-manifest.json), the shared generation
+rules are in
+[`docs/DOG_IMAGE_GENERATION_GUIDE.md`](docs/DOG_IMAGE_GENERATION_GUIDE.md), and the
+exact P10B procedure is in
+[`docs/P10B_MEDIA_HANDOFF.md`](docs/P10B_MEDIA_HANDOFF.md).
+
+Validate the manifest from `backend/`:
+
+```bash
+uv run python -m app.media.validate
+```
+
+P10B places exactly 60 reviewed `1086×1448` WebPs in
+`frontend/public/media/dogs/`, then runs:
+
+```bash
+uv run python -m app.media.validate --require-assets --strict-assets
+```
+
+The media manifest version `dog-media-v1` is independent of the domain dataset version.
+No image bytes or base64 payloads are stored in PostgreSQL or API responses.
+
 ## Local checks
 
 Backend development requires Python 3.11+ and [uv](https://docs.astral.sh/uv/):
@@ -173,3 +205,5 @@ secrets.
 - [`DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md)
 - [`ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - [`IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md)
+- [`DOG_IMAGE_GENERATION_GUIDE.md`](docs/DOG_IMAGE_GENERATION_GUIDE.md)
+- [`P10B_MEDIA_HANDOFF.md`](docs/P10B_MEDIA_HANDOFF.md)

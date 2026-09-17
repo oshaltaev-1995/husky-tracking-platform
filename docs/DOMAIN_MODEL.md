@@ -36,7 +36,13 @@ not participate in the checksum. The v1 row is `winter-2025-2026-v1` / `20260331
 - exact `birth_date` and biological `sex` (`female`, `male`);
 - `is_neutered` and optional `neutered_on`, constrained not to precede birth;
 - nullable `litter_id`;
-- nullable `photo_key` reserved for P10 and fictional notes.
+- nullable `photo_key` containing only the canonical UUID-based WebP filename, plus
+  fictional notes.
+
+P10A keeps `photo_key` null until a final generated asset passes P10B validation. The
+key is never image bytes, base64, an absolute host, or a gallery relation. Angular maps
+an activated key to `/media/dogs/<key>?v=dog-media-v1`; missing or failed assets use the
+shared placeholder. Media-set versioning remains separate from dataset versioning.
 
 All P2 dates are exact, so birth precision machinery is intentionally absent. The four
 2016 foundation dogs have null litter; every later canonical dog belongs to one.

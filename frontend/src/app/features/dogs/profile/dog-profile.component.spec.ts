@@ -20,7 +20,7 @@ const bundle: DogProfileBundle = {
     sex: 'female',
     is_neutered: true,
     neutered_on: '2023-01-01',
-    photo_key: null,
+    photo_key: '9422673b-331b-5e72-a700-5fff0574a209.webp',
     notes: 'Calm foundation dog.',
     litter_code: null,
     litter_birth_date: null,
@@ -138,6 +138,9 @@ describe('DogProfileComponent', () => {
     });
     expect(fixture.nativeElement.textContent).toContain('Aurora');
     expect(fixture.nativeElement.textContent).toContain('Kennel record');
+    const portrait = fixture.nativeElement.querySelector('.profile-media img') as HTMLImageElement;
+    expect(portrait.getAttribute('alt')).toBe('Portrait of Aurora');
+    expect(portrait.getAttribute('loading')).toBe('eager');
 
     query.next(convertToParamMap({ tab: 'pedigree' }));
     fixture.detectChanges();

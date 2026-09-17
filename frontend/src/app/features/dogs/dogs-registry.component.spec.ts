@@ -43,7 +43,7 @@ const response: DogsRegistryResponse = {
           row: '1',
         },
       },
-      photo_key: null,
+      photo_key: '9422673b-331b-5e72-a700-5fff0574a209.webp',
     },
   ],
 };
@@ -65,6 +65,9 @@ describe('DogsRegistryComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Aurora');
     const profileLink = fixture.nativeElement.querySelector('.dog-card') as HTMLAnchorElement;
     expect(profileLink.getAttribute('href')).toContain(response.items[0].id);
+    const portrait = fixture.nativeElement.querySelector('.card-media img') as HTMLImageElement;
+    expect(portrait.getAttribute('alt')).toBe('Portrait of Aurora');
+    expect(portrait.getAttribute('loading')).toBe('lazy');
 
     const search = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
     search.value = 'aurora';

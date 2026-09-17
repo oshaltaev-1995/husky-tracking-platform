@@ -34,7 +34,7 @@ describe('ArchiveRegistryComponent', () => {
             note: 'Natural fictional end-of-life record.',
           },
           offspring_count: 6,
-          photo_key: null,
+          photo_key: 'b265ec9a-985f-5533-9142-7ba9d59f899f.webp',
         },
       ],
     });
@@ -45,6 +45,8 @@ describe('ArchiveRegistryComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('6 offspring');
     const link = fixture.nativeElement.querySelector('.archive-row') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toContain('b265ec9a-985f-5533-9142-7ba9d59f899f');
+    const portrait = fixture.nativeElement.querySelector('.archive-media img') as HTMLImageElement;
+    expect(portrait.getAttribute('alt')).toBe('Portrait of Django');
     http.verify();
   });
 });
