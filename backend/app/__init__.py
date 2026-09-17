@@ -1,0 +1,1 @@
+"""Husky Tracking backend application."""

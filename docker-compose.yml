@@ -1,0 +1,56 @@
+name: husky-tracking-platform
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-husky_tracking}
+      POSTGRES_USER: ${POSTGRES_USER:-husky_tracking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-husky_tracking_dev}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://husky_tracking:husky_tracking_dev@db:5432/husky_tracking}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:8080}
+      DEMO_SEASON_START: ${DEMO_SEASON_START:-2025-12-01}
+      DEMO_SEASON_END: ${DEMO_SEASON_END:-2026-03-31}
+      DEMO_REFERENCE_DATE: ${DEMO_REFERENCE_DATE:-2026-03-31}
+    command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8030}:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    command: npm start -- --host 0.0.0.0 --poll 1000
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-4300}:4200"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+
+volumes:
+  postgres-data:
+  frontend-node-modules:
