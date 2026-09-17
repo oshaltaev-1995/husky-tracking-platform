@@ -5,8 +5,9 @@ media, topology, or implementation file was copied into this project.
 
 ## Reference roles
 
-- `../husky-tracking`: an original Streamlit demonstration and the only reference
-  whose dog/workload fixtures may be treated as synthetic.
+- `../husky-tracking`: an original Streamlit demonstration whose workload/data
+  structure may be studied. The owner subsequently confirmed its dog names came from
+  another real kennel, so none of those identities is reusable.
 - `../kenneloperations`: a mature real-world pilot used only to understand proven
   concepts and boundaries. Its records and kennel-specific configuration are private.
 
@@ -18,7 +19,7 @@ The Excel workbook `data/demo/husky_kennel.xlsx` has one sheet,
 `tracking_2025-12`, with 30 dogs and one value for every dog on every day from
 2025-12-01 through 2025-12-31.
 
-Synthetic names, integer ages, and explicit capabilities from
+Names, integer ages, and explicit capabilities from
 `scripts/seed_constraints.py` are:
 
 | Dogs | Age | Lead | Team | Wheel |
@@ -55,7 +56,8 @@ bidirectional conflicts are defined between:
 - Rikki and Marfa;
 - Koni or Landa and Vesta or Lisa.
 
-These are synthetic rule examples, not pedigree links.
+These are structural rule examples, not pedigree links. Their named relationships are
+not transferred to this public demo.
 
 ### Workload mechanism and provenance
 
@@ -73,9 +75,23 @@ proven from source. It appears precomputed or manually assembled, not runtime-ra
 It should not be preserved as canonical workload because it lacks rest days, uses
 distances outside the new 5/10 km focus, and does not model session/team causality.
 
+### Owner correction: names are forbidden
+
+The P1 conclusion that the 30 names were safe candidates is superseded by the owner's
+post-P1 provenance clarification. They originated at another real kennel where the
+owner worked. The following names may appear in documentation only as a denylist or
+reference-audit record; they must never appear in the seeded/public population:
+
+Irbis, Taiga, Rikki, Joha, Lennon, Blix, Talvi, Lumi, Tesla, Lara, Jukki, Vita, Efir,
+Sparki, Vesta, Lisa, Prince, Rover, Landa, Koni, Monti, Python, Misha, Graph, Ilon,
+Knox, Kurt, Marfa, Whisky, and Ray.
+
+P2 enforces this boundary in both catalog and PostgreSQL reset tests. All 60 public
+demo names are newly curated fictional identities.
+
 ### Concepts worth preserving
 
-- all 30 names are safe candidates for the expanded fictional name pool;
+- workload/data structure may be studied without reusing its identities or values;
 - explicit lead/team/wheel capability flags;
 - explainable workload windows and a fatigue-style score;
 - hard conflicts and soft pair preferences as different rule strengths;
@@ -140,8 +156,9 @@ complexity, and production completion machinery.
 
 ## Audit conclusion
 
-The Streamlit project contributes a small safe name/rule vocabulary and demonstrates
-explainable workload/team ideas. Kennel Operations validates historical-state and
-workflow concepts. Neither is the codebase or schema to migrate. The new platform uses
-a smaller normalized domain, a fixed demo clock, fictional topology, deterministic
-session-based work, and newly written Angular/FastAPI code.
+The Streamlit project demonstrates explainable workload/team ideas and a data shape;
+it contributes no reusable dog identities. Kennel Operations validates historical-state
+and workflow concepts. Neither is the codebase, schema, or dataset to migrate. The new
+platform uses newly curated fictional names, a normalized domain, a fixed demo clock,
+fictional topology, deterministic session-based work, and newly written Angular/FastAPI
+code.

@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     demo_season_start: date = date(2025, 12, 1)
     demo_season_end: date = date(2026, 3, 31)
     demo_reference_date: date = date(2026, 3, 31)
+    demo_reset_enabled: bool = False
 
     @field_validator("cors_origins", mode="before")
     @classmethod

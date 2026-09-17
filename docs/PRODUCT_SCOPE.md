@@ -34,7 +34,7 @@ accessibility.
 - Fixed season: `2025-12-01` through `2026-03-31`.
 - Fixed reference date: `2026-03-31`.
 - Display label: **Demo season — Winter 2025–2026**.
-- Approximately 60 fictional dogs: exactly 50 active and approximately 10 archived.
+- Exactly 60 fictional dogs: 50 active and 10 archived.
 - Exactly 10 active puppies born in 2026; 40 older active dogs.
 - Four oldest active dogs born in 2016; no required active 2017 cohort.
 - Internally coherent, approximately three-generation pedigree.

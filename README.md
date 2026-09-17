@@ -9,16 +9,21 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P1 foundation
+## P2 domain foundation
 
 - Angular 22, TypeScript, and SCSS frontend
-- FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend foundation
+- FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
 - Docker Compose development environment
 - fixed, validated demo clock shared through the backend health contract
+- normalized dogs, litters/pedigree, dated class/lifecycle/availability/housing,
+  locations, roles, relationships, and work-session persistence
+- deterministic `winter-2025-2026-v1` demo reset with 50 active and 10 archived
+  fictional dogs
+- semantic validation and checksum independent of database identities and timestamps
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-Major domain features intentionally begin in P2. See
+Dog Profile and other product screens intentionally begin in P3. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -39,16 +44,44 @@ Requirements: Docker with Compose.
 ```bash
 cp .env.example .env
 docker compose up --build
+docker compose exec backend uv run alembic upgrade head
+docker compose exec backend uv run python -m app.demo.seed
 ```
 
 Then open:
 
 - frontend: <http://localhost:4300>
 - API health: <http://localhost:8030/api/v1/health>
+- dataset summary: <http://localhost:8030/api/v1/demo-dataset>
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is
 explicitly removed.
+
+## Canonical demo data commands
+
+The commands are deliberately scoped to the non-production database named
+`husky_tracking` and require `DEMO_RESET_ENABLED=true`.
+
+```bash
+cd backend
+uv run alembic upgrade head
+
+# Initialize an empty domain database. Refuses if dogs already exist.
+DEMO_RESET_ENABLED=true uv run python -m app.demo.seed
+
+# Explicitly clear only Husky Tracking domain tables and restore canonical v1.
+DEMO_RESET_ENABLED=true uv run python -m app.demo.reset
+
+# Validate and print the currently seeded world without changing it.
+uv run python -m app.demo.inspect
+```
+
+The reset report includes cohorts, litters/parents, class and archive distributions,
+current statuses, housing-history coverage, workload range, and the semantic checksum.
+The checksum covers meaningful domain rows (including work sessions and starts) after
+sorting and replacing database keys with stable names/codes. It excludes sequence
+values, generated timestamps, and PostgreSQL metadata.
 
 ## Local checks
 
@@ -62,6 +95,10 @@ uv run ruff format --check .
 uv run mypy app
 uv run pytest
 ```
+
+`pytest` includes PostgreSQL integration coverage and resets the local app-owned demo
+database twice to prove checksum determinism. Run Alembic first and ensure PostgreSQL is
+available through the configured `DATABASE_URL`.
 
 Frontend development uses Node 24 (the Docker image is the canonical runtime):
 

@@ -10,6 +10,9 @@ These instructions apply to the entire repository.
   `../kenneloperations` are read-only references.
 - Never copy or expose real kennel dogs, people, photos, topology, notes, customers,
   exports, credentials, or other production data.
+- The 30 dog names recorded in `docs/REFERENCE_AUDIT.md` came from a real kennel and
+  are forbidden in seeded/public demo populations. The Streamlit data shape may be
+  studied, but its names may not be reused.
 - Concepts may be reimplemented and generalized; implementation files must not be
   mechanically copied from the references.
 
@@ -24,6 +27,7 @@ These instructions apply to the entire repository.
 - Derive analytics from canonical per-dog work records; do not maintain competing
   summary ledgers.
 - The seed/reset path must be deterministic and validated.
+- Canonical demo dataset version: `winter-2025-2026-v1`; scheduling seed: `20260331`.
 
 ## Technical conventions
 

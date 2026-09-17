@@ -44,9 +44,8 @@ backend/
     api/                   versioned HTTP adapters
     core/                  settings and demo clock
     db/                    SQLAlchemy base/session
-    domain/                P2+ entities, value objects, policies
-    services/              P2+ application orchestration
-    repositories/          P2+ persistence/query adapters
+    models/                typed P2 SQLAlchemy domain persistence
+    demo/                  curated catalog, generator, validation, checksum, CLIs
   tests/
 frontend/
   src/app/
@@ -57,8 +56,8 @@ docs/                      canonical product and engineering decisions
 media/                     ignored generated media root
 ```
 
-P1 creates only folders that contain working code; later folders are added with their
-packages rather than as empty architecture theater.
+Feature services/repositories are added with the package that needs them rather than as
+empty architecture theater.
 
 ## Backend boundaries
 
@@ -76,9 +75,12 @@ API conventions:
 - collection APIs use deterministic ordering and pagination where needed;
 - OpenAPI is available in non-hardened environments.
 
-The initial `GET /api/v1/health` proves frontend/backend connectivity and exposes the
-demo-season contract. A later readiness endpoint may additionally verify PostgreSQL;
-health should not expose secrets or infrastructure details.
+`GET /api/v1/health` proves frontend/backend connectivity and exposes the demo-season
+contract. P2 also provides the intentionally narrow read-only
+`GET /api/v1/demo-dataset` verification projection; it returns version, reference date,
+active/archive counts, and checksum rather than prematurely exposing P3 Dog APIs. A
+later readiness endpoint may additionally verify PostgreSQL; health should not expose
+secrets or infrastructure details.
 
 ## Demo clock
 
@@ -98,18 +100,23 @@ timestamps may use real UTC time; domain-demo calculations may not use real `tod
 
 ## Persistence and migrations
 
-SQLAlchemy 2 typed mappings will implement the model in `DOMAIN_MODEL.md`. Alembic is
+SQLAlchemy 2 typed mappings implement the model in `DOMAIN_MODEL.md`. Alembic is
 the only schema evolution path. Production startup runs `alembic upgrade head` as an
 explicit release step; the application does not create tables opportunistically.
 
 PostgreSQL provides foreign keys, check/unique/partial indexes, range types, GiST
-exclusion constraints, recursive pedigree validation queries, and transactional locks
-for capacity-sensitive housing writes. P2 starts with one coherent baseline migration;
-subsequent changes are forward migrations with tested downgrade policy where practical.
+exclusion constraints, and transactional enforcement primitives. The P2 semantic
+validator performs pedigree traversal and interval-capacity checks in the seeding
+transaction. P2 starts with one coherent baseline migration; subsequent changes are
+forward migrations with tested downgrade policy where practical.
 
-The deterministic generator is application code invoked by a guarded CLI/admin reset
-operation. It writes through validated services, produces a checksum/report, and is
-never triggered accidentally on ordinary production startup.
+The deterministic generator is application code invoked by guarded CLI operations. It
+uses a fixed curated catalog for identity/pedigree and deterministic scheduling for
+work. `seed` refuses existing Dog rows; `reset` truncates only an explicit domain-table
+allowlist after checking non-production mode, an enable flag, and the app-owned
+database name. `inspect` is read-only. Every write is validated before commit and the
+normalized semantic snapshot is SHA-256 hashed without generated IDs/timestamps. No
+seed/reset operation runs on ordinary application startup.
 
 ## Frontend architecture
 
@@ -129,8 +136,8 @@ and cannot mutate housing or status.
 ## Plans, actuals, and analytics
 
 Daily Plan and accepted Team Builder output remain planned data. Daily Entry or explicit
-confirmation creates/updates WorkEntry and DogWork actuals. Analytics reads the actual
-ledger only. This avoids double counting and keeps every total traceable.
+confirmation creates/updates WorkSession and WorkParticipation actuals. Analytics reads
+the actual ledger only. This avoids double counting and keeps every total traceable.
 
 Eligibility order is:
 
@@ -160,10 +167,10 @@ Environments:
 ## Containers and deployment
 
 Development uses three services. Production images are multi-stage: Angular builds to
-static assets served by Nginx; FastAPI runs as a non-root user. The current P1 Compose
-file is development-oriented. P12 adds production Compose/platform configuration,
-health-gated release migrations, HTTPS/reverse-proxy config, resource limits, backup/
-restore, observability, and rollback documentation.
+static assets served by Nginx; FastAPI runs as a non-root user. The current development
+Compose file is development-oriented. P12 adds production Compose/platform
+configuration, health-gated release migrations, HTTPS/reverse-proxy config, resource
+limits, backup/restore, observability, and rollback documentation.
 
 Persistent data categories are PostgreSQL and generated media. They require independent
 backup/restore plans. Images and secrets do not belong in Git or baked configuration.
@@ -186,7 +193,8 @@ one visitor cannot affect another's experience indefinitely.
 
 ## Testing strategy
 
-- unit tests for DemoClock, age, eligibility, workload, generator, and frontend utilities;
+- unit tests for DemoClock, curated catalog, eligibility, workload, generator, and
+  frontend utilities;
 - PostgreSQL integration tests for range exclusions, relationships, migrations, and
   transaction rules;
 - API contract tests for history boundary dates and idempotent writes;
@@ -201,4 +209,4 @@ SQLite is not a substitute for PostgreSQL constraint tests.
 
 Authentication model, hosting vendor, object-storage vendor, analytics materialization,
 and anonymous demo edit isolation are selected in the package that needs them. They do
-not justify microservices or extra infrastructure in P1.
+not justify microservices or extra infrastructure.

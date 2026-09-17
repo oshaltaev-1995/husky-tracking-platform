@@ -33,25 +33,31 @@ generated photos.
 
 ## P2 — Synthetic demo world and domain persistence
 
+**Status:** completed. P2 delivered the baseline migration, curated
+`winter-2025-2026-v1` catalog, guarded seed/reset/inspect CLIs, PostgreSQL semantic
+validator, deterministic checksum, and narrow dataset-summary endpoint. No P3 UI was
+started.
+
 **Objective:** implement the normalized domain core and deterministic canonical world.
 
 **Required behavior:** reset/reseed produces 50 active + 10 archived fictional dogs,
 valid three-generation pedigree, dated state/housing, fictional topology, roles/rules,
 and complete season work with a stable checksum.
 
-**Backend:** implement Dog, parent edges, class/lifecycle/status periods, archive,
-locations/housing, capabilities/constraints, WorkEntry/DogWork, repositories, validators,
-DemoClock-based age/effective-state policies, and guarded seed CLI.
+**Backend:** implemented Dog, first-class Litter parentage,
+class/lifecycle/availability periods, archive, locations/housing,
+capabilities/constraints, WorkSession/WorkParticipation, semantic validation/checksum,
+DemoClock-based effective-state policies, and guarded seed/reset/inspect CLIs.
 
 **Frontend:** no major feature UI; add a developer/demo dataset status surface only if
 needed to verify seed version/counts.
 
-**Data/migrations:** baseline domain migration with PostgreSQL checks, foreign keys,
-`btree_gist`, exclusion constraints, indexes, and seed-version metadata.
+**Data/migrations:** delivered baseline domain migration with PostgreSQL checks, foreign
+keys, `btree_gist`, exclusion constraints, indexes, and seed-version metadata.
 
-**Tests:** migration up/down/smoke; population and cohort invariants; pedigree chronology,
-ages, and cycle rejection; interval overlap rejection; occupancy/capacity; deterministic
-checksum; full-season workload eligibility and distribution.
+**Tests:** delivered migration up/down/smoke; population and cohort invariants; pedigree
+chronology, ages, and cycle rejection; interval overlap rejection; occupancy/capacity;
+deterministic checksum; full-season workload eligibility and distribution.
 
 **Acceptance:** every invariant in `DEMO_DATA_SPEC.md` passes; two resets are identical;
 no real/reference production record is present; generator report is documented.
@@ -171,8 +177,8 @@ workflow.
 worked/not worked, 5/10 km or supported activity, status context, notes, save/reopen/
 correct, and optional plan confirmation without double counting.
 
-**Backend:** grouped entry read model, idempotent WorkEntry/DogWork upsert, plan-to-actual
-confirmation, revisions and safe correction semantics.
+**Backend:** grouped entry read model, idempotent WorkSession/WorkParticipation upsert,
+plan-to-actual confirmation, revisions and safe correction semantics.
 
 **Frontend:** compact desktop/mobile entry grid, filters/search, batch controls where
 safe, validation summaries, persisted/reopened state, clear actual-versus-plan language.
@@ -196,7 +202,7 @@ historical entries never regroup by current housing.
 distribution, weekly comparison, underused/high-use dogs, work/rest streaks, and
 individual history for selected periods.
 
-**Backend:** aggregate query services over DogWork, explicit meaningful-work rules,
+**Backend:** aggregate query services over WorkParticipation, explicit meaningful-work rules,
 period comparison, stable thresholds/configuration, optional export endpoints only when
 they strengthen the demo.
 

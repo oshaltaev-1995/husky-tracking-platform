@@ -1,235 +1,190 @@
 # Canonical domain model
 
-This is the greenfield target model for P2–P8. Names may receive small implementation
-refinements in migrations, but the separation and invariants are authoritative.
+P2 establishes the implemented persistence model below. PostgreSQL is authoritative;
+current values and analytics are projections over normalized history, not duplicated
+columns on Dog.
 
-## Modeling rules
+## Common rules
 
-- PostgreSQL is authoritative; core relationships are relational, not JSON blobs.
-- UUID public identifiers are exposed through APIs; integer or UUID primary-key choice
-  is finalized in P2 and remains opaque to clients.
-- Calendar-domain fields use `date`. Event timestamps use timezone-aware UTC.
-- Effective intervals are half-open: `[valid_from, valid_to)`, with null `valid_to`
+- Integer primary keys are private persistence identities. `Dog.public_id` is a stable
+  UUIDv5 identifier intended for later APIs.
+- Calendar-domain fields use `date`; infrastructure timestamps use timezone-aware UTC.
+- Effective intervals are half-open `[valid_from, valid_to)`, with null `valid_to`
   meaning open-ended.
-- Current state is derived from the interval covering the requested reference date.
-  Do not add current-state cache columns until measurement justifies them.
-- Plans are intentions. Confirmed work is the single analytics source of truth.
+- Date-effective tables expose a generated PostgreSQL `daterange` and a GiST exclusion
+  constraint so one dog cannot have overlapping rows in that dimension.
+- Checked text values are the canonical v1 enum representation. They avoid migration
+  coupling while still rejecting unknown values in PostgreSQL.
+- Age is derived from `birth_date` and `DemoClock.reference_date`; no static age is
+  stored.
+- Actual work is the only analytics source of truth. Plans introduced in P5 will be
+  intentions until explicitly confirmed into this ledger.
 
-## Dog aggregate
+## Dataset identity
 
-### Dog
+### `demo_datasets`
 
-Identity and stable profile data:
+Stores one canonical `version`, its scheduling `random_seed`, the computed
+`semantic_checksum`, and an informational `seeded_at`. The timestamp and database ID do
+not participate in the checksum. The v1 row is `winter-2025-2026-v1` / `20260331`.
 
-- `id`, `public_id`, unique canonical `name`, optional `slug`;
-- `sex` (`female`, `male`, `unknown`) and neuter/spay boolean or explicit unknown;
-- `birth_date` plus `birth_date_precision` (`day`, `month`, `year`);
-- fictional bio/notes;
-- optional `photo_storage_key`;
-- created/updated timestamps.
+## Dog, litter, and pedigree
 
-When only a year is known, store a normalized comparison date plus precision, or store
-year separately; P2 must choose one consistent API. Age presentation always uses the
-DemoClock reference date and respects precision.
+### `dogs`
 
-Constraints: name unique case-insensitively; birth not after demo reference date;
-storage key relative and unique when present.
+- `id`, unique `public_id`, unique case-insensitive `name`;
+- exact `birth_date` and biological `sex` (`female`, `male`);
+- `is_neutered` and optional `neutered_on`, constrained not to precede birth;
+- nullable `litter_id`;
+- nullable `photo_key` reserved for P10 and fictional notes.
 
-### DogParent
+All P2 dates are exact, so birth precision machinery is intentionally absent. The four
+2016 foundation dogs have null litter; every later canonical dog belongs to one.
 
-Normalized pedigree edge:
+### `litters`
 
-- `child_id` → Dog;
-- `parent_id` → Dog;
-- `parent_role` (`mother`, `father`), when known.
+- unique single-letter `code` and shared `birth_date`;
+- nullable `mother_id` and `father_id`, both restrictive Dog foreign keys;
+- optional notes.
 
-Constraints: unique `(child_id, parent_role)`; unique `(child_id, parent_id)`;
-`child_id <> parent_id`; restrictive deletion so pedigree identity is not silently
-lost. Parent sex is not inferred when unknown. Offspring is the reverse relation and
-siblings are derived through shared parent IDs.
+Litter is first-class and authoritative for both sibling membership and represented
+parentage. A separate DogParent table would duplicate the same facts and is therefore
+not present. A member's parents are its litter's mother/father; offspring are litters
+that reference a dog; siblings are other members of the same litter. Nullable parent
+columns permit an external/unknown parent without inventing a record.
 
-Birth chronology, plausible parent ages, ancestry cycles, and transitive
-self-ancestry require a transaction-level domain validator. PostgreSQL constraints
-cover local edges; P2 adds a recursive-CTE validation and generator tests.
+The local distinct-parent check is backed by the domain validator, which enforces:
 
-### DogRoleCapability
+- member date equals litter date and member name starts with its litter code;
+- child birth follows each parent's birth by at least 730 days;
+- v1 mother is female and father male;
+- no dog is its own parent and no ancestor cycle exists;
+- an archived parent's archive date follows the represented offspring birth.
 
-- `dog_id`;
-- `role` (`lead`, `team`, `wheel`);
-- optional proficiency/preference rank.
+Parent/litter queries never filter on lifecycle, so archived parents remain navigable.
 
-Primary key `(dog_id, role)`. Absence means not approved for that role.
+### `dog_role_capabilities`
 
-### DogClassPeriod
+One unique `(dog_id, role)` row for `lead`, `team`, or `wheel`. Absence means the dog is
+not eligible for that role. Foreign-key deletion is restrictive.
 
-- `dog_id`, `dog_class` (`puppy`, `junior`, `training`, `standard`);
-- `valid_from`, nullable `valid_to`;
-- optional public-safe note.
+## Independent effective histories
 
-Exactly one effective class is expected for every active dog. Exclude overlapping
-periods per dog with a PostgreSQL GiST exclusion constraint over a `daterange`.
+### `dog_class_periods`
 
-### DogLifecyclePeriod
+Stores `puppy`, `junior`, `training`, or `standard` with an effective interval. Class is
+an operational assignment, not an age cache, lifecycle, or availability value. Every
+active canonical dog has exactly one effective class at the reference date.
 
-- `dog_id`, `lifecycle` (`active`, `retired`, `archived`);
-- `valid_from`, nullable `valid_to`;
-- optional reason/note.
+### `dog_lifecycle_periods`
 
-Lifecycle is independent from class and availability. `retired` is operationally
-unavailable. Archive transitions preserve identity and all referenced histories.
-Periods may not overlap.
+Stores `active` or `archived`. Archive closes Active and opens Archived on the same
+boundary. Retirement is deliberately absent because it is an availability state; an
+active retired dog remains a kennel resident.
 
-### DogArchive
+### `dog_availability_periods`
 
-One-to-zero/one metadata record for the current archive transition:
+Stores `available`, `injured`, `rest`, `restricted`, or `retired`, plus a public-safe
+note. In v1 all four non-available values block sled work. This table never encodes
+class or lifecycle.
 
-- `dog_id` unique;
-- `archived_on`;
-- `reason` (`euthanized`, `natural_death`, `rehomed`, `transferred`, `other`);
-- optional explanatory note.
+### `dog_archives`
 
-The corresponding lifecycle period must be Archived from `archived_on`. A database
-constraint cannot enforce the cross-table temporal rule alone; the archive service
-performs one locked transaction. Permanent deletion is not a public-demo workflow.
+One-to-zero/one metadata row with `archive_date`, reason (`euthanized`, `deceased`, or
+`rehomed_to_guide`), and an optional neutral fictional note. Cross-table validation
+requires the lifecycle boundary and archive row to agree.
 
-### DogStatusPeriod
+## Housing
 
-Operational availability history:
+### `kennel_locations`
 
-- `dog_id`;
-- `availability` (`available`, `injured`, `rest`, `restricted` initially);
-- `valid_from`, nullable `valid_to`;
-- reason and optional note;
-- created/updated timestamps.
-
-Periods may not overlap for one dog. Availability does not encode class, lifecycle, or
-manual Team Builder exclusion. Status History displays these rows chronologically.
-
-## Housing aggregate
-
-### KennelLocation
-
-- `id`, unique `code`, public label;
+- stable unique `code` and `display_name`;
 - `location_type` (`adult_enclosure`, `puppy_area`);
-- capacity;
-- map group and deterministic display order;
-- optional layout coordinates/size in configuration columns.
+- `zone`, `row_label`, and numeric `position` for P4 rendering;
+- positive `capacity` and `is_active`.
 
-No real kennel naming or geometry is permitted. Location existence/layout history can
-be added if the fictional layout evolves; it is distinct from occupancy history.
+The unique `(zone, row_label, position)` tuple prevents layout collisions. Location
+metadata is sufficient to render A1/A2/B1/B2 rows and separate puppy buildings without
+parsing the code or redesigning persistence.
 
-### DogHousingAssignment
+### `housing_assignments`
 
-- `dog_id`, `kennel_location_id`;
-- `valid_from`, nullable `valid_to`;
-- optional note.
+Stores restrictive Dog/Location foreign keys, effective interval, and optional note.
+A GiST exclusion constraint prevents one dog occupying two locations simultaneously;
+an indexed location/date path supports capacity checks and dated maps. Capacity spans
+multiple rows, so the application validator sweeps all interval boundaries and rejects
+over-capacity worlds. Historical gaps remain gaps and are never replaced by current
+housing.
 
-Constraints: `valid_to > valid_from`; no overlapping assignments per dog; one open
-assignment maximum. Capacity is validated transactionally because it spans rows and
-dates. Historical queries use `valid_from <= as_of` and
-`valid_to IS NULL OR as_of < valid_to` and never fall back to current housing.
+## Team-builder relationship facts
 
-## Planning aggregate
+### `dog_relationship_constraints`
 
-### DailyPlan
+Stores a canonical unordered pair as `dog_a_id < dog_b_id`, a kind
+(`preferred_pair` or `hard_conflict`), and optional note. Unique pair/kind plus ordering
+prevents self-relations and inverse duplicates. Semantics are symmetric: hard conflict
+will be a future P6 blocker, while preferred pair will be a soft scoring input.
 
-- unique `plan_date` for the demo's universal daily plan;
-- status (`draft`, `ready`, `completed`, `cancelled`);
-- optional public-safe note; revision and timestamps.
+No P5/P6 plans or teams are implemented early. Future `DailyPlan`, `PlannedActivity`,
+`Team`, and `TeamPosition` tables will reference these facts and the effective state
+tables rather than adding competing dog-state columns.
 
-### PlannedActivity
+## Canonical actual-work ledger
 
-- `daily_plan_id`;
-- ordered activity type (`training`, `open_space_walk`, `individual_exercise`, `rest`);
-- route/label, optional distance, optional start time;
-- status and notes.
+### `work_sessions`
 
-Constraints: distance non-negative; training requires an allowed route/distance;
-rest has no team.
+- unique stable `source_reference` for idempotent seeded identity;
+- `work_date`, checked `distance_km` of 5 or 10;
+- checked `activity_type` of `sled_training` in canonical v1;
+- optional synthetic label/note.
 
-### Team and TeamPosition
+### `work_participations`
 
-`Team` belongs to one PlannedActivity and has an order/label. `TeamPosition` stores:
+- restrictive session and dog foreign keys;
+- nullable checked `assigned_role` (`lead`, `team`, `wheel`);
+- unique `(session_id, dog_id)`.
 
-- `team_id`, `dog_id`;
-- harness row/order and role (`lead`, `team`, `wheel`);
-- optional side/order within a row.
+One participation is exactly one dog start and its km is the parent session distance.
+There is no per-dog distance override, stored start count, or aggregate workload on Dog.
+Totals, starts, work/rest streaks, and later Dog Profile/Analytics views query these two
+tables.
 
-Constraints: dog unique within a team; lineup slot unique; role must match approved
-capability at plan time unless a deliberate, explained manual override exists. A dog
-cannot be double-booked in temporally overlapping activities. Persisted lineup geometry
-is authoritative.
+The seed validator ensures the dog has the assigned capability and effective active,
+available, eligible class on the work date. Training dogs receive only 5 km; Juniors
+and Puppies receive no participations.
 
-### DogRelationshipConstraint
+## Deletion and archive policy
 
-- canonical ordered pair `dog_a_id < dog_b_id`;
-- `constraint_type` (`preferred_pair`, `conflict`);
-- strength (`soft`, `hard`) where meaningful;
-- optional effective dates and public-safe reason.
+All core history, parent, housing, relationship, and work foreign keys use `RESTRICT`.
+The cyclic Dog/Litter foreign keys are created deliberately by Alembic after both
+tables exist. Application workflows archive dogs rather than deleting them. There is no
+casual hard-delete API and deleting a dog cannot cascade away pedigree, housing,
+availability, class, archive, relationship, or work history.
 
-Unique pair/type; no self-pair. Hard conflict blocks a shared team. Preferred pairing
-is a scoring input and never overrides eligibility.
+The reset CLI is the sole bulk-clearing mechanism. It is explicitly local/demo-only,
+uses a fixed table allowlist, checks database name/environment, and reconstructs the
+entire semantic world in one transaction.
 
-### DogPlanningExclusion
+## Migration integrity
 
-An optional dated per-dog exclusion separate from availability:
+Baseline migration `0cc49c993626_add_synthetic_kennel_domain`:
 
-- `dog_id`, effective interval, scope (`team_builder` initially), reason.
+- enables `btree_gist` when absent;
+- creates all 13 domain tables with deliberate checks, unique constraints, restrictive
+  foreign keys, and query indexes;
+- adds generated finite-backed date ranges and GiST overlap exclusions for class,
+  lifecycle, availability, and per-dog housing;
+- has a tested downgrade, including explicit removal of the cyclic Dog→Litter foreign
+  key before table teardown.
 
-This preserves the distinction between “not operationally available” and “available
-but deliberately excluded from automatic selection.”
+Alembic remains the only production schema mechanism; application code never calls
+`metadata.create_all()`.
 
-## Actual-work aggregate
+## Read projections and later packages
 
-### WorkEntry
-
-Canonical session/event header:
-
-- `id`, `work_date`, activity type, source (`daily_entry`, `plan_confirmation`,
-  `demo_seed`);
-- optional `planned_activity_id`;
-- route/label, canonical distance, notes;
-- revision and created/updated timestamps.
-
-A stable source reference supports idempotent seed/import and reopen/update behavior.
-
-### DogWork
-
-Per-dog participation/result:
-
-- `work_entry_id`, `dog_id`;
-- `worked` or an outcome enum when a not-worked chronology row is required;
-- assigned role;
-- distance km and `start_count`;
-- optional note.
-
-Unique `(work_entry_id, dog_id)`; non-negative distance/start count; `worked=false`
-implies zero distance and starts. Meaningful work is `worked=true` with a positive
-start or distance. Dogs worked, dog starts, total km, averages, streaks, and individual
-history are all queries over this ledger. Do not create a second summary work table.
-
-## Query projections and policies
-
-These are services/read models, not independent sources of truth:
-
-- `EffectiveDogState(as_of)` combines class, lifecycle, availability, exclusion, and
-  housing without collapsing them.
-- `DogEligibility(as_of, activity)` applies hard blockers first, then role/relationship
-  rules, and emits machine codes plus human explanations.
-- `DogWorkload(window)` aggregates DogWork by dates and returns km, starts, active days,
-  streaks, and distribution context.
-- `KennelMapState(as_of, layer)` combines effective housing/state with fictional layout.
-- `TeamSuggestion` is ephemeral until accepted into Team/TeamPosition.
-
-Analytics may use SQL views or materialized views later, but every value remains
-traceable to WorkEntry/DogWork.
-
-## PostgreSQL integrity strategy
-
-P2 should enable `btree_gist` and use exclusion constraints for non-overlapping dated
-rows. Use check constraints for interval order, non-negative metrics, distinct pair/
-parent IDs, and enum-like values (native enum versus checked text is decided once in
-the first migration). Use partial unique indexes for open intervals when helpful.
-
-Deletion behavior defaults to `RESTRICT` for business history and pedigree. Child rows
-that are purely owned implementation details may cascade. Archive is not deletion.
+P2 exposes only `GET /api/v1/demo-dataset`, a small read-only verification projection
+with dataset version, reference date, active/archive counts, and checksum. P3 can build
+Dog registry/profile/archive projections directly from the persisted identity,
+pedigree, state, housing, and work histories. P4 can build a dated map from location and
+housing metadata. P6/P8 can derive eligibility and workload without a schema rewrite or
+secondary ledger.
