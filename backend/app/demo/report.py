@@ -39,6 +39,8 @@ def render_report(report: DemoValidationReport) -> str:
             f"{json.dumps(report.distance_session_counts, sort_keys=True)}",
             f"Eligible-dog workload km: min={report.workload_min_km}, "
             f"median={report.workload_median_km:g}, max={report.workload_max_km}",
+            f"Maximum daily dog workload: {report.max_daily_dog_distance_km} km "
+            "(30 km limit)",
             "Workload by dog: "
             + ", ".join(f"{name}={distance}" for name, distance in ordered_workload),
             "Puppy/junior workload: 0 km (validated)",

@@ -27,6 +27,7 @@ from app.demo.catalog import (
     class_period_specs,
 )
 from app.demo.semantic import semantic_checksum
+from app.domain.workload import WorkloadRuleViolation, add_daily_dog_distance
 from app.models import (
     DemoDataset,
     Dog,
@@ -435,9 +436,17 @@ def _seed_workload(
     last_worked: dict[str, date] = {}
 
     def eligible(
-        name: str, work_date: date, distance: int, worked_today: set[str]
+        name: str,
+        work_date: date,
+        distance: int,
+        worked_today: set[str],
+        daily_workload_km: dict[str, int],
     ) -> bool:
         if name in worked_today or name not in roles_by_name:
+            return False
+        try:
+            add_daily_dog_distance(daily_workload_km[name], distance)
+        except WorkloadRuleViolation:
             return False
         archive = ARCHIVE_SPECS.get(name)
         if archive and work_date >= archive.archive_date:
@@ -470,11 +479,18 @@ def _seed_workload(
     while current <= clock.season_end:
         if current.weekday() in {0, 1, 3, 5}:
             worked_today: set[str] = set()
+            daily_workload_km: dict[str, int] = defaultdict(int)
             for distance in (10, 5):
                 candidates = [
                     name
                     for name in roles_by_name
-                    if eligible(name, current, distance, worked_today)
+                    if eligible(
+                        name,
+                        current,
+                        distance,
+                        worked_today,
+                        daily_workload_km,
+                    )
                 ]
                 if distance == 5:
                     training = [
@@ -538,6 +554,9 @@ def _seed_workload(
                         )
                     )
                     worked_today.add(name)
+                    daily_workload_km[name] = add_daily_dog_distance(
+                        daily_workload_km[name], distance
+                    )
                     total_km[name] += distance
                     starts[name] += 1
                     last_worked[name] = current

@@ -1,29 +1,91 @@
 <a class="skip-link" href="#main-content">Skip to content</a>
-<header class="app-header">
-  <div class="header-inner">
-    <a class="brand" routerLink="/dogs" aria-label="Husky Tracking Dogs registry">
-      <span class="brand-mark" aria-hidden="true">HT</span>
-      <span><strong>Husky Tracking</strong><small>Kennel operations</small></span>
-    </a>
-    <nav aria-label="Primary navigation">
-      <a routerLink="/dogs" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">Dogs</a>
-      <a routerLink="/archive" routerLinkActive="active">Archive</a>
-    </nav>
-    @if (connection$ | async; as connection) {
-      <div class="demo-context" [class.unavailable]="connection.kind === 'unavailable'" aria-live="polite">
-        <span class="context-dot" aria-hidden="true"></span>
-        @switch (connection.kind) {
-          @case ('connected') { <span><strong>{{ connection.season }}</strong><small>Reference {{ connection.referenceDate }}</small></span> }
-          @case ('unavailable') { <span><strong>Demo API offline</strong><small>Registry unavailable</small></span> }
-          @default { <span><strong>Demo season</strong><small>Connecting…</small></span> }
-        }
+
+<div class="app-shell">
+  <aside class="sidebar desktop-sidebar" aria-label="Application sidebar">
+    <ng-container [ngTemplateOutlet]="sidebarContent" />
+  </aside>
+
+  <div class="app-workspace">
+    <header class="mobile-header">
+      <a class="mobile-brand" routerLink="/dogs" aria-label="Husky Tracking Dogs registry">
+        <span class="brand-mark" aria-hidden="true">HT</span>
+        <span><strong>Husky Tracking</strong><small>Demo kennel</small></span>
+      </a>
+      <button
+        #menuButton
+        class="menu-button"
+        type="button"
+        aria-label="Open navigation"
+        aria-controls="mobile-navigation"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="openMenu()"
+      >
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    </header>
+
+    <main id="main-content" class="app-main">
+      <div [class.content-standard]="layoutMode() === 'standard'" [class.content-wide]="layoutMode() === 'wide'">
+        <router-outlet />
       </div>
-    }
+    </main>
   </div>
-</header>
+</div>
 
-<main id="main-content" class="app-main">
-  <router-outlet />
-</main>
+@if (menuOpen()) {
+  <button class="drawer-backdrop" type="button" aria-label="Close navigation" (click)="closeMenu()"></button>
+  <aside
+    #mobileDrawer
+    id="mobile-navigation"
+    class="sidebar mobile-drawer"
+    aria-label="Mobile application navigation"
+    tabindex="-1"
+    (keydown)="handleDrawerKeydown($event)"
+  >
+    <button class="drawer-close" type="button" aria-label="Close navigation" (click)="closeMenu()">×</button>
+    <ng-container [ngTemplateOutlet]="sidebarContent" />
+  </aside>
+}
 
-<footer class="app-footer"><div><span>Husky Tracking</span><span>Fictional dogs · deterministic data · no private kennel records</span></div></footer>
+<ng-template #sidebarContent>
+  <a class="brand" routerLink="/dogs" aria-label="Husky Tracking Dogs registry">
+    <span class="brand-mark" aria-hidden="true">HT</span>
+    <span><strong>Husky Tracking</strong><small>Demo kennel</small></span>
+  </a>
+
+  <nav class="primary-nav" aria-label="Primary navigation">
+    @for (section of navigation; track section.label) {
+      <section class="nav-section">
+        <h2>{{ section.label }}</h2>
+        @for (item of section.items; track item.route) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            [routerLinkActiveOptions]="{ exact: item.route === '/archive' }"
+          >
+            <span class="nav-mark" aria-hidden="true">{{ item.mark }}</span>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </section>
+    }
+  </nav>
+
+  @if (connection$ | async; as connection) {
+    <div class="demo-context" [class.unavailable]="connection.kind === 'unavailable'" aria-live="polite">
+      <span class="context-dot" aria-hidden="true"></span>
+      @switch (connection.kind) {
+        @case ('connected') {
+          <span><strong>{{ connection.season }}</strong><small>Demo data · reference {{ connection.referenceDate }}</small></span>
+        }
+        @case ('unavailable') {
+          <span><strong>Demo API offline</strong><small>Registry unavailable</small></span>
+        }
+        @default {
+          <span><strong>Demo season</strong><small>Connecting…</small></span>
+        }
+      }
+    </div>
+  }
+</ng-template>

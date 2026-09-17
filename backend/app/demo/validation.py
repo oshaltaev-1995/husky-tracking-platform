@@ -18,6 +18,11 @@ from app.demo.catalog import (
     UNDERUSED_DOGS,
 )
 from app.demo.semantic import semantic_checksum
+from app.domain.workload import (
+    MAX_DAILY_DOG_DISTANCE_KM,
+    WorkloadRuleViolation,
+    add_daily_dog_distance,
+)
 from app.models import (
     DemoDataset,
     Dog,
@@ -85,6 +90,7 @@ class DemoValidationReport:
     workload_min_km: int
     workload_median_km: float
     workload_max_km: int
+    max_daily_dog_distance_km: int
     litter_rows: tuple[dict[str, Any], ...]
 
 
@@ -488,6 +494,7 @@ def validate_demo_world(session: Session, clock: DemoClock) -> DemoValidationRep
         "every generated work session must contain eight starts",
     )
     workload_km: Counter[int] = Counter()
+    daily_workload_km: Counter[tuple[int, date]] = Counter()
     for work_session in work_sessions:
         expect(
             clock.season_start <= work_session.work_date <= clock.season_end,
@@ -524,6 +531,16 @@ def validate_demo_world(session: Session, clock: DemoClock) -> DemoValidationRep
             participation.assigned_role in roles_by_dog[dog.id],
             f"{dog.name} worked an unsupported role",
         )
+        daily_key = (dog.id, work_session.work_date)
+        try:
+            daily_workload_km[daily_key] = add_daily_dog_distance(
+                daily_workload_km[daily_key], work_session.distance_km
+            )
+        except WorkloadRuleViolation:
+            errors.append(
+                f"{dog.name} exceeds {MAX_DAILY_DOG_DISTANCE_KM} km "
+                f"on {work_session.work_date}"
+            )
         workload_km[dog.id] += work_session.distance_km
 
     for dog in dogs:
@@ -613,5 +630,6 @@ def validate_demo_world(session: Session, clock: DemoClock) -> DemoValidationRep
         workload_min_km=min(working_values),
         workload_median_km=median(working_values),
         workload_max_km=max(working_values),
+        max_daily_dog_distance_km=max(daily_workload_km.values(), default=0),
         litter_rows=litter_rows,
     )

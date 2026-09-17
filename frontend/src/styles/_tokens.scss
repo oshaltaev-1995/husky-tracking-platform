@@ -1,0 +1,95 @@
+@use 'settings' as settings;
+
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+
+  --surface-page: #f3f6f4;
+  --surface-card: #fcfdfc;
+  --surface-elevated: #ffffff;
+  --surface-soft: #eaf0ed;
+  --surface-brand-soft: #e2eeea;
+  --surface-sidebar: #162826;
+  --surface-sidebar-hover: #203734;
+  --surface-sidebar-mark: #d8e9e3;
+
+  --text-primary: #172321;
+  --text-secondary: #4d625e;
+  --text-muted: #71817e;
+  --text-inverse: #f7faf8;
+  --text-sidebar: #c9d5d2;
+  --text-sidebar-muted: #91a7a1;
+  --brand: #2b766c;
+  --brand-strong: #1d564f;
+  --brand-hover: #174840;
+  --border: #d5dfdb;
+  --border-strong: #b8c8c2;
+  --success: #2c7157;
+  --success-soft: #e0efe6;
+  --warning: #816422;
+  --warning-soft: #f3ecd6;
+  --danger: #a74a3c;
+  --danger-soft: #f6e3df;
+  --archived: #855648;
+  --archived-soft: #f2e8e3;
+  --disabled: #625d6d;
+  --disabled-soft: #ebe8ef;
+  --focus: #d98521;
+  --sidebar-online: #72c09e;
+  --sidebar-offline: #e18070;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-control: 0.55rem;
+  --radius-card: 0.8rem;
+  --radius-panel: 1rem;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 0.5rem 1.5rem rgba(20, 53, 48, 0.07);
+  --shadow-raised: 0 1rem 2.5rem rgba(20, 53, 48, 0.11);
+
+  --font-page-title: clamp(1.8rem, 3vw, 2.35rem);
+  --font-section-title: 1.3rem;
+  --font-body: 0.9rem;
+  --font-label: 0.72rem;
+  --font-caption: 0.68rem;
+  --font-kpi: 1.65rem;
+
+  --control-height: 2.65rem;
+  --sidebar-width: 14.5rem;
+  --content-standard: 78rem;
+  --content-wide: 100rem;
+  --page-gutter: clamp(1rem, 3vw, 2.5rem);
+
+  --breakpoint-phone: #{settings.$breakpoint-phone};
+  --breakpoint-tablet: #{settings.$breakpoint-tablet};
+  --breakpoint-desktop: #{settings.$breakpoint-desktop};
+  --breakpoint-wide: #{settings.$breakpoint-wide};
+
+  --transition-fast: 150ms ease;
+  --focus-ring-width: 0.18rem;
+  --focus-ring-offset: 0.16rem;
+
+  /* Compatibility aliases retained while P3 feature styles migrate to semantic tokens. */
+  --ink: var(--text-primary);
+  --ink-soft: var(--text-secondary);
+  --accent: var(--brand);
+  --accent-deep: var(--brand-strong);
+  --accent-pale: var(--surface-brand-soft);
+  --archive: var(--archived);
+  --surface: var(--surface-card);
+  --surface-muted: var(--surface-soft);
+  --line: var(--border);
+  --line-strong: var(--border-strong);
+  --radius-lg: var(--radius-panel);
+  --shadow: var(--shadow-raised);
+}

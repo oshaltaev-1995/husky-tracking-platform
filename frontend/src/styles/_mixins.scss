@@ -1,0 +1,24 @@
+@use 'settings' as settings;
+
+@mixin phone {
+  @media (max-width: settings.$breakpoint-phone) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: settings.$breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: calc(settings.$breakpoint-tablet + 0.01rem)) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: var(--focus-ring-width) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
+}

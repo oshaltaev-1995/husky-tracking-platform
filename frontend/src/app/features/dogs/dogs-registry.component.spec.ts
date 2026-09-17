@@ -4,7 +4,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { DogsRegistryResponse } from '../../core/api/dogs.models';
+import { DogsQuery } from '../../core/api/dogs.service';
 import { DogsRegistryComponent } from './dogs-registry.component';
+
+interface RegistryTestHarness {
+  filters: DogsQuery;
+  applyFilters(): void;
+}
 
 const response: DogsRegistryResponse = {
   reference_date: '2026-03-31',
@@ -68,6 +74,42 @@ describe('DogsRegistryComponent', () => {
       new Event('submit'),
     );
     http.expectOne('/api/v1/dogs?search=aurora&sort=name').flush(response);
+    http.verify();
+  });
+
+  it('expands compact filters and clears an active filter chip', async () => {
+    await TestBed.configureTestingModule({
+      imports: [DogsRegistryComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(DogsRegistryComponent);
+    fixture.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/dogs?sort=name').flush(response);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const filterButton = fixture.nativeElement.querySelector('.filter-button') as HTMLButtonElement;
+    filterButton.click();
+    fixture.detectChanges();
+    expect(filterButton.getAttribute('aria-expanded')).toBe('true');
+
+    const component = fixture.componentInstance as unknown as RegistryTestHarness;
+    component.filters = { ...component.filters, dogClass: 'standard' };
+    component.applyFilters();
+    http.expectOne('/api/v1/dogs?dog_class=standard&sort=name').flush(response);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const chips = fixture.nativeElement.querySelectorAll(
+      '.active-filters button',
+    ) as NodeListOf<HTMLButtonElement>;
+    const chip = Array.from(chips).find((button) =>
+      button.textContent.includes('Standard'),
+    ) as HTMLButtonElement;
+    expect(chip).toBeDefined();
+    chip.click();
+    http.expectOne('/api/v1/dogs?sort=name').flush(response);
     http.verify();
   });
 });

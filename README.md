@@ -9,9 +9,9 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P3 dog registry and profiles
+## P3.5 application foundation
 
-- Angular 22, TypeScript, and SCSS frontend
+- Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
 - Docker Compose development environment
 - fixed, validated demo clock shared through the backend health contract
@@ -19,19 +19,22 @@ reference project.
   locations, roles, relationships, and work-session persistence
 - deterministic `winter-2025-2026-v1` demo reset with 50 active and 10 archived
   fictional dogs
+- persistent desktop application sidebar, accessible mobile drawer, and standard/wide
+  content modes ready for later operational modules
 - responsive `/dogs`, `/archive`, and deep-linked `/dogs/:dogId` product routes
 - server-supported registry/archive search, domain filters, and focused sorting
-- one lifecycle-aware Dog Profile with Profile, Pedigree, Work, and History views
+- one lifecycle-aware Dog Profile with Overview, Pedigree, Work, and History views
 - clickable parents, grandparents, litter siblings, offspring, and archived relatives
 - season work summaries derived from work participation, plus effective-dated class,
   availability, lifecycle, and housing timelines
 - reusable neutral dog media placeholder ready for P10 synthetic portraits
 - semantic validation and checksum independent of database identities and timestamps
+- reusable actual-work guardrail enforcing at most 30 km per dog per calendar date
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P4 Kennel Map. P3 deliberately adds no editing surface and
-does not implement map geometry, plans, team building, entry, or kennel analytics. See
+The next product package is P4 Kennel Map. P3.5 deliberately adds no map geometry,
+editing surface, plans, team building, entry, or kennel analytics. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -88,7 +91,8 @@ uv run python -m app.demo.inspect
 ```
 
 The reset report includes cohorts, litters/parents, class and archive distributions,
-current statuses, housing-history coverage, workload range, and the semantic checksum.
+current statuses, housing-history coverage, seasonal workload range, maximum daily dog
+workload, and the semantic checksum.
 The checksum covers meaningful domain rows (including work sessions and starts) after
 sorting and replacing database keys with stable names/codes. It excludes sequence
 values, generated timestamps, and PostgreSQL metadata.

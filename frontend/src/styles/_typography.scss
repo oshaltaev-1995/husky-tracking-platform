@@ -1,0 +1,58 @@
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+.page-header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.page-header h1,
+.page-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-page-title);
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.page-header p,
+.page-subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--font-body);
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--brand);
+  font-size: var(--font-caption);
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin: 0;
+  font-size: var(--font-section-title);
+  line-height: 1.2;
+}
+
+@media (max-width: 30rem) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+}

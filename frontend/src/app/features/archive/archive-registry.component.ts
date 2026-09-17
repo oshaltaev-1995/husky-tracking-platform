@@ -26,7 +26,7 @@ export class ArchiveRegistryComponent {
   private readonly dogsService = inject(DogsService);
   private readonly query = new BehaviorSubject<ArchiveQuery>({ sort: 'name' });
 
-  protected filters: ArchiveQuery = { sort: 'name' };
+  protected filters: ArchiveQuery = { search: '', reason: '', sort: 'name' };
   protected readonly state$ = this.query.pipe(
     switchMap((query) =>
       this.dogsService.getArchive(query).pipe(
@@ -43,7 +43,7 @@ export class ArchiveRegistryComponent {
   }
 
   protected resetFilters() {
-    this.filters = { sort: 'name' };
+    this.filters = { search: '', reason: '', sort: 'name' };
     this.applyFilters();
   }
 

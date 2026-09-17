@@ -13,7 +13,7 @@ a.relation-card:hover { border-color: var(--accent); background: var(--accent-pa
 .relation-initial { display: grid; width: 2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; background: var(--surface-muted); font-family: Georgia, serif; }
 .relation-card strong, .relation-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .relation-card small { margin-top: .15rem; color: var(--ink-soft); font-size: .68rem; }
-.relation-card em { padding: .2rem .35rem; border-radius: .3rem; color: var(--archive); background: #f4ece8; font-size: .6rem; font-style: normal; font-weight: 800; text-transform: uppercase; }
+.relation-card em { padding: .2rem .35rem; border-radius: .3rem; color: var(--archive); background: var(--archived-soft); font-size: .6rem; font-style: normal; font-weight: 800; text-transform: uppercase; }
 .arrow { color: var(--accent); }
 .unknown { color: var(--ink-soft); background: var(--surface-muted); }
 .offspring-group { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--line); }

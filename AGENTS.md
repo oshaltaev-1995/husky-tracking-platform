@@ -33,8 +33,13 @@ These instructions apply to the entire repository.
 
 - Frontend: Angular, TypeScript, SCSS; feature-oriented folders and standalone
   components; strict TypeScript and accessibility tests where applicable.
+- Shared visual decisions belong in `frontend/src/styles/`: use semantic CSS custom
+  properties, the common spacing/radius/type scale, and shared breakpoint mixins before
+  introducing feature-local hard-coded design values.
 - Backend: FastAPI, SQLAlchemy 2 typed mappings, Alembic, PostgreSQL; thin routes,
   explicit services, relational constraints for core data.
+- Reusable business constraints belong in `backend/app/domain/`; demo generation and
+  validation must invoke the same rule that later application services will use.
 - API routes live under `/api/v1`. Persist dates as calendar dates and timestamps in
   UTC where time-of-day is required.
 - Product read APIs use explicit response schemas and feature read services. Resolve

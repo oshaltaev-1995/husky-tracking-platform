@@ -56,6 +56,7 @@ export class DogProfileComponent {
   );
 
   protected tabLabel(tab: ProfileTab) {
+    if (tab === 'profile') return 'Overview';
     return tab.slice(0, 1).toUpperCase() + tab.slice(1);
   }
 

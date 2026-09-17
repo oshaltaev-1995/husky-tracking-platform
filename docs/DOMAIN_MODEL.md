@@ -153,6 +153,13 @@ The seed validator ensures the dog has the assigned capability and effective act
 available, eligible class on the work date. Training dogs receive only 5 km; Juniors
 and Puppies receive no participations.
 
+Actual-work services must also enforce `MAX_DAILY_DOG_DISTANCE_KM = 30` for each
+`(dog, work_date)` pair. `app.domain.workload` is the shared policy boundary: it accepts
+only canonical 5 km/10 km sled distances and rejects an addition that would take the
+daily total above 30 km. The deterministic generator and semantic validator both use
+this rule; P5/P7 must reuse it rather than copy a numeric limit into plan or entry code.
+Season totals such as 70–350 km are independent cumulative measures.
+
 ## Deletion and archive policy
 
 All core history, parent, housing, relationship, and work foreign keys use `RESTRICT`.

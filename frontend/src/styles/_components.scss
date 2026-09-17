@@ -1,0 +1,115 @@
+.button {
+  display: inline-flex;
+  min-height: var(--control-height);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  padding: 0.62rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.button.primary {
+  color: var(--text-inverse);
+  background: var(--brand-strong);
+}
+
+.button.primary:hover {
+  background: var(--brand-hover);
+}
+
+.button.secondary {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+}
+
+.button.secondary:hover {
+  border-color: var(--brand);
+  background: var(--surface-brand-soft);
+}
+
+.button.quiet {
+  color: var(--brand-strong);
+  background: transparent;
+}
+
+.button.quiet:hover {
+  background: var(--surface-brand-soft);
+}
+
+.surface {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-card);
+}
+
+.status-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-1);
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.55rem;
+  color: var(--success);
+  background: var(--success-soft);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.status-badge::before {
+  width: 0.4rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.status-badge[data-status='injured'] {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.status-badge[data-status='rest'] {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.status-badge[data-status='restricted'] {
+  color: var(--archived);
+  background: var(--archived-soft);
+}
+
+.status-badge[data-status='retired'] {
+  color: var(--disabled);
+  background: var(--disabled-soft);
+}
+
+.page-state,
+.empty-state {
+  margin: var(--space-8) 0;
+  padding: var(--space-12) var(--space-6);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-panel);
+  color: var(--text-secondary);
+  background: var(--surface-card);
+  text-align: center;
+}
+
+.page-state h2,
+.empty-state h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--font-section-title);
+}
+
+.page-state p,
+.empty-state p {
+  margin: var(--space-1) 0 var(--space-4);
+}

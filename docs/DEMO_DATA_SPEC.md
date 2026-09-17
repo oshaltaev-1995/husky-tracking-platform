@@ -190,13 +190,17 @@ The v1 schedule is deterministic:
 - archived/injured/rest/restricted/retired dogs cannot work on blocked dates;
 - assigned roles must exist in the dog's capability rows;
 - previous-day spacing is preferred when the eligible pool can support it;
+- a dog's combined actual sled workload on one calendar date may not exceed 30 km;
+  multiple 5 km and 10 km participations are allowed up to and including that limit;
 - cumulative km divided by a stable persona weight drives balancing, then starts and a
   SHA-256 tie-break based on seed/date/distance/name complete deterministic ordering.
 
 Aurora, Atlas, and Freya are mild high-workload examples; Cedar, Delta, and Harbor are
 mildly underused relative to comparable Standard dogs. Status interruptions explain
 additional variance. At v1 the active eligible-dog workload range is 70–350 km with a
-300 km median; Training dogs are deliberately 5 km-only.
+300 km median; these are cumulative season values, not daily limits. Training dogs are
+deliberately 5 km-only. The current v1 ledger's observed maximum is 10 km per dog/date,
+so P3.5 adds enforcement without changing any seeded work row or the semantic checksum.
 
 ## Automated acceptance invariants
 
@@ -211,7 +215,7 @@ Tests and the seed validator enforce:
 - effective housing uniqueness and historical capacity at every boundary;
 - only season-bound 5/10 km work, effective lifecycle/class/status eligibility,
   capability-compatible role, eight unique starts per session, Training at 5 km only,
-  and zero Puppy/Junior workload;
+  zero Puppy/Junior workload, and no dog/date total above 30 km;
 - two PostgreSQL resets yielding the expected identical semantic checksum.
 
 P10, not P2, generates dog images. `photo_key` remains null and the frontend retains

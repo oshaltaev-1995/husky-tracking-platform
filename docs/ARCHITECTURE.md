@@ -44,12 +44,14 @@ backend/
     api/                   versioned HTTP adapters
     core/                  settings and demo clock
     db/                    SQLAlchemy base/session
+    domain/                reusable business rules independent of adapters
     models/                typed P2 SQLAlchemy domain persistence
     demo/                  curated catalog, generator, validation, checksum, CLIs
     schemas/               explicit product-facing response DTOs
     services/              P3 read projections and shared effective-state policy
   tests/
 frontend/
+  src/styles/              Sass tokens, mixins, type, forms, primitives, utilities
   src/app/
     core/                  singleton API/config/layout concerns
     shared/                reusable presentational pieces
@@ -146,6 +148,22 @@ context. Litter siblings come only from `Dog.litter_id`; parent sharing is not s
 presented as litter siblinghood. The neutral `DogMediaComponent` owns the stable media
 aspect ratio and is the P10 image integration seam.
 
+### Application shell and Sass system
+
+P3.5 replaces the two-link top navigation with a compact 232 px desktop sidebar and a
+focus-managed mobile drawer below 900 px. The sidebar renders only implemented routes
+but groups them so Dashboard, Kennel Map, Daily Plan/Entry, and Analytics can be added
+without changing shell structure. Navigation closes after mobile route changes, traps
+keyboard focus while open, restores trigger focus, and locks document scrolling.
+
+Shared Sass is organized as tokens, breakpoint/focus mixins, typography, forms,
+components, and utilities. Sass-defined decisions are exposed as semantic CSS custom
+properties for runtime state styling. Shared breakpoints are phone 480 px, tablet
+900 px, desktop 1200 px, and wide 1440 px; feature layouts reflow rather than relying
+on page-wide horizontal scrolling. `.content-standard` constrains registry/profile
+content, while `.content-wide` is the P4 seam for a sidebar, toolbar, and wide map
+canvas. Feature styles consume tokens and shared primitives before adding local values.
+
 Remote data should use a consistent state/query approach introduced only when feature
 complexity warrants it; no global state library is needed in P1. Accessibility basics
 include semantic landmarks, keyboard-operable controls, visible focus, sufficient
@@ -170,6 +188,11 @@ Eligibility order is:
 5. deterministic tie-break.
 
 Every exclusion and warning has a code and user-facing explanation.
+
+Actual sled work has a hard reusable ceiling of 30 km per dog per calendar date.
+`app.domain.workload` validates canonical 5/10 km additions; the seed scheduler and
+semantic validator call it, and P5/P7 must call the same policy before saving planned or
+actual participation.
 
 ## Configuration and environments
 

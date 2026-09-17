@@ -15,8 +15,15 @@ from app.demo.catalog import (
 )
 from app.demo.service import reset_demo_world
 from app.demo.validation import DemoValidationError, validate_demo_world
+from app.domain.workload import MAX_DAILY_DOG_DISTANCE_KM
 from app.main import app
-from app.models import Dog, DogClassPeriod, Litter
+from app.models import (
+    Dog,
+    DogClassPeriod,
+    Litter,
+    WorkParticipation,
+    WorkSession,
+)
 
 
 def test_two_postgres_resets_have_identical_semantic_checksum() -> None:
@@ -54,6 +61,8 @@ def test_two_postgres_resets_have_identical_semantic_checksum() -> None:
     assert report_b.session_count == 140
     assert report_b.participation_count == 1120
     assert report_b.distance_session_counts == {5: 70, 10: 70}
+    assert report_b.max_daily_dog_distance_km == 10
+    assert report_b.max_daily_dog_distance_km <= MAX_DAILY_DOG_DISTANCE_KM
 
     response = TestClient(app).get("/api/v1/demo-dataset")
     assert response.status_code == 200
@@ -126,6 +135,46 @@ def test_semantic_validator_rejects_litter_date_and_prefix_mismatch() -> None:
         cedar.name = original_name
         cedar.birth_date = original_birth_date
         session.flush()
+
+
+def test_semantic_validator_rejects_dog_day_above_30_km() -> None:
+    clock = DemoClock.from_settings(get_settings())
+    with SessionLocal() as session, session.begin():
+        atlas = session.scalar(select(Dog).where(Dog.name == "Atlas"))
+        assert atlas is not None
+        existing = session.scalar(
+            select(WorkParticipation)
+            .join(WorkSession)
+            .where(
+                WorkParticipation.dog_id == atlas.id,
+                WorkSession.work_date == date(2025, 12, 1),
+            )
+        )
+        assert existing is not None
+
+        nested = session.begin_nested()
+        for sequence, distance in enumerate((10, 10, 5), start=1):
+            work_session = WorkSession(
+                source_reference=f"test:daily-limit:{sequence}",
+                work_date=date(2025, 12, 1),
+                distance_km=distance,
+                activity_type="sled_training",
+                label="Daily-limit validation fixture",
+            )
+            session.add(work_session)
+            session.flush()
+            session.add(
+                WorkParticipation(
+                    session_id=work_session.id,
+                    dog_id=atlas.id,
+                    assigned_role=existing.assigned_role,
+                )
+            )
+        session.flush()
+
+        with pytest.raises(DemoValidationError, match="exceeds 30 km"):
+            validate_demo_world(session, clock)
+        nested.rollback()
 
 
 def test_database_rejects_same_mother_and_father() -> None:

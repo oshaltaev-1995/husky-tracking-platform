@@ -105,6 +105,29 @@ effective current-state projection shape (`lifecycle`, `dog_class`, `availabilit
 it should reuse P3 Dog Profile deep links and must not duplicate the effective-period
 resolver.
 
+## P3.5 — Application Shell, Sass Design System, UX Refinement, and Workload Guardrails
+
+**Status:** completed. P3.5 establishes the long-term operational shell without
+starting P4: persistent compact desktop sidebar, accessible mobile drawer, standard and
+wide content modes, centralized Sass/CSS tokens and breakpoints, compact Dogs filters
+with active chips, stronger dog cards, refined profile/archive presentation, and the
+shared daily workload rule.
+
+**Domain:** `MAX_DAILY_DOG_DISTANCE_KM = 30` is a hard limit per dog/calendar date.
+Canonical 5 km and 10 km sessions may combine up to 30 km. The seed scheduler and
+semantic validator share one rule implementation; tests cover valid 5/10 combinations,
+35 km rejection, and the complete PostgreSQL dataset. The audited v1 maximum was 10 km,
+so seed rows and checksum remain unchanged.
+
+**Frontend:** Dogs retains all P3 server filters/sorts behind a compact expandable
+workflow. Dog Profile keeps its query-compatible `profile` tab while displaying the
+clearer label “Overview”; Pedigree relationship cards and active/archived navigation are
+preserved. Archive remains the same historical registry in a quieter visual treatment.
+
+**P4 handoff:** use the existing sidebar, `.content-wide` workspace mode, semantic
+status tokens, shared controls, and 900 px drawer breakpoint. P4 adds only its map route,
+toolbar, dated projection, and responsive kennel canvas.
+
 ## P4 — Kennel Map
 
 **Objective:** provide the primary dated spatial entry point into the product loop.
