@@ -1,0 +1,72 @@
+<button class="dialog-backdrop" type="button" aria-label="Close actual session editor" (click)="close()"></button>
+<section class="actual-dialog" role="dialog" aria-modal="true" aria-labelledby="actual-dialog-title">
+  <header>
+    <div>
+      <p class="eyebrow">{{ session ? 'Edit actual' : 'New actual session' }} · {{ entryDate }}</p>
+      <h2 id="actual-dialog-title">{{ session?.label || 'Record sled work' }}</h2>
+    </div>
+    <button class="close-button" type="button" aria-label="Close actual session editor" (click)="close()">Close</button>
+  </header>
+
+  <form (ngSubmit)="submit()">
+    <div class="session-fields">
+      <fieldset class="distance-field">
+        <legend>Actual distance</legend>
+        <label><input type="radio" name="distance" [value]="5" [(ngModel)]="distanceKm" (ngModelChange)="distanceChanged()" /> 5 km</label>
+        <label><input type="radio" name="distance" [value]="10" [(ngModel)]="distanceKm" (ngModelChange)="distanceChanged()" /> 10 km</label>
+      </fieldset>
+      <label class="form-field"><span>Start time <small>optional</small></span><input type="time" name="start-time" [(ngModel)]="startTime" /></label>
+      <label class="form-field"><span>Label <small>optional</small></span><input #labelInput type="text" name="label" maxlength="120" [(ngModel)]="label" /></label>
+      <label class="form-field note-field"><span>Session note <small>optional</small></span><textarea name="note" rows="2" maxlength="255" [(ngModel)]="note"></textarea></label>
+    </div>
+
+    <section class="actual-participants" aria-labelledby="actual-participants-title">
+      <header>
+        <div><h3 id="actual-participants-title">Actual participants</h3><p>{{ participants.length }} starts · effective state on {{ entryDate }}</p></div>
+        @if (positioned().length) { <button class="button quiet" type="button" (click)="clearGeometry()">Clear harness positions</button> }
+      </header>
+
+      @if (positioned().length) {
+        <div class="harness-editor" aria-label="Actual harness positions">
+          @for (slot of positioned(); track slot.actual_team_sequence + '-' + slot.position_order) {
+            <article class="position-row">
+              <div class="position-label"><strong>Team {{ slot.actual_team_sequence }}</strong><span>{{ pairLabel(slot) }} · {{ labelValue(slot.side) }}</span></div>
+              <div class="position-dog"><strong>{{ dogName(slot.dog_id) }}</strong><small>{{ candidate(slot.dog_id)?.actual_km_today || 0 }} km before this session</small></div>
+              <label><span>Replace</span><select aria-label="Replace {{ dogName(slot.dog_id) }}" (change)="replaceSlot(slot, $any($event.target).value); $any($event.target).value = ''"><option value="">Choose eligible dog…</option>@for (dog of replacementCandidates(slot); track dog.id) { <option [value]="dog.id">{{ dog.name }} · {{ dog.housing_code || 'No housing' }} · {{ dog.actual_km_today }} km</option> }</select></label>
+              <label><span>Swap position</span><select aria-label="Swap {{ dogName(slot.dog_id) }} with another positioned dog" (change)="swapSlot(slot, $any($event.target).value); $any($event.target).value = ''"><option value="">Choose compatible dog…</option>@for (other of swapCandidates(slot); track other.dog_id) { <option [value]="other.dog_id">{{ dogName(other.dog_id) }} · Team {{ other.actual_team_sequence }} {{ pairLabel(other) }}</option> }</select></label>
+              <button class="remove-slot" type="button" (click)="removeParticipant(slot)">Remove</button>
+            </article>
+          }
+        </div>
+      }
+
+      <div class="picker-heading">
+        <div><h3>{{ positioned().length ? 'Unpositioned / additional dogs' : 'Select dogs' }}</h3><p>30 km actual maximum per dog and day.</p></div>
+        <label class="picker-search"><span class="visually-hidden">Search actual-work candidates</span><input type="search" name="candidate-search" placeholder="Find name, housing, class…" [(ngModel)]="search" /></label>
+      </div>
+
+      @if (loadingCandidates) {
+        <p class="picker-state" role="status">Resolving dated actual-work eligibility…</p>
+      } @else if (eligibilityError) {
+        <p class="picker-state error" role="alert">{{ eligibilityError }}</p>
+      } @else {
+        <div class="candidate-list" role="list" aria-label="Actual participant candidates">
+          @for (dog of visibleCandidates(); track dog.id) {
+            <label class="candidate-row" [class.selected]="selected(dog.id)" [class.ineligible]="!dog.eligible" [attr.aria-disabled]="!dog.eligible && !selected(dog.id)">
+              <input type="checkbox" [name]="'actual-dog-' + dog.id" [checked]="selected(dog.id)" [disabled]="!dog.eligible && !selected(dog.id)" (change)="toggleDog(dog)" />
+              <span class="candidate-identity"><strong>{{ dog.name }}</strong><small>{{ dog.housing_code || 'No housing' }}</small></span>
+              <span class="candidate-facts">{{ labelValue(dog.dog_class) }} · {{ labelValue(dog.availability) }}</span>
+              <span class="candidate-context">@if (dog.eligible) { <strong>Today actual: {{ dog.actual_km_today }} km</strong> } @else { <strong>{{ dog.reasons[0] }}</strong> }</span>
+            </label>
+          } @empty { <p class="picker-state">No dogs match this search.</p> }
+        </div>
+      }
+    </section>
+
+    @if (serverError) { <p class="form-error" role="alert">{{ serverError }}</p> }
+    <footer>
+      <button class="button quiet" type="button" (click)="close()" [disabled]="saving">Cancel</button>
+      <button class="button primary" type="submit" [disabled]="saving || loadingCandidates || !participants.length">{{ saving ? 'Saving actual…' : session ? 'Save actual changes' : 'Record actual session' }}</button>
+    </footer>
+  </form>
+</section>

@@ -43,6 +43,7 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Dogs');
     expect(fixture.nativeElement.textContent).toContain('Kennel Map');
     expect(fixture.nativeElement.textContent).toContain('Daily Plan');
+    expect(fixture.nativeElement.textContent).toContain('Daily Entry');
     expect(fixture.nativeElement.textContent).toContain('Archive');
     expect(fixture.nativeElement.querySelector('.desktop-sidebar')).not.toBeNull();
     http.verify();

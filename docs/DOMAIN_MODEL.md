@@ -145,7 +145,9 @@ Ordered children of one Daily Plan with stable public UUID, optional local start
 title, notes, and exactly one canonical type: `training`, `open_space_walk`,
 `individual_exercise`, or `rest`. A deferred unique `(daily_plan_id, sequence)`
 constraint supports transactional up/down reordering. Training alone has a checked 5
-or 10 km distance; non-training activities store no sled distance.
+or 10 km distance; non-training activities store no sled distance. `actual_not_run` is
+the minimal plan-side Daily Entry decision for a Training activity that did not happen;
+it never creates a zero-km session or workload.
 
 ### `planned_activity_participants`
 
@@ -192,25 +194,38 @@ transaction.
 
 ### `work_sessions`
 
-- unique stable `source_reference` for idempotent seeded identity;
+- unique stable `source_reference` and public UUID;
+- nullable unique `planned_activity_id` provenance link with `ON DELETE SET NULL`;
 - `work_date`, checked `distance_km` of 5 or 10;
 - checked `activity_type` of `sled_training` in canonical v1;
-- optional synthetic label/note.
+- optional local start time, label, and note;
+- optimistic revision plus UTC infrastructure timestamps.
+
+The nullable unique link makes confirm-from-plan idempotent at service and database
+levels. Deleting or editing a plan never deletes or rewrites the more authoritative
+actual session. Baseline and manual sessions need no plan link.
 
 ### `work_participations`
 
-- restrictive session and dog foreign keys;
+- session-owned cascade for correction/deletion and restrictive Dog foreign key;
 - nullable checked `assigned_role` (`lead`, `team`, `wheel`);
+- nullable actual team sequence, pair index, `left`/`right` side, and position order;
 - unique `(session_id, dog_id)`.
+
+Actual geometry is either wholly absent or complete with a role. A positioned dog must
+have the stored capability and explicit same-pair geometry may not violate a canonical
+hard conflict. Unordered manual participants do not assert a pair and therefore do not
+trigger pair constraints.
 
 One participation is exactly one dog start and its km is the parent session distance.
 There is no per-dog distance override, stored start count, or aggregate workload on Dog.
 Totals, starts, work/rest streaks, and later Dog Profile/Analytics views query these two
 tables.
 
-The seed validator ensures the dog has the assigned capability and effective active,
-available, eligible class on the work date. Training dogs receive only 5 km; Juniors
-and Puppies receive no participations.
+The seed validator and `DailyEntryService` ensure the dog has the assigned capability
+when positioned and is effectively active, available, born, and class-eligible on the
+work date. Training dogs receive only 5 km; Juniors and Puppies receive none. Daily
+Entry totals (sessions, distinct dogs, starts, dog-km) are derived, never persisted.
 
 Actual-work services must also enforce `MAX_DAILY_DOG_DISTANCE_KM = 30` for each
 `(dog, work_date)` pair. `app.domain.workload` is the shared policy boundary: it accepts
@@ -230,8 +245,9 @@ availability, class, archive, relationship, or work history.
 The reset CLI is the sole bulk-clearing mechanism. It is explicitly local/demo-only,
 uses a fixed table allowlist, checks database name/environment, and reconstructs the
 entire semantic world in one transaction. Mutable plan/team tables are cleared first
-and remain empty after reset. They are intentionally outside the immutable-world semantic
-checksum, whose scope and value remain unchanged.
+and remain empty after reset. They are intentionally outside the semantic checksum.
+Runtime edits to canonical actual work legitimately change the live checksum; reset
+reconstructs the exact baseline ledger and original hash.
 
 ## Migration integrity
 
@@ -256,6 +272,11 @@ Forward migration `9fa6b3d1c204_add_planned_team_lineups` creates the P6 team an
 tables, supported-size/role/side checks, composite ownership foreign key, one-dog-per-
 activity uniqueness, plan-owned cascades, and restrictive Dog references.
 
+Forward migration `c4e87a1b92f0_add_daily_entry_actual_metadata` extends the canonical
+ledger with public/revision metadata, nullable plan provenance, start time, complete
+actual harness geometry, session-owned participation cascade, and the minimal not-run
+flag. One actual per planned activity and one dog/position per session are constrained.
+
 ## Read projections and later packages
 
 P2 exposes only `GET /api/v1/demo-dataset`, a small read-only verification projection
@@ -263,6 +284,6 @@ with dataset version, reference date, active/archive counts, and checksum. P3 ca
 Dog registry/profile/archive projections directly from the persisted identity,
 pedigree, state, housing, and work histories. P4 can build a dated map from location and
 housing metadata. P5 persists selected dated activity pools; P6 attaches explicit
-lineups using the activity date, distance, participants, dated eligibility, and planned
-kilometres. P7 can consume saved team sequence, pair, side, role, dog, and distance
-directly. P8 continues to read actual work only.
+lineups. P7 copies saved team sequence/pair/side/role into editable actual participation,
+or copies only the selected pool when no lineup exists. P8 reads canonical
+`WorkSession`/`WorkParticipation` actuals without depending on plans or teams.

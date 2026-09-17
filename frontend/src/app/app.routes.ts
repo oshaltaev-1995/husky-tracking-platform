@@ -46,6 +46,15 @@ export const routes: Routes = [
     data: { layout: 'wide' },
   },
   {
+    path: 'daily-entry',
+    loadComponent: () =>
+      import('./features/daily-entry/daily-entry-page.component').then(
+        (component) => component.DailyEntryPageComponent,
+      ),
+    title: 'Daily Entry · Husky Tracking',
+    data: { layout: 'wide' },
+  },
+  {
     path: 'archive',
     loadComponent: () =>
       import('./features/archive/archive-registry.component').then(

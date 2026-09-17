@@ -102,6 +102,12 @@ version, reference date, counts, and checksum. P3 adds focused read APIs:
   context, dated workload/capability/relationship projection, and saved lineups;
 - `POST .../teams/generate` — deterministic unsaved lineup preview with explanations;
 - `PUT .../teams` — revision-checked complete-lineup validation and persistence.
+- `GET /api/v1/daily-entry/{date}` — one dated plan/actual/summary/housing projection;
+- `GET .../eligible-dogs` — bounded actual eligibility and existing daily-km context;
+- `POST|PATCH|DELETE .../sessions` — manual create and revision-safe correction/removal;
+- `POST .../planned-activities/{activityId}/confirm` — idempotent transactional
+  plan/team-to-actual confirmation;
+- `POST|DELETE .../{activityId}/not-run` — ledger-free not-run decision/restore.
 
 `EffectiveDogState` is the shared half-open-period resolver used by both
 `DogReadService` and `KennelMapReadService`, so Profile and Map agree for the same dog
@@ -264,15 +270,38 @@ click-based editor supports replace, swap, move, clear, and fill without a drag-
 interaction. Server validation repeats every hard rule; preferred/home/workload choices
 remain manually overridable. Reopening shows saved geometry rather than regenerating.
 
+### Daily Entry
+
+P7 adds `/daily-entry` as a wide, date-query-driven operations route. One bounded read
+returns Daily Plan context, canonical actual sessions, derived day totals, and every
+active resident grouped by housing resolved on that date. Find Dog highlights/focuses
+the dated resident; zero-work dogs stay visible. Seeded sessions reopen like any other
+actual and are editable during a demo run.
+
+`DailyEntryService` is the actual mutation boundary. It uses `EffectiveDogState`, the
+shared workload rule, bounded daily aggregates, explicit role capabilities, and precise
+same-pair conflict semantics. Confirm-from-plan copies a saved P6 lineup including team,
+pair, side, role, and order; without teams it copies selected participants unpositioned.
+The nullable unique plan link makes repeated confirmation idempotent. Manual create,
+revision-checked edit, and explicit delete all return a fully rehydrated day. Actual
+edits never mutate planned pools or saved teams, and plan deletion only nulls provenance.
+
+The focus-managed actual editor supports unpositioned participant selection, positioned
+replacement, compatible cross-position swaps, removal, and clearing all harness
+geometry without drag-only interaction. Dated housing/class/availability and current
+actual km are visible in candidate rows. At phone width the editor becomes a full-height
+single-column workspace and the page uses stacked cards without horizontal overflow.
+
 ## Plans, actuals, and analytics
 
-Daily Plan and accepted Team Builder output remain planned data. Daily Entry or explicit
-confirmation creates/updates WorkSession and WorkParticipation actuals. Analytics reads
-the actual ledger only. This avoids double counting and keeps every total traceable.
+Daily Plan and accepted Team Builder output remain planned data. Daily Entry creates or
+updates `WorkSession`/`WorkParticipation` actuals. Dog Profile and P8 Analytics read this
+ledger only. This avoids double counting and keeps every total traceable.
 
-The immutable canonical checksum does not include mutable Daily Plan rows. Demo reset
-explicitly truncates planning tables before reseeding and restores a zero-plan baseline;
-the canonical dog/pedigree/state/housing/actual-work checksum therefore remains stable.
+The baseline checksum excludes mutable Daily Plan/Team rows but includes seeded actual
+work. Runtime Daily Entry corrections therefore legitimately change the live semantic
+checksum. Demo reset truncates planning and actual rows, regenerates canonical sessions,
+and restores the exact zero-plan baseline checksum.
 
 Eligibility order is:
 

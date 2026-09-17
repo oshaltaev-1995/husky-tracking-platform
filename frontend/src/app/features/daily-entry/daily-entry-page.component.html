@@ -1,0 +1,111 @@
+<header class="page-header entry-header">
+  <div>
+    <p class="eyebrow">Operations · Winter 2025–2026</p>
+    <h1>Daily Entry</h1>
+    <p>Record what actually happened. This ledger drives Dog Work and future analytics.</p>
+  </div>
+  <div class="date-navigation" aria-label="Daily Entry date navigation">
+    <button class="day-button" type="button" aria-label="Previous day" [disabled]="!canMove(-1)" (click)="moveDay(-1)">‹</button>
+    <label class="form-field"><span>Actual date</span><input type="date" min="2025-12-01" max="2026-03-31" [(ngModel)]="selectedDate" (ngModelChange)="changeDate($event)" /></label>
+    <button class="day-button" type="button" aria-label="Next day" [disabled]="!canMove(1)" (click)="moveDay(1)">›</button>
+  </div>
+</header>
+
+@if (successMessage()) { <p class="message success" role="status">{{ successMessage() }}</p> }
+@if (pageError()) { <p class="message error" role="alert">{{ pageError() }}</p> }
+
+@if (loading()) {
+  <div class="page-state" aria-live="polite">Loading actual work for this date…</div>
+} @else if (entry(); as current) {
+  <section class="entry-summary" aria-label="Daily actual summary">
+    <div class="day-identity"><p class="eyebrow">Selected day</p><h2>{{ (selectedDate + 'T12:00:00Z') | date: 'EEEE, d MMMM y':'UTC' }}</h2></div>
+    <dl>
+      <div><dt>Sessions</dt><dd>{{ current.summary.actual_sessions }}</dd></div>
+      <div><dt>Dogs worked</dt><dd>{{ current.summary.dogs_worked }}</dd></div>
+      <div><dt>Dog starts</dt><dd>{{ current.summary.dog_starts }}</dd></div>
+      <div><dt>Dog-km</dt><dd>{{ current.summary.total_dog_km }}</dd></div>
+    </dl>
+  </section>
+
+  @if (current.planned_activities.length) {
+    <section class="plan-context" aria-labelledby="plan-context-title">
+      <header><div><p class="eyebrow">Plan → actual</p><h2 id="plan-context-title">Daily Plan context</h2></div><a class="button quiet" routerLink="/daily" [queryParams]="{ date: selectedDate }">Open Daily Plan</a></header>
+      <div class="plan-list">
+        @for (activity of current.planned_activities; track activity.id) {
+          <article class="plan-row" [attr.data-status]="activity.actual_status">
+            <div class="plan-time">{{ activity.start_time?.slice(0, 5) || '—' }}</div>
+            <div class="plan-main"><span>{{ activityLabel(activity.activity_type) }}</span><h3>{{ activity.title }}</h3><p>@if (activity.distance_km) { {{ activity.distance_km }} km · }{{ activity.participant_count }} selected@if (activity.team_count) { · {{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} arranged }</p></div>
+            <div class="plan-state"><span class="actual-state" [attr.data-state]="activity.actual_status">{{ statusLabel(activity.actual_status) }}</span>@if (activity.deviations.length) { <small>{{ activity.deviations.join(' · ') }}</small> }</div>
+            <div class="plan-actions">
+              @if (activity.activity_type !== 'training') { <span class="context-note">No sled kilometres</span> }
+              @else if (activity.actual_session_id && linkedSession(activity); as actual) { <button class="button secondary" type="button" (click)="openEdit(actual)">View / edit actual</button> }
+              @else if (activity.actual_status === 'not_run') { <button class="button quiet" type="button" [disabled]="busyActivityId() === activity.id" (click)="restorePlan(activity)">Restore to not recorded</button> }
+              @else {
+                <button class="button primary" type="button" [disabled]="busyActivityId() === activity.id" (click)="confirmPlan(activity)">{{ busyActivityId() === activity.id ? 'Recording…' : 'Record actual' }}</button>
+                <button class="button quiet" type="button" [disabled]="busyActivityId() === activity.id" (click)="markNotRun(activity)">Mark not run</button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="actual-section" aria-labelledby="actual-sessions-title">
+    <header><div><p class="eyebrow">Canonical ledger</p><h2 id="actual-sessions-title">Actual sessions</h2></div><button class="button primary" type="button" (click)="openCreate()"><span aria-hidden="true">＋</span> Add actual session</button></header>
+    @if (!current.sessions.length) {
+      <div class="empty-state"><h2>No sled work recorded</h2><p>Add an unplanned actual session or record a planned Training activity above.</p><button class="button primary" type="button" (click)="openCreate()">Add actual session</button></div>
+    } @else {
+      <div class="session-list">
+        @for (session of current.sessions; track session.id) {
+          <article class="session-card">
+            <header>
+              <div class="session-identity"><span class="source-badge" [attr.data-source]="session.source">{{ sourceLabel(session.source) }}</span><h3>{{ session.label || 'Actual training' }}</h3><p>@if (session.start_time) { {{ session.start_time.slice(0, 5) }} · }{{ session.distance_km }} km · {{ session.participants.length }} {{ session.participants.length === 1 ? 'start' : 'starts' }}@if (session.team_count) { · {{ session.team_count }} {{ session.team_count === 1 ? 'team' : 'teams' }} }</p></div>
+              <div class="session-actions">
+                <button class="button secondary" type="button" (click)="openEdit(session)">Edit actual</button>
+                @if (pendingDeleteId() === session.id) {
+                  <div class="delete-confirm" role="group" aria-label="Confirm actual session deletion"><span>Delete actual?</span><button type="button" (click)="cancelDelete()">Cancel</button><button class="danger" type="button" (click)="deleteSession(session)">Delete</button></div>
+                } @else { <button class="button quiet danger-text" type="button" (click)="askDelete(session.id)">Delete</button> }
+              </div>
+            </header>
+            @if (session.plan_status) { <div class="session-plan-state"><span class="actual-state" [attr.data-state]="session.plan_status">{{ statusLabel(session.plan_status) }}</span>@if (session.planned_activity_title) { <span>{{ session.planned_activity_title }}</span> }@if (session.deviations.length) { <strong>{{ session.deviations.join(' · ') }}</strong> }</div> }
+            <div class="session-dogs">
+              @for (dog of session.participants; track dog.dog_id) {
+                <a [routerLink]="['/dogs', dog.dog_id]"><strong>{{ dog.dog_name }}</strong><small>@if (dog.actual_team_sequence) { Team {{ dog.actual_team_sequence }} · {{ dog.pair_label }} · {{ activityLabel(dog.side || '') }} } @else { {{ dog.housing_code || 'No housing' }} }</small></a>
+              }
+            </div>
+            @if (session.note) { <p class="session-note">{{ session.note }}</p> }
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="dog-overview" aria-labelledby="daily-dogs-title">
+    <header>
+      <div><p class="eyebrow">Housing on {{ selectedDate }}</p><h2 id="daily-dogs-title">Daily Dog Overview</h2><p>All active residents remain visible, including dogs with zero work.</p></div>
+      <form class="find-dog" (ngSubmit)="findDog()"><label><span>Find dog</span><input type="search" name="find-dog" list="daily-dog-suggestions" placeholder="Dog name…" [(ngModel)]="findTerm" /></label><datalist id="daily-dog-suggestions">@for (dog of dogSuggestions(); track dog.id) { <option [value]="dog.name"></option> }</datalist><button class="button secondary" type="submit">Find</button></form>
+    </header>
+    <div class="housing-grid">
+      @for (group of current.housing_groups; track group.code) {
+        <article class="housing-group">
+          <header><div><strong>{{ group.code }}</strong><span>{{ group.display_name }}</span></div><small>{{ group.dogs.length }} {{ group.dogs.length === 1 ? 'resident' : 'residents' }}</small></header>
+          <div class="resident-list">
+            @for (dog of group.dogs; track dog.id) {
+              <a [id]="'daily-dog-' + dog.id" [routerLink]="['/dogs', dog.id]" [class.highlighted]="highlightedDogId() === dog.id" [attr.aria-label]="dog.name + ', ' + dog.starts + ' starts, ' + dog.actual_km + ' kilometres'">
+                <span><strong>{{ dog.name }}</strong><small>{{ activityLabel(dog.dog_class || '') }} · {{ activityLabel(dog.availability || '') }}</small></span>
+                <span class="dog-work"><strong>{{ dog.actual_km }} km</strong><small>{{ dog.starts }} {{ dog.starts === 1 ? 'start' : 'starts' }}</small></span>
+              </a>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+} @else {
+  <div class="page-state error" role="alert"><h2>No Daily Entry data available</h2><button class="button secondary" type="button" (click)="retry()">Try again</button></div>
+}
+
+@if (editorOpen()) {
+  <ht-actual-session-editor [entryDate]="selectedDate" [session]="editingSession()" [saving]="savingEditor()" [serverError]="editorError()" (saved)="saveSession($event)" (closed)="closeEditor()" />
+}

@@ -19,6 +19,7 @@ from app.models import (
     PlannedActivity,
     PlannedActivityParticipant,
     PlannedTeam,
+    PlannedTeamSlot,
 )
 from app.models.enums import (
     AvailabilityState,
@@ -252,7 +253,8 @@ class DailyPlanService:
             selectinload(DailyPlan.activities),
             selectinload(DailyPlan.activities)
             .selectinload(PlannedActivity.teams)
-            .selectinload(PlannedTeam.slots),
+            .selectinload(PlannedTeam.slots)
+            .selectinload(PlannedTeamSlot.dog),
             participant_dogs.selectinload(Dog.class_periods),
             participant_dogs.selectinload(Dog.lifecycle_periods),
             participant_dogs.selectinload(Dog.availability_periods),

@@ -63,7 +63,10 @@ export class AppComponent {
     },
     {
       label: 'Operations',
-      items: [{ label: 'Daily Plan', route: '/daily', mark: 'P' }],
+      items: [
+        { label: 'Daily Plan', route: '/daily', mark: 'P' },
+        { label: 'Daily Entry', route: '/daily-entry', mark: 'E' },
+      ],
     },
     { label: 'Records', items: [{ label: 'Archive', route: '/archive', mark: 'A' }] },
   ];

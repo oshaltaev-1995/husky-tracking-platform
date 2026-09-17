@@ -363,19 +363,45 @@ class WorkSession(Base):
         CheckConstraint(
             "activity_type = 'sled_training'", name="ck_work_sessions_activity_type"
         ),
+        CheckConstraint("revision > 0", name="ck_work_sessions_positive_revision"),
+        UniqueConstraint(
+            "planned_activity_id", name="uq_work_sessions_planned_activity_id"
+        ),
         Index("ix_work_sessions_work_date_distance", "work_date", "distance_km"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    )
     source_reference: Mapped[str] = mapped_column(String(80), unique=True)
+    planned_activity_id: Mapped[int | None] = mapped_column(
+        ForeignKey(
+            "planned_activities.id",
+            name="fk_work_sessions_planned_activity_id",
+            ondelete="SET NULL",
+        ),
+        index=True,
+    )
     work_date: Mapped[date] = mapped_column(Date, index=True)
+    start_time: Mapped[time | None] = mapped_column(Time)
     distance_km: Mapped[int] = mapped_column(SmallInteger)
     activity_type: Mapped[str] = mapped_column(String(30), default="sled_training")
     label: Mapped[str | None] = mapped_column(String(120))
     note: Mapped[str | None] = mapped_column(String(255))
+    revision: Mapped[int] = mapped_column(default=1)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     participations: Mapped[list[WorkParticipation]] = relationship(
-        back_populates="session"
+        back_populates="session", cascade="all, delete-orphan"
+    )
+    planned_activity: Mapped[PlannedActivity | None] = relationship(
+        back_populates="actual_session"
     )
 
 
@@ -386,17 +412,41 @@ class WorkParticipation(Base):
             "assigned_role IS NULL OR assigned_role IN ('lead', 'team', 'wheel')",
             name="ck_work_participations_role",
         ),
+        CheckConstraint(
+            "(actual_team_sequence IS NULL AND pair_index IS NULL AND side IS NULL "
+            "AND position_order IS NULL) OR "
+            "(actual_team_sequence > 0 AND pair_index >= 0 "
+            "AND side IN ('left', 'right') AND position_order > 0 "
+            "AND assigned_role IS NOT NULL)",
+            name="ck_work_participations_geometry",
+        ),
         UniqueConstraint("session_id", "dog_id", name="uq_work_participation_start"),
+        UniqueConstraint(
+            "session_id",
+            "actual_team_sequence",
+            "pair_index",
+            "side",
+            name="uq_work_participation_position",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     session_id: Mapped[int] = mapped_column(
-        ForeignKey("work_sessions.id", ondelete="RESTRICT"), index=True
+        ForeignKey(
+            "work_sessions.id",
+            name="fk_work_participations_session_id",
+            ondelete="CASCADE",
+        ),
+        index=True,
     )
     dog_id: Mapped[int] = mapped_column(
         ForeignKey("dogs.id", ondelete="RESTRICT"), index=True
     )
     assigned_role: Mapped[str | None] = mapped_column(String(20))
+    actual_team_sequence: Mapped[int | None] = mapped_column(SmallInteger)
+    pair_index: Mapped[int | None] = mapped_column(SmallInteger)
+    side: Mapped[str | None] = mapped_column(String(12))
+    position_order: Mapped[int | None] = mapped_column(SmallInteger)
 
     session: Mapped[WorkSession] = relationship(back_populates="participations")
     dog: Mapped[Dog] = relationship()
@@ -469,6 +519,7 @@ class PlannedActivity(Base):
     title: Mapped[str] = mapped_column(String(120))
     distance_km: Mapped[int | None] = mapped_column(SmallInteger)
     notes: Mapped[str | None] = mapped_column(Text)
+    actual_not_run: Mapped[bool] = mapped_column(Boolean, default=False)
 
     daily_plan: Mapped[DailyPlan] = relationship(back_populates="activities")
     participants: Mapped[list[PlannedActivityParticipant]] = relationship(
@@ -480,6 +531,9 @@ class PlannedActivity(Base):
         back_populates="activity",
         cascade="all, delete-orphan",
         order_by="PlannedTeam.sequence",
+    )
+    actual_session: Mapped[WorkSession | None] = relationship(
+        back_populates="planned_activity", uselist=False, passive_deletes=True
     )
 
 

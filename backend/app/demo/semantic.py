@@ -29,6 +29,42 @@ def _date(value: date | None) -> str | None:
     return value.isoformat() if value else None
 
 
+def _work_session_row(work_session: WorkSession) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "reference": work_session.source_reference,
+        "date": _date(work_session.work_date),
+        "distance_km": work_session.distance_km,
+        "activity_type": work_session.activity_type,
+        "label": work_session.label,
+        "note": work_session.note,
+    }
+    if work_session.start_time is not None:
+        row["start_time"] = work_session.start_time.isoformat()
+    return row
+
+
+def _work_participation_row(
+    participation: WorkParticipation,
+    session_refs: dict[int, str],
+    names: dict[int, str],
+) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "session": session_refs[participation.session_id],
+        "dog": names[participation.dog_id],
+        "role": participation.assigned_role,
+    }
+    if participation.actual_team_sequence is not None:
+        row.update(
+            {
+                "team": participation.actual_team_sequence,
+                "pair_index": participation.pair_index,
+                "side": participation.side,
+                "position_order": participation.position_order,
+            }
+        )
+    return row
+
+
 def semantic_snapshot(session: Session) -> dict[str, Any]:
     """Return stable business data with database identities and timestamps removed."""
     dogs = session.scalars(select(Dog)).all()
@@ -178,26 +214,12 @@ def semantic_snapshot(session: Session) -> dict[str, Any]:
             key=lambda row: (row["kind"], row["dog_a"], row["dog_b"]),
         ),
         "work_sessions": sorted(
-            (
-                {
-                    "reference": work_session.source_reference,
-                    "date": _date(work_session.work_date),
-                    "distance_km": work_session.distance_km,
-                    "activity_type": work_session.activity_type,
-                    "label": work_session.label,
-                    "note": work_session.note,
-                }
-                for work_session in sessions
-            ),
+            (_work_session_row(work_session) for work_session in sessions),
             key=lambda row: row["reference"],
         ),
         "work_participations": sorted(
             (
-                {
-                    "session": session_refs[participation.session_id],
-                    "dog": names[participation.dog_id],
-                    "role": participation.assigned_role,
-                }
+                _work_participation_row(participation, session_refs, names)
                 for participation in session.scalars(select(WorkParticipation))
             ),
             key=lambda row: (row["session"], row["dog"]),

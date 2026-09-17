@@ -266,28 +266,40 @@ WorkParticipation rows explicitly and must not treat a saved plan as completed w
 
 ## P7 — Daily Entry
 
+**Status:** completed. P7 delivers the `/daily-entry` historical actual-work workspace,
+one canonical ledger, idempotent plan confirmation, editable saved harness geometry,
+manual/unplanned sessions, plan divergence, not-run decisions, dated housing overview,
+dog finding, and deterministic reset restoration.
+
 **Objective:** capture actual work efficiently and correctly for historical demo dates.
 
 **Required behavior:** date selection, historical housing grouping, search/find dog,
 worked/not worked, 5/10 km or supported activity, status context, notes, save/reopen/
 correct, and optional plan confirmation without double counting.
 
-**Backend:** grouped entry read model, idempotent WorkSession/WorkParticipation upsert,
-plan-to-actual confirmation, revisions and safe correction semantics.
+**Backend:** delivered a grouped entry read model, bounded dated eligibility/housing,
+idempotent plan-to-actual confirmation, actual revision protection, safe create/edit/
+delete, exact role/pair validation, and shared 30 km actual enforcement.
 
-**Frontend:** compact desktop/mobile entry grid, filters/search, batch controls where
-safe, validation summaries, persisted/reopened state, clear actual-versus-plan language.
+**Frontend:** delivered compact plan/actual cards, derived day metrics, focus-managed
+participant/lineup editor, daily Find Dog, historical housing groups, persisted reopen,
+and clear matches/modified/not-recorded/not-run language across desktop and mobile.
 
-**Data/migrations:** source references/revisions and audit fields if not already present;
-indexes for date/dog/session queries.
+**Data/migrations:** `c4e87a1b92f0` adds WorkSession public/revision/start/provenance
+metadata, actual participation geometry, session-owned cascade, and plan not-run state.
 
-**Tests:** historical housing, boundary dates, idempotent saves, reopen/edit, zero/not-worked
-semantics, plan confirmation, duplicate prevention, mobile interaction.
+**Tests:** historical housing/map consistency, all effective-state rejections, idempotent
+confirmation, saved-team and no-team copy, reopen/edit/delete, 30 km boundary, role and
+pair rules, plan separation, not-run, reset/checksum, frontend interactions, and errors.
 
 **Acceptance:** saved work appears exactly once in Dog Profile and downstream analytics;
 historical entries never regroup by current housing.
 
 **Exclusions:** no production printable sheets or unrelated-work deletion.
+
+**P8 handoff:** analytics can query canonical WorkSession/WorkParticipation directly for
+session count, distinct dogs, starts, dog-km, distance breakdown, roles, dates, and dog
+drill-down. Plan and team tables are optional comparison context, never workload truth.
 
 ## P8 — Analytics and workload intelligence
 
