@@ -46,6 +46,8 @@ backend/
     db/                    SQLAlchemy base/session
     models/                typed P2 SQLAlchemy domain persistence
     demo/                  curated catalog, generator, validation, checksum, CLIs
+    schemas/               explicit product-facing response DTOs
+    services/              P3 read projections and shared effective-state policy
   tests/
 frontend/
   src/app/
@@ -76,11 +78,23 @@ API conventions:
 - OpenAPI is available in non-hardened environments.
 
 `GET /api/v1/health` proves frontend/backend connectivity and exposes the demo-season
-contract. P2 also provides the intentionally narrow read-only
-`GET /api/v1/demo-dataset` verification projection; it returns version, reference date,
-active/archive counts, and checksum rather than prematurely exposing P3 Dog APIs. A
-later readiness endpoint may additionally verify PostgreSQL; health should not expose
-secrets or infrastructure details.
+contract. `GET /api/v1/demo-dataset` remains the narrow verification projection for
+version, reference date, counts, and checksum. P3 adds focused read APIs:
+
+- `GET /api/v1/dogs` — active registry summary, search, filters, and sorting;
+- `GET /api/v1/archive` — archived registry, reason filter, and sorting;
+- `GET /api/v1/dogs/{dog_id}` — lifecycle-aware identity/current-state profile;
+- `GET /api/v1/dogs/{dog_id}/pedigree` — parents, grandparents, litter siblings, and
+  offspring without lifecycle filtering;
+- `GET /api/v1/dogs/{dog_id}/work` — dog-level season ledger and weekly summary;
+- `GET /api/v1/dogs/{dog_id}/history` — dated class, availability, lifecycle, housing,
+  and archive metadata.
+
+The `DogReadService` is the central projection boundary. It resolves effective periods
+using the canonical DemoClock once, bulk-loads related histories for registry/profile
+views, and derives work totals from `WorkSession` plus `WorkParticipation`. Routes only
+validate query/path values, invoke this service, and serialize explicit Pydantic DTOs.
+No current class/status/housing fields or workload aggregates are duplicated on Dog.
 
 ## Demo clock
 
@@ -123,6 +137,14 @@ seed/reset operation runs on ordinary application startup.
 Angular uses standalone components, feature-route boundaries, strict templates, and
 typed API models. The app shell owns navigation and the visible demo-season marker.
 Each feature owns its pages, components, models, services, and focused utilities.
+
+P3 route boundaries are `/dogs`, `/archive`, and `/dogs/:dogId`. Dog Profile section
+state is a `tab` query parameter, so pedigree/work/history views are deep-linkable. A
+single request bundle is retained while tabs change. Active and archived dogs render in
+the same profile composition; lifecycle changes only the projected state and visual
+context. Litter siblings come only from `Dog.litter_id`; parent sharing is not silently
+presented as litter siblinghood. The neutral `DogMediaComponent` owns the stable media
+aspect ratio and is the P10 image integration seam.
 
 Remote data should use a consistent state/query approach introduced only when feature
 complexity warrants it; no global state library is needed in P1. Accessibility basics
@@ -197,7 +219,8 @@ one visitor cannot affect another's experience indefinitely.
   frontend utilities;
 - PostgreSQL integration tests for range exclusions, relationships, migrations, and
   transaction rules;
-- API contract tests for history boundary dates and idempotent writes;
+- API contract tests for registry filters, pedigree links, work derivation, effective
+  histories, history boundary dates, and idempotent writes;
 - Angular component tests for loading/error/data and accessibility behavior;
 - end-to-end tests for the core loop once features exist;
 - deterministic snapshot/checksum tests for the v1 demo world;

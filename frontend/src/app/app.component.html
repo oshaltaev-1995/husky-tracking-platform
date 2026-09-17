@@ -1,57 +1,29 @@
-<header class="masthead">
-  <a class="brand" href="/" aria-label="Husky Tracking home">
-    <span class="brand-mark" aria-hidden="true">HT</span>
-    <span>Husky Tracking</span>
-  </a>
-  <span class="demo-pill">Synthetic demo</span>
-</header>
-
-<main>
-  <section class="hero" aria-labelledby="hero-title">
-    <p class="eyebrow">Kennel management, made legible</p>
-    <h1 id="hero-title">A calm operating picture for every dog and every day.</h1>
-    <p class="intro">
-      This independent public demonstration will connect kennel housing, dog profiles,
-      daily plans, team building, work entry, and workload analytics in one focused flow.
-    </p>
-
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="app-header">
+  <div class="header-inner">
+    <a class="brand" routerLink="/dogs" aria-label="Husky Tracking Dogs registry">
+      <span class="brand-mark" aria-hidden="true">HT</span>
+      <span><strong>Husky Tracking</strong><small>Kennel operations</small></span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a routerLink="/dogs" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">Dogs</a>
+      <a routerLink="/archive" routerLinkActive="active">Archive</a>
+    </nav>
     @if (connection$ | async; as connection) {
-      <div class="status-card" aria-live="polite">
+      <div class="demo-context" [class.unavailable]="connection.kind === 'unavailable'" aria-live="polite">
+        <span class="context-dot" aria-hidden="true"></span>
         @switch (connection.kind) {
-          @case ('loading') {
-            <span class="status-dot pending" aria-hidden="true"></span>
-            <span>Connecting to the demo API…</span>
-          }
-          @case ('connected') {
-            <span class="status-dot connected" aria-hidden="true"></span>
-            <span>
-              <strong>{{ connection.season }}</strong><br />
-              Canonical reference date: {{ connection.referenceDate }}
-            </span>
-          }
-          @case ('unavailable') {
-            <span class="status-dot unavailable" aria-hidden="true"></span>
-            <span>Demo API unavailable. Start the backend to verify the connection.</span>
-          }
+          @case ('connected') { <span><strong>{{ connection.season }}</strong><small>Reference {{ connection.referenceDate }}</small></span> }
+          @case ('unavailable') { <span><strong>Demo API offline</strong><small>Registry unavailable</small></span> }
+          @default { <span><strong>Demo season</strong><small>Connecting…</small></span> }
         }
       </div>
     }
-  </section>
+  </div>
+</header>
 
-  <section class="product-loop" aria-label="Core product loop">
-    <h2>The core loop</h2>
-    <ol>
-      <li><span>01</span> Kennel Map</li>
-      <li><span>02</span> Dog Profile</li>
-      <li><span>03</span> Daily Plan</li>
-      <li><span>04</span> Team Builder</li>
-      <li><span>05</span> Daily Entry</li>
-      <li><span>06</span> Analytics</li>
-    </ol>
-  </section>
+<main id="main-content" class="app-main">
+  <router-outlet />
 </main>
 
-<footer>
-  <span>Husky Tracking</span>
-  <span>Fictional dogs · deterministic data · no private kennel records</span>
-</footer>
+<footer class="app-footer"><div><span>Husky Tracking</span><span>Fictional dogs · deterministic data · no private kennel records</span></div></footer>

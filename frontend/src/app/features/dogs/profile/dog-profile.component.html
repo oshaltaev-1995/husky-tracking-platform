@@ -1,0 +1,43 @@
+@if (state$ | async; as state) {
+  @switch (state.kind) {
+    @case ('loading') { <div class="page-state profile-loading" aria-live="polite">Loading dog profile…</div> }
+    @case ('not-found') {
+      <section class="not-found" role="alert"><p class="eyebrow">Record not found</p><h1>This dog profile is unavailable.</h1><p>The link may be malformed or the record may not exist in this demo dataset.</p><a class="button primary" routerLink="/dogs">Return to Dogs</a></section>
+    }
+    @case ('error') {
+      <section class="not-found" role="alert"><p class="eyebrow">Connection issue</p><h1>We could not load this profile.</h1><p>Check the demo API, then reload this page.</p><a class="button secondary" routerLink="/dogs">Return to Dogs</a></section>
+    }
+    @case ('ready') {
+      <a class="back-link" [routerLink]="state.data.profile.state.lifecycle === 'archived' ? '/archive' : '/dogs'">← Back to {{ state.data.profile.state.lifecycle === 'archived' ? 'Archive' : 'Dogs' }}</a>
+      <header class="profile-header" [class.archived]="state.data.profile.state.lifecycle === 'archived'">
+        <div class="profile-media"><ht-dog-media [name]="state.data.profile.name" size="profile" /></div>
+        <div class="profile-identity">
+          <div class="identity-flags"><span class="lifecycle-badge">{{ state.data.profile.state.lifecycle | titlecase }}</span>@if (state.data.profile.state.availability) { <span class="status-badge" [attr.data-status]="state.data.profile.state.availability">{{ state.data.profile.state.availability | titlecase }}</span> }</div>
+          <p class="eyebrow">{{ state.data.profile.litter_code ? state.data.profile.litter_code + '-litter' : 'Foundation dog' }}</p>
+          <h1>{{ state.data.profile.name }}</h1>
+          <p class="profile-subtitle">{{ state.data.profile.sex | titlecase }} · {{ state.data.profile.age_label }} · {{ state.data.profile.state.dog_class | titlecase }}</p>
+          <dl class="header-facts">
+            <div><dt>{{ state.data.profile.state.housing ? 'Housing' : 'Last housing' }}</dt><dd>{{ state.data.profile.state.housing?.code || state.data.profile.last_known_housing?.code || 'Not assigned' }}</dd></div>
+            <div><dt>Born</dt><dd>{{ state.data.profile.birth_date | date: 'mediumDate' }}</dd></div>
+            <div><dt>Work roles</dt><dd>{{ state.data.profile.capabilities.length ? state.data.profile.capabilities.join(' · ') : 'Not eligible' }}</dd></div>
+          </dl>
+          @if (state.data.profile.archive; as archive) { <div class="archive-callout"><strong>{{ reasonLabel(archive.reason) }}</strong><span>Archived {{ archive.archive_date | date: 'longDate' }}</span></div> }
+        </div>
+      </header>
+
+      @if (activeTab$ | async; as activeTab) {
+        <nav class="profile-tabs" aria-label="Dog profile sections">
+          @for (tab of tabs; track tab) { <a [attr.aria-current]="activeTab === tab ? 'page' : null" [class.active]="activeTab === tab" [routerLink]="[]" [queryParams]="tab === 'profile' ? {} : { tab }" queryParamsHandling="replace">{{ tabLabel(tab) }}</a> }
+        </nav>
+        <div class="tab-content">
+          @switch (activeTab) {
+            @case ('pedigree') { <ht-pedigree [pedigree]="state.data.pedigree" /> }
+            @case ('work') { <ht-dog-work [dog]="state.data.profile" [work]="state.data.work" /> }
+            @case ('history') { <ht-dog-history [history]="state.data.history" /> }
+            @default { <ht-profile-info [dog]="state.data.profile" /> }
+          }
+        </div>
+      }
+    }
+  }
+}

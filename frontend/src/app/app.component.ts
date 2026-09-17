@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { catchError, map, of, startWith } from 'rxjs';
 
 import { HealthService } from './core/api/health.service';
@@ -11,7 +12,7 @@ type ConnectionState =
 
 @Component({
   selector: 'ht-root',
-  imports: [AsyncPipe],
+  imports: [AsyncPipe, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +24,7 @@ export class AppComponent {
     map(
       (status): ConnectionState => ({
         kind: 'connected',
-        season: status.demo_season,
+        season: status.demo_season.replace('Demo season — ', ''),
         referenceDate: status.demo_reference_date,
       }),
     ),

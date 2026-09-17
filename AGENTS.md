@@ -37,6 +37,11 @@ These instructions apply to the entire repository.
   explicit services, relational constraints for core data.
 - API routes live under `/api/v1`. Persist dates as calendar dates and timestamps in
   UTC where time-of-day is required.
+- Product read APIs use explicit response schemas and feature read services. Resolve
+  effective class, lifecycle, availability, and housing centrally against `DemoClock`;
+  do not duplicate current-state logic in routes or Angular.
+- Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
+  and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a
   production migration mechanism.
 - Use `.env.example` for public configuration; never commit secrets.

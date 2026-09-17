@@ -1,0 +1,147 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Active population</p>
+    <h1>Dogs</h1>
+    <p class="lede">Browse the kennel by identity, operational state, and home enclosure.</p>
+  </div>
+</section>
+
+@if (state$ | async; as state) {
+  @switch (state.kind) {
+    @case ('loading') {
+      <div class="page-state" aria-live="polite">Loading the kennel registry…</div>
+    }
+    @case ('error') {
+      <div class="page-state error" role="alert">
+        <h2>The registry is temporarily unavailable</h2>
+        <p>Check the demo API connection, then try again.</p>
+        <button class="button secondary" type="button" (click)="applyFilters()">Try again</button>
+      </div>
+    }
+    @case ('ready') {
+      <section class="population-strip" aria-label="Active population summary">
+        <div><strong>{{ state.data.summary.total }}</strong><span>Active dogs</span></div>
+        <div><strong>{{ state.data.summary.puppy }}</strong><span>Puppy</span></div>
+        <div><strong>{{ state.data.summary.junior }}</strong><span>Junior</span></div>
+        <div><strong>{{ state.data.summary.training }}</strong><span>Training</span></div>
+        <div><strong>{{ state.data.summary.standard }}</strong><span>Standard</span></div>
+      </section>
+
+      <form class="filters" (submit)="$event.preventDefault(); applyFilters()">
+        <label class="search-field">
+          <span>Search name or location</span>
+          <div class="search-control">
+            <input name="search" type="search" [(ngModel)]="filters.search" placeholder="Try Aurora or A1-01" />
+            <button class="button primary" type="submit">Search</button>
+          </div>
+        </label>
+        <label>
+          <span>Class</span>
+          <select name="class" [(ngModel)]="filters.dogClass" (change)="applyFilters()">
+            <option value="">All classes</option>
+            <option value="puppy">Puppy</option>
+            <option value="junior">Junior</option>
+            <option value="training">Training</option>
+            <option value="standard">Standard</option>
+          </select>
+        </label>
+        <label>
+          <span>Sex</span>
+          <select name="sex" [(ngModel)]="filters.sex" (change)="applyFilters()">
+            <option value="">All sexes</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </label>
+        <label>
+          <span>Availability</span>
+          <select name="availability" [(ngModel)]="filters.availability" (change)="applyFilters()">
+            <option value="">All states</option>
+            <option value="available">Available</option>
+            <option value="injured">Injured</option>
+            <option value="rest">Rest</option>
+            <option value="restricted">Restricted</option>
+            <option value="retired">Retired</option>
+          </select>
+        </label>
+        <label>
+          <span>Neutered</span>
+          <select name="neutered" [(ngModel)]="filters.neutered" (change)="applyFilters()">
+            <option value="">Any</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </label>
+        <label>
+          <span>Housing</span>
+          <select name="housing" [(ngModel)]="filters.housing" (change)="applyFilters()">
+            <option value="">All areas</option>
+            @for (group of state.data.housing_groups; track group) {
+              <option [value]="group">{{ group === 'PUPPY' ? 'Puppy areas' : 'Row ' + group }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Capability</span>
+          <select name="capability" [(ngModel)]="filters.capability" (change)="applyFilters()">
+            <option value="">Any role</option>
+            <option value="lead">Lead</option>
+            <option value="team">Team</option>
+            <option value="wheel">Wheel</option>
+          </select>
+        </label>
+        <label>
+          <span>Sort</span>
+          <select name="sort" [(ngModel)]="filters.sort" (change)="applyFilters()">
+            <option value="name">Name A–Z</option>
+            <option value="youngest">Youngest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="housing">Housing</option>
+            <option value="class">Class</option>
+          </select>
+        </label>
+        <button class="reset-link" type="button" (click)="resetFilters()">Reset filters</button>
+      </form>
+
+      <div class="results-heading" aria-live="polite">
+        <h2>{{ state.data.result_count }} {{ state.data.result_count === 1 ? 'dog' : 'dogs' }}</h2>
+        <span>As of {{ state.data.reference_date }}</span>
+      </div>
+
+      @if (state.data.items.length) {
+        <div class="dog-grid">
+          @for (dog of state.data.items; track dog.id) {
+            <a class="dog-card" [routerLink]="['/dogs', dog.id]" [attr.aria-label]="'Open ' + dog.name + ' profile'">
+              <ht-dog-media [name]="dog.name" />
+              <div class="card-content">
+                <div class="card-title">
+                  <div>
+                    <p class="kicker">{{ dog.state.housing?.code || 'No current housing' }}</p>
+                    <h3>{{ dog.name }}</h3>
+                  </div>
+                  <span class="status-badge" [attr.data-status]="dog.state.availability">
+                    {{ dog.state.availability | titlecase }}
+                  </span>
+                </div>
+                <p class="dog-meta">{{ dog.sex | titlecase }} · {{ dog.age_label }} · {{ dog.state.dog_class | titlecase }}</p>
+                <div class="capabilities" aria-label="Working capabilities">
+                  @for (capability of dog.capabilities; track capability) {
+                    <span>{{ capability | titlecase }}</span>
+                  } @empty {
+                    <span>Not work eligible</span>
+                  }
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <h2>No dogs match these filters</h2>
+          <p>Clear one or more filters to return to the active kennel population.</p>
+          <button class="button secondary" type="button" (click)="resetFilters()">Show all active dogs</button>
+        </div>
+      }
+    }
+  }
+}

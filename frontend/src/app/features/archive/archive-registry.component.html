@@ -1,0 +1,51 @@
+<section class="page-heading archive-heading">
+  <div>
+    <p class="eyebrow">Preserved records</p>
+    <h1>Archive</h1>
+    <p class="lede">Historical dogs remain connected to their family, housing, and work records.</p>
+  </div>
+  @if (state$ | async; as headingState) {
+    @if (headingState.kind === 'ready') {
+      <div class="archive-count"><strong>{{ headingState.data.total_archived }}</strong><span>Archived dogs</span></div>
+    }
+  }
+</section>
+
+@if (state$ | async; as state) {
+  @switch (state.kind) {
+    @case ('loading') { <div class="page-state" aria-live="polite">Loading archived records…</div> }
+    @case ('error') {
+      <div class="page-state error" role="alert">
+        <h2>The archive is temporarily unavailable</h2>
+        <button class="button secondary" type="button" (click)="applyFilters()">Try again</button>
+      </div>
+    }
+    @case ('ready') {
+      <form class="archive-filters" (submit)="$event.preventDefault(); applyFilters()">
+        <label class="search-field"><span>Search by name</span><input name="search" type="search" [(ngModel)]="filters.search" placeholder="Search archived dogs" /></label>
+        <label><span>Archive reason</span><select name="reason" [(ngModel)]="filters.reason" (change)="applyFilters()"><option value="">All reasons</option><option value="euthanized">Euthanized</option><option value="deceased">Died naturally</option><option value="rehomed_to_guide">Rehomed to guide</option></select></label>
+        <label><span>Sort</span><select name="sort" [(ngModel)]="filters.sort" (change)="applyFilters()"><option value="name">Name A–Z</option><option value="archive_date_desc">Recently archived</option><option value="archive_date_asc">Earliest archived</option><option value="youngest">Youngest first</option><option value="oldest">Oldest first</option></select></label>
+        <button class="button primary" type="submit">Search</button>
+        <button class="reset-link" type="button" (click)="resetFilters()">Reset</button>
+      </form>
+
+      <div class="results-heading" aria-live="polite"><h2>{{ state.data.result_count }} records</h2><span>As of {{ state.data.reference_date }}</span></div>
+      @if (state.data.items.length) {
+        <div class="archive-list">
+          @for (dog of state.data.items; track dog.id) {
+            <a class="archive-row" [routerLink]="['/dogs', dog.id]" [attr.aria-label]="'Open archived profile for ' + dog.name">
+              <div class="archive-media"><ht-dog-media [name]="dog.name" /></div>
+              <div class="archive-identity"><p class="kicker">{{ dog.litter_code ? dog.litter_code + '-litter' : 'Foundation dog' }}</p><h3>{{ dog.name }}</h3><p>{{ dog.sex | titlecase }} · Born {{ dog.birth_date | date: 'mediumDate' }}</p></div>
+              <div class="archive-fact"><span>Archived</span><strong>{{ dog.archive.archive_date | date: 'mediumDate' }}</strong></div>
+              <div class="archive-fact"><span>Reason</span><strong>{{ reasonLabel(dog.archive.reason) }}</strong></div>
+              <div class="archive-fact"><span>Family record</span><strong>{{ dog.offspring_count ? dog.offspring_count + ' offspring' : 'No offspring' }}</strong></div>
+              <span class="row-arrow" aria-hidden="true">→</span>
+            </a>
+          }
+        </div>
+      } @else {
+        <div class="empty-state"><h2>No archived dogs match</h2><p>Adjust the search or reason filter.</p><button class="button secondary" type="button" (click)="resetFilters()">Show all archived dogs</button></div>
+      }
+    }
+  }
+}

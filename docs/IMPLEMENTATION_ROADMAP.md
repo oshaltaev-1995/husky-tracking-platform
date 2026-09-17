@@ -66,30 +66,44 @@ no real/reference production record is present; generator report is documented.
 
 ## P3 — Dogs, Dog Profile, and Archive
 
+**Status:** completed. P3 delivered the responsive active registry, preserved-record
+archive, shared active/archived Dog Profile, focused read APIs, clickable three-
+generation pedigree, canonical dog-level work ledger, effective-dated history views,
+typed Angular API services, and neutral P10-ready media placeholder. The P2 schema and
+semantic checksum remain unchanged.
+
 **Objective:** make each fictional dog's identity and history a showcase feature.
 
 **Required behavior:** searchable active registry and archive; Profile/Bio, Pedigree,
 Work, and Status History tabs; archived relatives remain navigable; demo-relative age;
 last-known housing for archived dogs.
 
-**Backend:** dog list/detail filters, effective summaries, pedigree/offspring/sibling
-queries, selected-period work summaries/history, archive reads and controlled lifecycle
-writes if editing is included.
+**Backend:** delivered dog list/detail filters, effective summaries, pedigree/offspring/
+sibling queries, demo-season work summaries/history, and archive reads. Editing and
+lifecycle writes were intentionally excluded.
 
-**Frontend:** responsive registry/archive, tabbed detail, neutral photo placeholder,
-status/class/lifecycle badges, linked pedigree, work trend/table, chronological status
-and housing histories, empty/error/loading states.
+**Frontend:** delivered responsive registry/archive, tabbed detail, neutral photo
+placeholder, status/class/lifecycle badges, linked pedigree, work trend/table,
+chronological status and housing histories, empty/error/loading states.
 
-**Data/migrations:** only refinements proven necessary by API/UI; no duplicated summary
-columns.
+**Data/migrations:** no change was required; P3 uses P2 normalized persistence and adds
+no duplicated summary columns.
 
-**Tests:** archived pedigree links, year-only birth/age boundaries, historical summaries,
-tab accessibility, route navigation, filters, and responsive layouts.
+**Tests:** delivered API coverage for active/archive filtering, current projection,
+archived pedigree links, work totals/interruptions, chronological histories, and 404s;
+Angular coverage for registry/search/navigation, stable tab state, relation links,
+archive indication, zero work, and API error states; desktop/narrow visual QA.
 
-**Acceptance:** a visitor can understand an active or archived dog without ambiguous
-state; all values use the fixed reference/selected date.
+**Acceptance:** complete; a visitor can understand an active or archived dog without
+ambiguous state; all values use the fixed reference/selected date.
 
 **Exclusions:** no gallery/editor, no generated portraits, no permanent delete workflow.
+
+**P4 handoff:** the map can consume stable dog UUID/profile links plus the existing
+effective current-state projection shape (`lifecycle`, `dog_class`, `availability`, and
+`housing`). P4 should add only its dated location-layout projection and layer semantics;
+it should reuse P3 Dog Profile deep links and must not duplicate the effective-period
+resolver.
 
 ## P4 — Kennel Map
 

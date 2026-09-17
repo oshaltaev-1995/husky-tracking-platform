@@ -1,0 +1,1 @@
+"""Explicit API response contracts."""

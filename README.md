@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P2 domain foundation
+## P3 dog registry and profiles
 
 - Angular 22, TypeScript, and SCSS frontend
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -19,11 +19,19 @@ reference project.
   locations, roles, relationships, and work-session persistence
 - deterministic `winter-2025-2026-v1` demo reset with 50 active and 10 archived
   fictional dogs
+- responsive `/dogs`, `/archive`, and deep-linked `/dogs/:dogId` product routes
+- server-supported registry/archive search, domain filters, and focused sorting
+- one lifecycle-aware Dog Profile with Profile, Pedigree, Work, and History views
+- clickable parents, grandparents, litter siblings, offspring, and archived relatives
+- season work summaries derived from work participation, plus effective-dated class,
+  availability, lifecycle, and housing timelines
+- reusable neutral dog media placeholder ready for P10 synthetic portraits
 - semantic validation and checksum independent of database identities and timestamps
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-Dog Profile and other product screens intentionally begin in P3. See
+The next product package is P4 Kennel Map. P3 deliberately adds no editing surface and
+does not implement map geometry, plans, team building, entry, or kennel analytics. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -53,6 +61,8 @@ Then open:
 - frontend: <http://localhost:4300>
 - API health: <http://localhost:8030/api/v1/health>
 - dataset summary: <http://localhost:8030/api/v1/demo-dataset>
+- dogs registry API: <http://localhost:8030/api/v1/dogs>
+- archive API: <http://localhost:8030/api/v1/archive>
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is

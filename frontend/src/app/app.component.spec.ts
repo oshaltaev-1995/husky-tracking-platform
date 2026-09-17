@@ -1,6 +1,7 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { AppComponent } from './app.component';
 
@@ -8,7 +9,7 @@ describe('AppComponent', () => {
   it('renders the fixed demo season returned by the API', async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(AppComponent);
@@ -29,8 +30,10 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain(
-      'Demo season — Winter 2025–2026',
+      'Winter 2025–2026',
     );
+    expect(fixture.nativeElement.textContent).toContain('Dogs');
+    expect(fixture.nativeElement.textContent).toContain('Archive');
     http.verify();
   });
 });

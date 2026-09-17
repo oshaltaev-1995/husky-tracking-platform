@@ -1,0 +1,10 @@
+:host { display: grid; gap: 1rem; }
+.history-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; }
+.history-heading h2 { margin: .1rem 0 0; font-family: Georgia, serif; font-size: 1.65rem; font-weight: 500; }.history-heading > p { max-width: 30rem; margin: 0; color: var(--ink-soft); font-size: .8rem; }
+.history-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.timeline-panel { min-width: 0; padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.panel-title { display: flex; gap: .75rem; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }.panel-title > span { display: grid; width: 2.2rem; aspect-ratio: 1; place-items: center; border-radius: .5rem; color: white; background: var(--accent); font-family: Georgia, serif; }.panel-title h3 { margin: .1rem 0 0; font-size: 1rem; }
+.timeline { position: relative; margin-top: .8rem; }.timeline::before { position: absolute; top: .7rem; bottom: .7rem; left: .3rem; width: 1px; background: var(--line-strong); content: ''; }
+.timeline article { position: relative; display: grid; grid-template-columns: 1rem 1fr; gap: .65rem; padding: .7rem 0; }.timeline-dot { z-index: 1; width: .65rem; aspect-ratio: 1; margin-top: .25rem; border: 2px solid var(--surface); border-radius: 50%; background: var(--ink-soft); box-shadow: 0 0 0 1px var(--line-strong); }.timeline article.current .timeline-dot { background: var(--accent); box-shadow: 0 0 0 2px var(--accent-pale); }.timeline article.archive-event .timeline-dot { background: var(--archive); }
+.timeline strong, .timeline small, .timeline time { display: block; }.timeline small { margin-top: .12rem; color: var(--ink-soft); font-size: .72rem; }.timeline time { margin-top: .25rem; color: var(--ink-soft); font-size: .68rem; }.timeline p { margin: .3rem 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.45; }.empty-copy { color: var(--ink-soft); }
+@media (max-width: 700px) { .history-heading { align-items: start; flex-direction: column; }.history-grid { grid-template-columns: 1fr; } }
