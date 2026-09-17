@@ -1,0 +1,107 @@
+<header class="page-header daily-header">
+  <div>
+    <p class="eyebrow">Operations · Winter 2025–2026</p>
+    <h1>Daily Plan</h1>
+    <p>Arrange the day’s dog activities. Training pools can become team lineups in the next workflow.</p>
+  </div>
+  <div class="date-navigation" aria-label="Daily Plan date navigation">
+    <button class="day-button" type="button" aria-label="Previous day" [disabled]="!canMove(-1)" (click)="moveDay(-1)">‹</button>
+    <label class="form-field"><span>Plan date</span><input type="date" min="2025-12-01" max="2026-03-31" [(ngModel)]="selectedDate" (ngModelChange)="changeDate($event)" /></label>
+    <button class="day-button" type="button" aria-label="Next day" [disabled]="!canMove(1)" (click)="moveDay(1)">›</button>
+  </div>
+</header>
+
+@if (successMessage()) { <p class="message success" role="status">{{ successMessage() }}</p> }
+@if (pageError()) { <p class="message error" role="alert">{{ pageError() }}</p> }
+
+@if (loading()) {
+  <div class="page-state" aria-live="polite">Loading this day’s plan…</div>
+} @else if (plan(); as currentPlan) {
+  <section class="day-overview surface" aria-labelledby="day-title">
+    <div class="day-identity">
+      <p class="eyebrow">Selected day</p>
+      <h2 id="day-title">{{ (selectedDate + 'T12:00:00Z') | date: 'EEEE, d MMMM y':'UTC' }}</h2>
+      <span>{{ currentPlan.activities.length }} {{ currentPlan.activities.length === 1 ? 'activity' : 'activities' }} planned</span>
+    </div>
+    <label class="daily-note form-field">
+      <span>General note <small>optional</small>@if (noteDirty()) { <em>Unsaved</em> }</span>
+      <textarea rows="2" maxlength="2000" placeholder="Trail conditions, day-wide reminders…" [ngModel]="notes" (ngModelChange)="noteChanged($event)"></textarea>
+    </label>
+    <div class="note-actions">
+      @if (noteDirty()) { <button class="button quiet" type="button" (click)="discardNotes()">Discard</button> }
+      <button class="button secondary" type="button" [disabled]="savingNotes() || !noteDirty()" (click)="saveNotes()">{{ savingNotes() ? 'Saving…' : 'Save note' }}</button>
+    </div>
+  </section>
+
+  <div class="activities-heading">
+    <div><p class="eyebrow">Ordered schedule</p><h2>Activities</h2></div>
+    <button class="button primary" type="button" (click)="openCreate()"><span aria-hidden="true">＋</span> Add activity</button>
+  </div>
+
+  @if (!currentPlan.activities.length) {
+    <section class="empty-day">
+      <div class="empty-mark" aria-hidden="true">D</div>
+      <div><h2>No activities planned</h2><p>Create the first activity for this day. Empty dates are not stored until you save something.</p></div>
+      <button class="button primary" type="button" (click)="openCreate()">Add first activity</button>
+    </section>
+  } @else {
+    <section class="activity-list" aria-label="Planned activities">
+      @for (activity of currentPlan.activities; track activity.id; let first = $first; let last = $last) {
+        <article class="activity-card" [attr.data-type]="activity.activity_type">
+          <div class="sequence" aria-label="Activity order {{ activity.sequence }}">{{ activity.sequence }}</div>
+          <div class="activity-main">
+            <header>
+              <div>
+                <span class="activity-type">{{ activityLabel(activity.activity_type) }}</span>
+                <h3>{{ activity.title }}</h3>
+              </div>
+              <div class="activity-facts">
+                @if (activity.start_time) { <span>{{ activity.start_time.slice(0, 5) }}</span> }
+                @if (activity.distance_km) { <strong>{{ activity.distance_km }} km</strong> }
+                <span>{{ activity.participants.length }} {{ activity.participants.length === 1 ? 'dog' : 'dogs' }}</span>
+              </div>
+            </header>
+
+            <div class="participants" [attr.aria-label]="'Participants in ' + activity.title">
+              @for (dog of activity.participants; track dog.id) {
+                <span class="participant"><strong>{{ dog.name }}</strong><small>{{ dog.housing_code || 'No housing' }} · {{ classLabel(dog.dog_class) }}</small></span>
+              }
+            </div>
+            @if (activity.notes) { <p class="activity-note">{{ activity.notes }}</p> }
+            @if (activity.activity_type === 'training') { <p class="team-handoff">Selected dog pool · Teams not arranged</p> }
+          </div>
+          <div class="activity-actions" aria-label="Actions for {{ activity.title }}">
+            <div class="order-actions">
+              <button type="button" aria-label="Move {{ activity.title }} earlier" [disabled]="first" (click)="moveActivity(activity, 'up')">↑</button>
+              <button type="button" aria-label="Move {{ activity.title }} later" [disabled]="last" (click)="moveActivity(activity, 'down')">↓</button>
+            </div>
+            <button class="button quiet" type="button" (click)="openEdit(activity)">Edit</button>
+            @if (pendingDeleteId() === activity.id) {
+              <div class="delete-confirm" role="group" aria-label="Confirm removal">
+                <span>Remove?</span>
+                <button type="button" (click)="cancelDelete()">Cancel</button>
+                <button class="danger" type="button" (click)="deleteActivity(activity)">Remove</button>
+              </div>
+            } @else {
+              <button class="button quiet remove" type="button" (click)="askDelete(activity.id)">Remove</button>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+} @else {
+  <div class="page-state error" role="alert"><h2>No plan data available</h2><button class="button secondary" type="button" (click)="retry()">Try again</button></div>
+}
+
+@if (editorOpen()) {
+  <ht-activity-editor
+    [planDate]="selectedDate"
+    [revision]="plan()?.revision ?? null"
+    [activity]="editingActivity()"
+    [saving]="savingEditor()"
+    [serverError]="editorError()"
+    (saved)="saveActivity($event)"
+    (closed)="closeEditor()"
+  />
+}

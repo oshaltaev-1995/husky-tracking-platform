@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import get_settings
@@ -18,12 +18,46 @@ from app.demo.validation import DemoValidationError, validate_demo_world
 from app.domain.workload import MAX_DAILY_DOG_DISTANCE_KM
 from app.main import app
 from app.models import (
+    DailyPlan,
     Dog,
     DogClassPeriod,
     Litter,
+    PlannedActivity,
+    PlannedActivityParticipant,
     WorkParticipation,
     WorkSession,
 )
+
+
+def test_reset_clears_mutable_plans_without_changing_core_checksum() -> None:
+    clock = DemoClock.from_settings(get_settings())
+    with SessionLocal.begin() as session:
+        reset_demo_world(session, clock, require_enabled=False)
+    with SessionLocal.begin() as session:
+        atlas = session.scalar(select(Dog).where(Dog.name == "Atlas"))
+        assert atlas is not None
+        plan = DailyPlan(plan_date=date(2026, 3, 31), revision=1)
+        session.add(plan)
+        session.flush()
+        activity = PlannedActivity(
+            daily_plan_id=plan.id,
+            activity_type="training",
+            sequence=1,
+            start_time=None,
+            title="Reset fixture",
+            distance_km=5,
+        )
+        session.add(activity)
+        session.flush()
+        session.add(
+            PlannedActivityParticipant(planned_activity_id=activity.id, dog_id=atlas.id)
+        )
+
+    with SessionLocal.begin() as session:
+        checksum = reset_demo_world(session, clock, require_enabled=False)
+        assert session.scalar(select(func.count()).select_from(DailyPlan)) == 0
+
+    assert checksum == EXPECTED_SEMANTIC_CHECKSUM
 
 
 def test_two_postgres_resets_have_identical_semantic_checksum() -> None:

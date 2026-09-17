@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import (
     Boolean,
@@ -15,6 +15,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    Time,
     UniqueConstraint,
     func,
 )
@@ -397,4 +398,102 @@ class WorkParticipation(Base):
     assigned_role: Mapped[str | None] = mapped_column(String(20))
 
     session: Mapped[WorkSession] = relationship(back_populates="participations")
+    dog: Mapped[Dog] = relationship()
+
+
+class DailyPlan(Base):
+    __tablename__ = "daily_plans"
+    __table_args__ = (
+        CheckConstraint("revision > 0", name="ck_daily_plans_positive_revision"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    )
+    plan_date: Mapped[date] = mapped_column(Date, unique=True, index=True)
+    notes: Mapped[str | None] = mapped_column(Text)
+    revision: Mapped[int] = mapped_column(default=1)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    activities: Mapped[list[PlannedActivity]] = relationship(
+        back_populates="daily_plan",
+        cascade="all, delete-orphan",
+        order_by="PlannedActivity.sequence",
+    )
+
+
+class PlannedActivity(Base):
+    __tablename__ = "planned_activities"
+    __table_args__ = (
+        CheckConstraint(
+            "activity_type IN "
+            "('training', 'open_space_walk', 'individual_exercise', 'rest')",
+            name="ck_planned_activities_type",
+        ),
+        CheckConstraint("sequence > 0", name="ck_planned_activities_sequence"),
+        CheckConstraint(
+            "(activity_type = 'training' AND distance_km IN (5, 10)) OR "
+            "(activity_type <> 'training' AND distance_km IS NULL)",
+            name="ck_planned_activities_distance",
+        ),
+        CheckConstraint(
+            "char_length(btrim(title)) > 0",
+            name="ck_planned_activities_title",
+        ),
+        UniqueConstraint(
+            "daily_plan_id",
+            "sequence",
+            name="uq_planned_activity_sequence",
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    )
+    daily_plan_id: Mapped[int] = mapped_column(
+        ForeignKey("daily_plans.id", ondelete="CASCADE"), index=True
+    )
+    activity_type: Mapped[str] = mapped_column(String(32), index=True)
+    sequence: Mapped[int] = mapped_column(SmallInteger)
+    start_time: Mapped[time | None] = mapped_column(Time)
+    title: Mapped[str] = mapped_column(String(120))
+    distance_km: Mapped[int | None] = mapped_column(SmallInteger)
+    notes: Mapped[str | None] = mapped_column(Text)
+
+    daily_plan: Mapped[DailyPlan] = relationship(back_populates="activities")
+    participants: Mapped[list[PlannedActivityParticipant]] = relationship(
+        back_populates="activity",
+        cascade="all, delete-orphan",
+        order_by="PlannedActivityParticipant.id",
+    )
+
+
+class PlannedActivityParticipant(Base):
+    __tablename__ = "planned_activity_participants"
+    __table_args__ = (
+        UniqueConstraint(
+            "planned_activity_id",
+            "dog_id",
+            name="uq_planned_activity_participant",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    planned_activity_id: Mapped[int] = mapped_column(
+        ForeignKey("planned_activities.id", ondelete="CASCADE"), index=True
+    )
+    dog_id: Mapped[int] = mapped_column(
+        ForeignKey("dogs.id", ondelete="RESTRICT"), index=True
+    )
+
+    activity: Mapped[PlannedActivity] = relationship(back_populates="participants")
     dog: Mapped[Dog] = relationship()

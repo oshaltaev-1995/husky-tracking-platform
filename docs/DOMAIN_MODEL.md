@@ -125,9 +125,40 @@ Stores a canonical unordered pair as `dog_a_id < dog_b_id`, a kind
 prevents self-relations and inverse duplicates. Semantics are symmetric: hard conflict
 will be a future P6 blocker, while preferred pair will be a soft scoring input.
 
-No P5/P6 plans or teams are implemented early. Future `DailyPlan`, `PlannedActivity`,
-`Team`, and `TeamPosition` tables will reference these facts and the effective state
-tables rather than adding competing dog-state columns.
+P5 plans reference these facts and the effective state tables rather than adding
+competing dog-state columns. P6 Team lineups remain deliberately deferred.
+
+## Mutable Daily Plan workspace
+
+### `daily_plans`
+
+One row per unique `plan_date`, plus optional general notes, optimistic `revision`,
+stable public UUID, and UTC infrastructure timestamps. Browsing an empty date creates
+no row; saving a note or first activity creates it lazily. Clearing the last meaningful
+content removes the empty row.
+
+### `planned_activities`
+
+Ordered children of one Daily Plan with stable public UUID, optional local start time,
+title, notes, and exactly one canonical type: `training`, `open_space_walk`,
+`individual_exercise`, or `rest`. A deferred unique `(daily_plan_id, sequence)`
+constraint supports transactional up/down reordering. Training alone has a checked 5
+or 10 km distance; non-training activities store no sled distance.
+
+### `planned_activity_participants`
+
+Normalized unique `(planned_activity_id, dog_id)` membership. Plan/activity deletion
+cascades only through workspace children; the Dog foreign key is restrictive. The
+service resolves class, lifecycle, availability, birth, and housing on the plan date.
+Training permits available Training-class dogs for 5 km and available Standard dogs
+for 5/10 km; Puppy, Junior, unavailable, archived, and unborn dogs are rejected. Walk
+and individual exercise use the same active/available rule without a sled distance.
+Rest is an instruction for active, born dogs and never mutates availability history.
+
+Planned Training participations reuse `app.domain.workload`: the sum across all of a
+dog's Training activities on one plan date may be 30 km but never more. Plans remain
+intentions; they do not create or modify actual work rows. Optimistic revision mismatch
+is a conflict rather than a silent overwrite.
 
 ## Canonical actual-work ledger
 
@@ -170,7 +201,9 @@ availability, class, archive, relationship, or work history.
 
 The reset CLI is the sole bulk-clearing mechanism. It is explicitly local/demo-only,
 uses a fixed table allowlist, checks database name/environment, and reconstructs the
-entire semantic world in one transaction.
+entire semantic world in one transaction. Mutable plan tables are cleared first and
+remain empty after reset. They are intentionally outside the immutable-world semantic
+checksum, whose scope and value remain unchanged.
 
 ## Migration integrity
 
@@ -187,11 +220,17 @@ Baseline migration `0cc49c993626_add_synthetic_kennel_domain`:
 Alembic remains the only production schema mechanism; application code never calls
 `metadata.create_all()`.
 
+Forward migration `83ee450cd525_add_daily_planning_workspace` creates the three P5
+tables, stable UUIDs, date/order/participant uniqueness, type/distance/title checks,
+indexes, plan-owned cascades, and restrictive Dog references.
+
 ## Read projections and later packages
 
 P2 exposes only `GET /api/v1/demo-dataset`, a small read-only verification projection
 with dataset version, reference date, active/archive counts, and checksum. P3 can build
 Dog registry/profile/archive projections directly from the persisted identity,
 pedigree, state, housing, and work histories. P4 can build a dated map from location and
-housing metadata. P6/P8 can derive eligibility and workload without a schema rewrite or
-secondary ledger.
+housing metadata. P5 now persists selected dated activity pools. P6 can attach lineups
+to a Training activity using its date, distance, participants, dated eligibility, and
+already-planned kilometres without replacing this schema. P8 continues to read actual
+work only.

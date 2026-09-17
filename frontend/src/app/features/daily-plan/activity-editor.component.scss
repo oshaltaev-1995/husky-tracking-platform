@@ -1,0 +1,61 @@
+@use '../../../styles/mixins' as mixins;
+
+:host { position: fixed; z-index: 80; inset: 0; }
+.dialog-backdrop { position: absolute; inset: 0; width: 100%; border: 0; background: rgba(13, 29, 27, .54); }
+.activity-dialog { position: absolute; top: 50%; left: 50%; display: flex; width: min(64rem, calc(100% - 2rem)); max-height: min(52rem, calc(100vh - 2rem)); overflow: hidden; transform: translate(-50%, -50%); flex-direction: column; border: 1px solid var(--border-strong); border-radius: var(--radius-panel); background: var(--surface-elevated); box-shadow: var(--shadow-raised); }
+.activity-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--border); }
+.activity-dialog h2 { margin: .15rem 0 0; font-size: 1.35rem; }
+.close-button { min-height: 2.25rem; border: 1px solid var(--border); border-radius: var(--radius-control); padding: .35rem .7rem; color: var(--text-secondary); background: var(--surface-card); font-size: .75rem; font-weight: 800; }
+form { display: flex; min-height: 0; flex: 1; flex-direction: column; }
+.activity-fields { display: grid; grid-template-columns: 1.2fr 1fr .8fr 2fr; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border); background: var(--surface-soft); }
+.notes-field { grid-column: 1 / -1; }
+.form-field small { font-weight: 650; letter-spacing: 0; text-transform: none; }
+.distance-field { display: flex; min-width: 0; align-items: center; gap: var(--space-3); margin: 0; border: 1px solid var(--border-strong); border-radius: var(--radius-control); padding: .45rem .7rem; background: var(--surface-card); }
+.distance-field legend { padding: 0 .2rem; color: var(--text-secondary); font-size: var(--font-label); font-weight: 800; text-transform: uppercase; }
+.distance-field label { display: flex; align-items: center; gap: var(--space-1); white-space: nowrap; font-size: .78rem; font-weight: 750; }
+.distance-field input { width: auto; min-height: 0; }
+.participant-picker { display: flex; min-height: 0; flex: 1; flex-direction: column; padding: var(--space-4) var(--space-6) 0; }
+.participant-picker > header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-3); }
+.participant-picker h3 { margin: 0; font-size: 1rem; }
+.participant-picker header p { margin: .15rem 0 0; color: var(--text-muted); font-size: .7rem; }
+.picker-search { width: min(19rem, 100%); }
+.picker-search input { min-height: 2.35rem; }
+.eligibility-note { margin: 0 0 var(--space-3); border-left: .2rem solid var(--brand); padding: .45rem .7rem; color: var(--text-secondary); background: var(--surface-brand-soft); font-size: .72rem; line-height: 1.45; }
+.candidate-list { min-height: 12rem; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-card); }
+.candidate-row { display: grid; min-width: 0; grid-template-columns: auto minmax(8rem, 1.1fr) minmax(10rem, 1fr) minmax(8rem, auto); align-items: center; gap: var(--space-3); padding: .68rem .8rem; border-bottom: 1px solid var(--border); background: var(--surface-card); cursor: pointer; }
+.candidate-row:last-child { border-bottom: 0; }
+.candidate-row:hover { background: var(--surface-brand-soft); }
+.candidate-row.selected { box-shadow: inset .2rem 0 var(--brand); background: var(--surface-brand-soft); }
+.candidate-row.ineligible { color: var(--text-muted); background: var(--surface-soft); cursor: not-allowed; }
+.candidate-row input { width: 1rem; min-height: 1rem; }
+.candidate-identity, .candidate-facts, .candidate-context { display: flex; min-width: 0; }
+.candidate-identity { flex-direction: column; }
+.candidate-identity strong { overflow: hidden; text-overflow: ellipsis; }
+.candidate-identity small { color: var(--text-muted); }
+.candidate-facts { gap: var(--space-2); color: var(--text-secondary); font-size: .72rem; }
+.candidate-facts span { border-radius: var(--radius-pill); padding: .2rem .42rem; background: var(--surface-soft); }
+.candidate-context { justify-content: flex-end; color: var(--text-secondary); font-size: .7rem; text-align: right; }
+.candidate-row.ineligible .candidate-context { color: var(--danger); }
+.picker-state { margin: 0; padding: var(--space-8); color: var(--text-secondary); text-align: center; }
+.picker-state.error, .form-error { color: var(--danger); }
+.form-error { margin: var(--space-3) var(--space-6) 0; border-radius: var(--radius-control); padding: .6rem .75rem; background: var(--danger-soft); font-size: .78rem; }
+form > footer { display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); }
+
+@include mixins.tablet {
+  .activity-fields { grid-template-columns: 1fr 1fr; }
+  .notes-field { grid-column: 1 / -1; }
+  .candidate-row { grid-template-columns: auto minmax(8rem, 1fr) minmax(8rem, 1fr); }
+  .candidate-context { grid-column: 2 / -1; justify-content: flex-start; text-align: left; }
+}
+
+@include mixins.phone {
+  .activity-dialog { top: 0; left: 0; width: 100%; height: 100dvh; max-height: none; transform: none; border: 0; border-radius: 0; }
+  .activity-dialog > header, .activity-fields, .participant-picker, form > footer { padding-inline: var(--space-4); }
+  .activity-fields { grid-template-columns: 1fr; max-height: 43vh; overflow-y: auto; }
+  .notes-field { grid-column: auto; }
+  .participant-picker > header { align-items: stretch; flex-direction: column; gap: var(--space-2); }
+  .picker-search { width: 100%; }
+  .candidate-row { grid-template-columns: auto minmax(0, 1fr); gap: var(--space-2); }
+  .candidate-facts, .candidate-context { grid-column: 2; justify-content: flex-start; text-align: left; }
+  form > footer .button { flex: 1; }
+}

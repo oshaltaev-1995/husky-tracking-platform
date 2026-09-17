@@ -15,7 +15,8 @@ label.form-field,
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-width: 0;
   min-height: var(--control-height);
@@ -26,11 +27,17 @@ select {
   background: var(--surface-elevated);
 }
 
+textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
 input::placeholder {
   color: var(--text-muted);
 }
 
 input:hover,
-select:hover {
+select:hover,
+textarea:hover {
   border-color: var(--brand);
 }

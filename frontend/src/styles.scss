@@ -29,6 +29,7 @@ body.mobile-nav-open {
 button,
 input,
 select,
+textarea,
 a {
   font: inherit;
 }
@@ -41,9 +42,14 @@ select {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
+textarea:focus-visible,
 a:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus);
   outline-offset: var(--focus-ring-offset);
+}
+
+body.dialog-open {
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

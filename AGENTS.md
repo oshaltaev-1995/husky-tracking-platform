@@ -48,6 +48,12 @@ These instructions apply to the entire repository.
 - Kennel Map is the read-only `/kennel` wide workspace. Its `date` and `layer` URL
   state must remain demo-season bounded, and its DOM/CSS layout must preserve the
   A1/A2/B1/B2 grouping without horizontal page overflow on narrow screens.
+- Daily Plan is the mutable `/daily` wide workspace. Keep plans separate from actual
+  `WorkSession` records, resolve participant eligibility and housing on the plan date,
+  and use optimistic plan revisions for every activity/note mutation.
+- Planned sled distance uses the shared workload rule: only 5/10 km Training activities
+  count, and their per-dog daily sum may not exceed 30 km. P6 may extend a Training
+  activity with lineups but must not replace its selected participant pool.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a

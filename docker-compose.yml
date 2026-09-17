@@ -23,7 +23,7 @@ services:
       target: development
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://husky_tracking:husky_tracking_dev@db:5432/husky_tracking}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4300,http://localhost:8080}
       DEMO_SEASON_START: ${DEMO_SEASON_START:-2025-12-01}
       DEMO_SEASON_END: ${DEMO_SEASON_END:-2026-03-31}
       DEMO_REFERENCE_DATE: ${DEMO_REFERENCE_DATE:-2026-03-31}

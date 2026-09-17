@@ -50,3 +50,10 @@ class LocationType(StrEnum):
 
 class ActivityType(StrEnum):
     SLED_TRAINING = "sled_training"
+
+
+class PlannedActivityType(StrEnum):
+    TRAINING = "training"
+    OPEN_SPACE_WALK = "open_space_walk"
+    INDIVIDUAL_EXERCISE = "individual_exercise"
+    REST = "rest"

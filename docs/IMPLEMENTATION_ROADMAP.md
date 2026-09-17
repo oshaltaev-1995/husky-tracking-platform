@@ -184,29 +184,44 @@ resident projection, but does not own or edit housing geometry.
 
 ## P5 — Daily Plan
 
+**Status:** completed. P5 delivers the mutable `/daily` workspace, one lazy plan per
+season date, four ordered activity types, revision-safe editing, a dated participant
+picker, and server-authoritative eligibility/daily-distance validation. It adds no
+seeded plans, teams, or actual work mutations; reset returns to zero plans and the core
+synthetic checksum remains unchanged.
+
 **Objective:** create the simplified universal plan that feeds Team Builder.
 
 **Required behavior:** create/reopen a dated plan; add ordered training, open-space walk,
-individual exercise, or rest activities; specify route/distance for training; attach
-planned teams.
+individual exercise, or rest activities; specify route/distance for training; select a
+manual dog pool. Planned teams are deferred to P6.
 
-**Backend:** DailyPlan/PlannedActivity/Team/TeamPosition models and CRUD services with
-revision/idempotency rules and validation.
+**Backend:** DailyPlan, PlannedActivity, and normalized participant models; focused CRUD,
+move, and eligibility APIs; optimistic revisions; centralized dated state; shared 30 km
+guardrail. Team/TeamPosition models are deliberately not introduced early.
 
-**Frontend:** season-date plan editor, activity cards/forms, status and unsaved-state
-handling, clear path into Team Builder.
+**Frontend:** season-date editor, explicit note save, ordered activity cards, accessible
+add/edit participant dialog, disabled candidates with reasons, responsive empty/error/
+confirmation states, and neutral “Teams not arranged” context for Training.
 
-**Data/migrations:** planning tables, unique plan date, ordered activities/teams, lineup
-constraints and indexes.
+**Data/migrations:** three planning tables with unique plan date, deferred unique
+activity order, unique participants, activity/distance checks, stable UUIDs, deliberate
+cascades, restrictive Dog references, and indexes.
 
-**Tests:** activity-specific validation, date bounds, ordering, reopen/update, concurrency
-revision behavior, accessible forms.
+**Tests:** activity policy and historical eligibility, date bounds, ordering, full CRUD,
+30/35 km boundaries and freed capacity, duplicate rejection, revisions, reset/checksum,
+accessible forms, participant context, errors, navigation, and responsive live QA.
 
-**Acceptance:** a valid training activity can launch Team Builder context and retain an
-accepted lineup; non-training activities do not demand teams.
+**Acceptance:** a valid Training activity retains date, 5/10 km distance, and selected
+dog pool for P6; non-training activities never create sled kilometres or demand teams.
 
 **Exclusions:** no production Operations Plans, PAX, customer, guide, or manager-heavy
 completion system.
+
+**P6 handoff:** Team Builder opens one Training activity by public UUID and consumes its
+plan date, canonical distance, selected dog IDs, effective-date eligibility projection,
+and per-dog already-planned km. P6 adds lineups/positions and conflict/role/workload
+reasoning without replacing P5 persistence or converting plans into actual work.
 
 ## P6 — Team Builder
 

@@ -61,6 +61,10 @@ export class AppComponent {
         { label: 'Kennel Map', route: '/kennel', mark: 'K' },
       ],
     },
+    {
+      label: 'Operations',
+      items: [{ label: 'Daily Plan', route: '/daily', mark: 'P' }],
+    },
     { label: 'Records', items: [{ label: 'Archive', route: '/archive', mark: 'A' }] },
   ];
 

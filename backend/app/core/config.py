@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         "husky_tracking"
     )
     cors_origins: Annotated[list[str], NoDecode] = Field(
-        default_factory=lambda: ["http://localhost:4200"]
+        default_factory=lambda: ["http://localhost:4300"]
     )
     demo_season_start: date = date(2025, 12, 1)
     demo_season_end: date = date(2026, 3, 31)

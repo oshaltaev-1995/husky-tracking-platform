@@ -1,4 +1,5 @@
 from app.models.domain import (
+    DailyPlan,
     DemoDataset,
     Dog,
     DogArchive,
@@ -10,12 +11,15 @@ from app.models.domain import (
     HousingAssignment,
     KennelLocation,
     Litter,
+    PlannedActivity,
+    PlannedActivityParticipant,
     WorkParticipation,
     WorkSession,
 )
 
 __all__ = [
     "DemoDataset",
+    "DailyPlan",
     "Dog",
     "DogArchive",
     "DogAvailabilityPeriod",
@@ -26,6 +30,8 @@ __all__ = [
     "HousingAssignment",
     "KennelLocation",
     "Litter",
+    "PlannedActivity",
+    "PlannedActivityParticipant",
     "WorkParticipation",
     "WorkSession",
 ]

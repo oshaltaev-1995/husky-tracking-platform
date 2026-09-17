@@ -93,6 +93,11 @@ version, reference date, counts, and checksum. P3 adds focused read APIs:
   and archive metadata.
 - `GET /api/v1/kennel-map?date=YYYY-MM-DD` — one demo-season-bounded location snapshot
   with effective residents, lifecycle, class, availability, housing, and layer counts.
+- `GET|PUT /api/v1/daily-plans/{date}` — lazy dated plan read and note mutation;
+- `POST|PATCH|DELETE /api/v1/daily-plans/{date}/activities...` — revision-checked
+  activity creation, editing, ordering, and removal;
+- `GET /api/v1/daily-plans/{date}/eligible-dogs` — one bounded participant projection
+  with dated housing, effective state, planned km, and human-facing exclusion reasons.
 
 `EffectiveDogState` is the shared half-open-period resolver used by both
 `DogReadService` and `KennelMapReadService`, so Profile and Map agree for the same dog
@@ -102,6 +107,13 @@ dogs, effective histories, litters, and housing in a bounded seven-query project
 it never queries once per enclosure or resident. Routes validate query/path values,
 invoke these services, and serialize explicit Pydantic DTOs. No current
 class/status/housing fields or workload aggregates are duplicated on Dog.
+
+`DailyPlanService` is the P5 mutation boundary. It validates season dates, resolves dog
+state through the same `EffectiveDogState`, checks activity policy and the shared
+workload guardrail, and returns a complete revisioned day after each transaction.
+Public activity UUIDs appear in routes; integer keys remain internal. A stale revision
+returns a stable `plan_changed` conflict. The eligibility projection loads dogs and
+their histories in bounded select-in queries rather than per-profile calls.
 
 ## Demo clock
 
@@ -206,11 +218,29 @@ current lifecycle or last-known housing. Future datasets can show a currently ar
 dog on an earlier map date without changing the API shape when its active lifecycle and
 housing intervals overlap that date.
 
+### Daily Plan workspace
+
+P5 adds `/daily` as a wide operational route. The selected date is demo-season bounded,
+defaults to `2026-03-31`, and is shareable through the `date` query parameter. The page
+uses a compact day header, explicit note save, ordered activity cards with accessible
+up/down controls, inline delete confirmation, and a focus-managed activity dialog.
+The participant picker shows eligible and disabled dogs together with dated housing,
+class, availability, already-planned Training km, and concise reasons. At phone widths
+the dialog becomes a full-height one-column workspace with no page-level overflow.
+
+P5 intentionally retains only a selected participant pool. No Team/position model,
+solver, pair/conflict UI, or inert Team Builder button is introduced. P6 can attach
+lineups to the stable Training activity UUID and reuse its date/distance/pool.
+
 ## Plans, actuals, and analytics
 
 Daily Plan and accepted Team Builder output remain planned data. Daily Entry or explicit
 confirmation creates/updates WorkSession and WorkParticipation actuals. Analytics reads
 the actual ledger only. This avoids double counting and keeps every total traceable.
+
+The immutable canonical checksum does not include mutable Daily Plan rows. Demo reset
+explicitly truncates planning tables before reseeding and restores a zero-plan baseline;
+the canonical dog/pedigree/state/housing/actual-work checksum therefore remains stable.
 
 Eligibility order is:
 

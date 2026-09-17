@@ -28,6 +28,15 @@ export const routes: Routes = [
     data: { layout: 'wide' },
   },
   {
+    path: 'daily',
+    loadComponent: () =>
+      import('./features/daily-plan/daily-plan-page.component').then(
+        (component) => component.DailyPlanPageComponent,
+      ),
+    title: 'Daily Plan · Husky Tracking',
+    data: { layout: 'wide' },
+  },
+  {
     path: 'archive',
     loadComponent: () =>
       import('./features/archive/archive-registry.component').then(

@@ -1,0 +1,101 @@
+<button class="dialog-backdrop" type="button" aria-label="Close activity editor" (click)="close()"></button>
+<section class="activity-dialog" role="dialog" aria-modal="true" aria-labelledby="activity-dialog-title">
+  <header>
+    <div>
+      <p class="eyebrow">{{ activity ? 'Edit activity' : 'New activity' }} · {{ planDate }}</p>
+      <h2 id="activity-dialog-title">{{ activity ? activity.title : 'Plan an activity' }}</h2>
+    </div>
+    <button class="close-button" type="button" aria-label="Close activity editor" (click)="close()">Close</button>
+  </header>
+
+  <form (ngSubmit)="submit()">
+    <div class="activity-fields">
+      <label class="form-field">
+        <span>Activity type</span>
+        <select name="activity-type" [(ngModel)]="activityType" (ngModelChange)="typeChanged()">
+          @for (type of activityTypes; track type.value) {
+            <option [value]="type.value">{{ type.label }}</option>
+          }
+        </select>
+      </label>
+      @if (activityType === 'training') {
+        <fieldset class="distance-field">
+          <legend>Distance</legend>
+          <label><input type="radio" name="distance" [value]="5" [(ngModel)]="distanceKm" (ngModelChange)="distanceChanged()" /> 5 km</label>
+          <label><input type="radio" name="distance" [value]="10" [(ngModel)]="distanceKm" (ngModelChange)="distanceChanged()" /> 10 km</label>
+        </fieldset>
+      }
+      <label class="form-field">
+        <span>Start time <small>optional</small></span>
+        <input type="time" name="start-time" [(ngModel)]="startTime" />
+      </label>
+      <label class="form-field title-field">
+        <span>{{ activityType === 'training' ? 'Route / activity label' : 'Title' }}</span>
+        <input #titleInput type="text" name="title" maxlength="120" required [(ngModel)]="title" [attr.list]="activityType === 'training' ? 'training-labels' : null" />
+        <datalist id="training-labels"><option value="Forest Loop"></option><option value="River Trail"></option><option value="Training Loop"></option></datalist>
+      </label>
+      <label class="form-field notes-field">
+        <span>Activity note <small>optional</small></span>
+        <textarea name="notes" rows="2" maxlength="1000" [(ngModel)]="notes"></textarea>
+      </label>
+    </div>
+
+    <section class="participant-picker" aria-labelledby="participant-title">
+      <header>
+        <div><h3 id="participant-title">Participants</h3><p>{{ selectedDogIds.length }} selected · effective state on {{ planDate }}</p></div>
+        <label class="picker-search">
+          <span class="visually-hidden">Search participant candidates</span>
+          <input type="search" name="candidate-search" placeholder="Search name, housing, class…" [(ngModel)]="search" />
+        </label>
+      </header>
+
+      @if (activityType === 'training') {
+        <p class="eligibility-note">{{ activityLabel() }} · {{ distanceKm }} km. Training-class dogs are limited to 5 km; each dog may have at most 30 planned sled km today.</p>
+      } @else if (activityType === 'rest') {
+        <p class="eligibility-note">Rest is a planning instruction only. It does not change a dog’s operational status.</p>
+      }
+
+      @if (loadingCandidates) {
+        <div class="picker-state" role="status">Resolving dated eligibility…</div>
+      } @else if (eligibilityError) {
+        <div class="picker-state error" role="alert">{{ eligibilityError }}</div>
+      } @else {
+        <div class="candidate-list" role="list" aria-label="Dog candidates">
+          @for (dog of visibleCandidates(); track dog.id) {
+            <label
+              class="candidate-row"
+              [class.selected]="selected(dog)"
+              [class.ineligible]="!dog.eligible"
+              [attr.aria-disabled]="!dog.eligible"
+            >
+              <input
+                type="checkbox"
+                [name]="'dog-' + dog.id"
+                [checked]="selected(dog)"
+                [disabled]="!dog.eligible"
+                (change)="toggleDog(dog)"
+              />
+              <span class="candidate-identity"><strong>{{ dog.name }}</strong><small>{{ dog.housing_code || 'No housing' }}</small></span>
+              <span class="candidate-facts"><span>{{ label(dog.dog_class) }}</span><span>{{ label(dog.availability) }}</span></span>
+              <span class="candidate-context">
+                @if (dog.eligible) {
+                  @if (activityType === 'training') { <strong>{{ dog.planned_training_km }} km planned</strong> } @else { <strong>Eligible</strong> }
+                } @else { <strong>{{ dog.reasons[0] }}</strong> }
+              </span>
+            </label>
+          } @empty {
+            <p class="picker-state">No dogs match this search.</p>
+          }
+        </div>
+      }
+    </section>
+
+    @if (serverError) { <p class="form-error" role="alert">{{ serverError }}</p> }
+    <footer>
+      <button class="button quiet" type="button" (click)="close()" [disabled]="saving">Cancel</button>
+      <button class="button primary" type="submit" [disabled]="saving || loadingCandidates || !title.trim() || !selectedDogIds.length">
+        {{ saving ? 'Saving…' : activity ? 'Save activity' : 'Add activity' }}
+      </button>
+    </footer>
+  </form>
+</section>

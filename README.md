@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P4 application foundation
+## P5 application foundation
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -21,7 +21,8 @@ reference project.
   fictional dogs
 - persistent desktop application sidebar, accessible mobile drawer, and standard/wide
   content modes ready for later operational modules
-- responsive `/dogs`, `/archive`, `/kennel`, and deep-linked `/dogs/:dogId` product routes
+- responsive `/dogs`, `/archive`, `/kennel`, `/daily`, and deep-linked `/dogs/:dogId`
+  product routes
 - server-supported registry/archive search, domain filters, and focused sorting
 - one lifecycle-aware Dog Profile with Overview, Pedigree, Work, and History views
 - clickable parents, grandparents, litter siblings, offspring, and archived relatives
@@ -33,12 +34,14 @@ reference project.
 - historical Kennel Map snapshots with A1/A2/B1/B2 rows, two puppy buildings,
   dated housing/state resolution, dog finding, and Default/Gender/Neutered/Class/
   Unavailable visual layers
+- PostgreSQL-backed Daily Plans with ordered activities, dated manual participant pools,
+  optimistic revisions, and the shared 30 km per-dog/day training guardrail
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P5 Daily Plan. P4 is deliberately read-only: it adds no
-housing editing, drag-and-drop movement, plans, team building, entry, or kennel
-analytics. See
+The next product package is P6 Team Builder. P5 deliberately stops at selected dog
+pools: it adds no harness positions, pair optimization, auto-fill, actual confirmation,
+or kennel analytics. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -72,6 +75,8 @@ Then open:
 - archive API: <http://localhost:8030/api/v1/archive>
 - Kennel Map: <http://localhost:4300/kennel>
 - dated map API: <http://localhost:8030/api/v1/kennel-map?date=2026-03-31>
+- Daily Plan: <http://localhost:4300/daily>
+- Daily Plan API: <http://localhost:8030/api/v1/daily-plans/2026-03-31>
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is
@@ -99,9 +104,11 @@ uv run python -m app.demo.inspect
 The reset report includes cohorts, litters/parents, class and archive distributions,
 current statuses, housing-history coverage, seasonal workload range, maximum daily dog
 workload, and the semantic checksum.
-The checksum covers meaningful domain rows (including work sessions and starts) after
-sorting and replacing database keys with stable names/codes. It excludes sequence
-values, generated timestamps, and PostgreSQL metadata.
+The checksum covers the immutable canonical world (including work sessions and starts)
+after sorting and replacing database keys with stable names/codes. It excludes mutable
+Daily Plan workspace rows, generated timestamps, and PostgreSQL metadata. Demo reset
+clears those planning rows and restores the known zero-plan baseline while preserving
+the same core checksum.
 
 ## Local checks
 
