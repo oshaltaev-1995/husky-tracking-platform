@@ -53,6 +53,8 @@ from app.models.enums import (
 )
 
 DOMAIN_TABLES: Final[tuple[str, ...]] = (
+    "planned_team_slots",
+    "planned_teams",
     "planned_activity_participants",
     "planned_activities",
     "daily_plans",

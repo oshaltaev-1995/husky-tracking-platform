@@ -122,11 +122,13 @@ housing.
 
 Stores a canonical unordered pair as `dog_a_id < dog_b_id`, a kind
 (`preferred_pair` or `hard_conflict`), and optional note. Unique pair/kind plus ordering
-prevents self-relations and inverse duplicates. Semantics are symmetric: hard conflict
-will be a future P6 blocker, while preferred pair will be a soft scoring input.
+prevents self-relations and inverse duplicates. Semantics are symmetric. In P6,
+`preferred_pair` is a soft preference for sharing one left/right harness pair.
+`hard_conflict` is a hard must-not-share-pair rule, not a whole-team exclusion. Dated
+co-residence supplies a smaller soft home-pair preference.
 
-P5 plans reference these facts and the effective state tables rather than adding
-competing dog-state columns. P6 Team lineups remain deliberately deferred.
+Plans reference these facts and the effective state tables rather than adding competing
+dog-state columns.
 
 ## Mutable Daily Plan workspace
 
@@ -160,6 +162,32 @@ dog's Training activities on one plan date may be 30 km but never more. Plans re
 intentions; they do not create or modify actual work rows. Optimistic revision mismatch
 is a conflict rather than a silent overwrite.
 
+## Mutable Team Builder workspace
+
+### `planned_teams`
+
+One or more ordered teams belong to exactly one Training activity. Each row has a
+stable public UUID, contiguous sequence, optional label, supported even `team_size`
+(`4`, `6`, `8`, `10`, or `12`), and UTC infrastructure timestamps. Deleting the owning
+activity cascades through teams; no team operation can delete a Dog or actual work.
+
+### `planned_team_slots`
+
+Each saved slot stores the owning activity/team, restrictive Dog reference,
+zero-based pair index, `left`/`right` side, canonical `lead`/`team`/`wheel` role, and
+stable position order. A composite team/activity foreign key prevents cross-activity
+attachment. Unique `(planned_activity_id, dog_id)` enforces one saved slot per dog for
+the whole Training activity, while unique team/pair/side and team/order constraints
+preserve unambiguous harness geometry.
+
+For 4 dogs the pairs are Lead/Wheel; larger supported sizes insert Team pairs between
+them. Server validation re-resolves dated eligibility, participant membership,
+capabilities, 30 km planned capacity, and same-pair hard conflicts on every save.
+Generated lineups remain transient until explicit Save. Soft preferences may be
+overridden manually; hard rules may not. A distance or participant-set edit with saved
+teams requires explicit confirmation and clears lineups in the same plan-revision
+transaction.
+
 ## Canonical actual-work ledger
 
 ### `work_sessions`
@@ -187,8 +215,8 @@ and Puppies receive no participations.
 Actual-work services must also enforce `MAX_DAILY_DOG_DISTANCE_KM = 30` for each
 `(dog, work_date)` pair. `app.domain.workload` is the shared policy boundary: it accepts
 only canonical 5 km/10 km sled distances and rejects an addition that would take the
-daily total above 30 km. The deterministic generator and semantic validator both use
-this rule; P5/P7 must reuse it rather than copy a numeric limit into plan or entry code.
+daily total above 30 km. The deterministic generator and semantic validator use this
+rule; P5/P6/P7 must reuse it rather than copy a numeric limit into plan or entry code.
 Season totals such as 70–350 km are independent cumulative measures.
 
 ## Deletion and archive policy
@@ -201,8 +229,8 @@ availability, class, archive, relationship, or work history.
 
 The reset CLI is the sole bulk-clearing mechanism. It is explicitly local/demo-only,
 uses a fixed table allowlist, checks database name/environment, and reconstructs the
-entire semantic world in one transaction. Mutable plan tables are cleared first and
-remain empty after reset. They are intentionally outside the immutable-world semantic
+entire semantic world in one transaction. Mutable plan/team tables are cleared first
+and remain empty after reset. They are intentionally outside the immutable-world semantic
 checksum, whose scope and value remain unchanged.
 
 ## Migration integrity
@@ -224,13 +252,17 @@ Forward migration `83ee450cd525_add_daily_planning_workspace` creates the three 
 tables, stable UUIDs, date/order/participant uniqueness, type/distance/title checks,
 indexes, plan-owned cascades, and restrictive Dog references.
 
+Forward migration `9fa6b3d1c204_add_planned_team_lineups` creates the P6 team and slot
+tables, supported-size/role/side checks, composite ownership foreign key, one-dog-per-
+activity uniqueness, plan-owned cascades, and restrictive Dog references.
+
 ## Read projections and later packages
 
 P2 exposes only `GET /api/v1/demo-dataset`, a small read-only verification projection
 with dataset version, reference date, active/archive counts, and checksum. P3 can build
 Dog registry/profile/archive projections directly from the persisted identity,
 pedigree, state, housing, and work histories. P4 can build a dated map from location and
-housing metadata. P5 now persists selected dated activity pools. P6 can attach lineups
-to a Training activity using its date, distance, participants, dated eligibility, and
-already-planned kilometres without replacing this schema. P8 continues to read actual
-work only.
+housing metadata. P5 persists selected dated activity pools; P6 attaches explicit
+lineups using the activity date, distance, participants, dated eligibility, and planned
+kilometres. P7 can consume saved team sequence, pair, side, role, dog, and distance
+directly. P8 continues to read actual work only.

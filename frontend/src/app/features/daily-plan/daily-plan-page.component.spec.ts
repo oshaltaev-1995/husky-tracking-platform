@@ -27,6 +27,8 @@ const activity: PlannedActivity = {
   distance_km: 10,
   notes: 'Check trail surface.',
   participants: [atlas],
+  team_count: 0,
+  arranged_dog_count: 0,
 };
 
 function plan(activities: PlannedActivity[] = [], revision: number | null = null): DailyPlan {
@@ -246,5 +248,55 @@ describe('DailyPlanPageComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.form-error').textContent).toContain('30 km');
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  it('links Training to Team Builder and explicitly confirms lineup clearing', async () => {
+    const arranged = { ...activity, team_count: 1, arranged_dog_count: 8 };
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan([arranged], 3));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const teamLink = fixture.nativeElement.querySelector('.team-handoff a') as HTMLAnchorElement;
+    expect(teamLink.textContent).toContain('View teams');
+    expect(teamLink.getAttribute('href')).toContain(
+      '/daily/2026-03-31/activities/activity-id/teams',
+    );
+
+    const editButton = Array.from(
+      fixture.nativeElement.querySelectorAll('.activity-actions button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent.trim() === 'Edit')!;
+    editButton.click();
+    fixture.detectChanges();
+    http
+      .expectOne(
+        '/api/v1/daily-plans/2026-03-31/eligible-dogs?activity_type=training&distance_km=10&exclude_activity_id=activity-id',
+      )
+      .flush({ ...eligibility, distance_km: 10 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.activity-dialog form') as HTMLFormElement).dispatchEvent(
+      new Event('submit'),
+    );
+    http.expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id').flush(
+      {
+        detail: {
+          code: 'saved_teams_require_clear',
+          message: 'Changing the participant pool will clear the saved team lineup.',
+        },
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Clear the saved lineup?');
+    const confirm = Array.from(
+      fixture.nativeElement.querySelectorAll('.lineup-clear-warning button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent.includes('Clear teams'))!;
+    confirm.click();
+    const cleared = http.expectOne(
+      '/api/v1/daily-plans/2026-03-31/activities/activity-id',
+    );
+    expect(cleared.request.body.clear_saved_teams).toBe(true);
+    cleared.flush(plan([{ ...activity, team_count: 0, arranged_dog_count: 0 }], 4));
   });
 });

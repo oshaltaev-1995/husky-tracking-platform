@@ -18,6 +18,7 @@ from app.models import (
     HousingAssignment,
     PlannedActivity,
     PlannedActivityParticipant,
+    PlannedTeam,
 )
 from app.models.enums import (
     AvailabilityState,
@@ -118,6 +119,22 @@ class DailyPlanService:
         plan = self._required_plan(plan_date)
         self._check_revision(plan, payload.expected_revision)
         activity = self._required_activity(plan, activity_id)
+        lineup_affecting_change = (
+            activity.activity_type != payload.activity_type.value
+            or activity.distance_km != payload.distance_km
+            or {participant.dog.public_id for participant in activity.participants}
+            != set(payload.participant_ids)
+        )
+        if activity.teams and lineup_affecting_change:
+            if not payload.clear_saved_teams:
+                raise DailyPlanError(
+                    "saved_teams_require_clear",
+                    "Changing the distance or participant pool will clear the "
+                    "saved team lineup.",
+                    409,
+                )
+            activity.teams.clear()
+            self.session.flush()
         dogs = self._validate_participants(
             plan_date, payload, exclude_activity_id=activity.id
         )
@@ -233,9 +250,13 @@ class DailyPlanService:
         )
         return select(DailyPlan).options(
             selectinload(DailyPlan.activities),
+            selectinload(DailyPlan.activities)
+            .selectinload(PlannedActivity.teams)
+            .selectinload(PlannedTeam.slots),
             participant_dogs.selectinload(Dog.class_periods),
             participant_dogs.selectinload(Dog.lifecycle_periods),
             participant_dogs.selectinload(Dog.availability_periods),
+            participant_dogs.selectinload(Dog.role_capabilities),
             participant_dogs.selectinload(Dog.housing_assignments).selectinload(
                 HousingAssignment.location
             ),
@@ -312,6 +333,10 @@ class DailyPlanService:
                         distance_km=activity.distance_km,
                         notes=activity.notes,
                         participants=participants,
+                        team_count=len(activity.teams),
+                        arranged_dog_count=sum(
+                            len(team.slots) for team in activity.teams
+                        ),
                     )
                 )
         return DailyPlanRead(

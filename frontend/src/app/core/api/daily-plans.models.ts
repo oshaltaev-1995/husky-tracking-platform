@@ -21,6 +21,8 @@ export interface PlannedActivity {
   distance_km: number | null;
   notes: string | null;
   participants: PlanParticipant[];
+  team_count: number;
+  arranged_dog_count: number;
 }
 
 export interface DailyPlan {
@@ -43,6 +45,7 @@ export interface ActivityWrite {
   notes: string | null;
   participant_ids: string[];
   expected_revision: number | null;
+  clear_saved_teams?: boolean;
 }
 
 export interface EligibleDog {

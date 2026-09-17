@@ -13,6 +13,8 @@ from app.models.domain import (
     Litter,
     PlannedActivity,
     PlannedActivityParticipant,
+    PlannedTeam,
+    PlannedTeamSlot,
     WorkParticipation,
     WorkSession,
 )
@@ -32,6 +34,8 @@ __all__ = [
     "Litter",
     "PlannedActivity",
     "PlannedActivityParticipant",
+    "PlannedTeam",
+    "PlannedTeamSlot",
     "WorkParticipation",
     "WorkSession",
 ]

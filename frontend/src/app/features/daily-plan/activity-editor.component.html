@@ -90,6 +90,13 @@
       }
     </section>
 
+    @if (lineupClearRequired) {
+      <div class="lineup-clear-warning" role="alert">
+        <span><strong>Clear the saved lineup?</strong> Changing the distance or selected dogs makes the current teams stale.</span>
+        <button class="button quiet" type="button" (click)="keptLineup.emit()">Keep lineup</button>
+        <button class="button secondary" type="button" (click)="confirmedLineupClear.emit()">Clear teams & save</button>
+      </div>
+    }
     @if (serverError) { <p class="form-error" role="alert">{{ serverError }}</p> }
     <footer>
       <button class="button quiet" type="button" (click)="close()" [disabled]="saving">Cancel</button>

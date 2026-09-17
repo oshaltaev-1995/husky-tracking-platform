@@ -31,6 +31,8 @@ class PlannedActivityRead(BaseModel):
     distance_km: int | None
     notes: str | None
     participants: list[PlanParticipantRead]
+    team_count: int = 0
+    arranged_dog_count: int = 0
 
 
 class DailyPlanRead(BaseModel):
@@ -64,6 +66,7 @@ class ActivityWrite(BaseModel):
     notes: str | None = Field(default=None, max_length=1000)
     participant_ids: list[UUID] = Field(min_length=1, max_length=60)
     expected_revision: int | None = Field(default=None, ge=1)
+    clear_saved_teams: bool = False
 
     @field_validator("title")
     @classmethod

@@ -68,7 +68,17 @@
               }
             </div>
             @if (activity.notes) { <p class="activity-note">{{ activity.notes }}</p> }
-            @if (activity.activity_type === 'training') { <p class="team-handoff">Selected dog pool · Teams not arranged</p> }
+            @if (activity.activity_type === 'training') {
+              <div class="team-handoff">
+                <span>
+                  @if (activity.team_count) { {{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} dogs arranged }
+                  @else { Selected dog pool · Teams not arranged }
+                </span>
+                <a class="button secondary" [routerLink]="['/daily', selectedDate, 'activities', activity.id, 'teams']">
+                  {{ activity.team_count ? 'View teams' : 'Build teams' }}
+                </a>
+              </div>
+            }
           </div>
           <div class="activity-actions" aria-label="Actions for {{ activity.title }}">
             <div class="order-actions">
@@ -101,7 +111,10 @@
     [activity]="editingActivity()"
     [saving]="savingEditor()"
     [serverError]="editorError()"
+    [lineupClearRequired]="lineupClearRequired()"
     (saved)="saveActivity($event)"
+    (confirmedLineupClear)="confirmLineupClear()"
+    (keptLineup)="keepLineup()"
     (closed)="closeEditor()"
   />
 }

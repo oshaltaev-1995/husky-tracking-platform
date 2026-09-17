@@ -11,6 +11,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     SmallInteger,
     String,
@@ -475,6 +476,11 @@ class PlannedActivity(Base):
         cascade="all, delete-orphan",
         order_by="PlannedActivityParticipant.id",
     )
+    teams: Mapped[list[PlannedTeam]] = relationship(
+        back_populates="activity",
+        cascade="all, delete-orphan",
+        order_by="PlannedTeam.sequence",
+    )
 
 
 class PlannedActivityParticipant(Base):
@@ -496,4 +502,91 @@ class PlannedActivityParticipant(Base):
     )
 
     activity: Mapped[PlannedActivity] = relationship(back_populates="participants")
+    dog: Mapped[Dog] = relationship()
+
+
+class PlannedTeam(Base):
+    __tablename__ = "planned_teams"
+    __table_args__ = (
+        CheckConstraint("sequence > 0", name="ck_planned_teams_sequence"),
+        CheckConstraint("team_size IN (4, 6, 8, 10, 12)", name="ck_planned_teams_size"),
+        UniqueConstraint(
+            "planned_activity_id", "sequence", name="uq_planned_team_sequence"
+        ),
+        UniqueConstraint(
+            "id", "planned_activity_id", name="uq_planned_team_activity_identity"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    )
+    planned_activity_id: Mapped[int] = mapped_column(
+        ForeignKey("planned_activities.id", ondelete="CASCADE"), index=True
+    )
+    sequence: Mapped[int] = mapped_column(SmallInteger)
+    team_size: Mapped[int] = mapped_column(SmallInteger)
+    display_label: Mapped[str | None] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    activity: Mapped[PlannedActivity] = relationship(back_populates="teams")
+    slots: Mapped[list[PlannedTeamSlot]] = relationship(
+        back_populates="team",
+        cascade="all, delete-orphan",
+        order_by="PlannedTeamSlot.position_order",
+    )
+
+
+class PlannedTeamSlot(Base):
+    __tablename__ = "planned_team_slots"
+    __table_args__ = (
+        CheckConstraint("pair_index >= 0", name="ck_planned_team_slots_pair_index"),
+        CheckConstraint("position_order > 0", name="ck_planned_team_slots_order"),
+        CheckConstraint("side IN ('left', 'right')", name="ck_planned_team_slots_side"),
+        CheckConstraint(
+            "harness_role IN ('lead', 'team', 'wheel')",
+            name="ck_planned_team_slots_role",
+        ),
+        ForeignKeyConstraint(
+            ["planned_team_id", "planned_activity_id"],
+            ["planned_teams.id", "planned_teams.planned_activity_id"],
+            ondelete="CASCADE",
+            name="fk_planned_team_slots_team_activity",
+        ),
+        UniqueConstraint(
+            "planned_team_id",
+            "pair_index",
+            "side",
+            name="uq_planned_team_slot_position",
+        ),
+        UniqueConstraint(
+            "planned_team_id",
+            "position_order",
+            name="uq_planned_team_slot_order",
+        ),
+        UniqueConstraint(
+            "planned_activity_id",
+            "dog_id",
+            name="uq_planned_team_slot_dog_per_activity",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    planned_team_id: Mapped[int] = mapped_column(index=True)
+    planned_activity_id: Mapped[int] = mapped_column(index=True)
+    dog_id: Mapped[int] = mapped_column(
+        ForeignKey("dogs.id", ondelete="RESTRICT"), index=True
+    )
+    pair_index: Mapped[int] = mapped_column(SmallInteger)
+    side: Mapped[str] = mapped_column(String(12))
+    harness_role: Mapped[str] = mapped_column(String(20))
+    position_order: Mapped[int] = mapped_column(SmallInteger)
+
+    team: Mapped[PlannedTeam] = relationship(back_populates="slots")
     dog: Mapped[Dog] = relationship()

@@ -44,8 +44,11 @@ export class ActivityEditorComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() activity: PlannedActivity | null = null;
   @Input() saving = false;
   @Input() serverError = '';
+  @Input() lineupClearRequired = false;
   @Output() saved = new EventEmitter<ActivityWrite>();
   @Output() closed = new EventEmitter<void>();
+  @Output() confirmedLineupClear = new EventEmitter<void>();
+  @Output() keptLineup = new EventEmitter<void>();
 
   protected activityType: PlannedActivityType = 'training';
   protected startTime = '';

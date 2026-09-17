@@ -38,7 +38,8 @@
 .participant strong { font-size: .76rem; }
 .participant small { margin-top: .08rem; color: var(--text-muted); font-size: .62rem; }
 .activity-note { margin: var(--space-3) 0 0; color: var(--text-secondary); font-size: .75rem; line-height: 1.5; }
-.team-handoff { margin: var(--space-3) 0 0; color: var(--text-muted); font-size: .66rem; font-weight: 750; text-transform: uppercase; }
+.team-handoff { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); border-top: 1px solid var(--border); padding-top: var(--space-3); color: var(--text-muted); font-size: .66rem; font-weight: 750; text-transform: uppercase; }
+.team-handoff .button { min-height: 2rem; padding: .35rem .65rem; font-size: .65rem; text-transform: none; }
 .activity-actions { display: flex; min-width: 7rem; align-items: center; justify-content: center; flex-direction: column; gap: var(--space-1); border-left: 1px solid var(--border); padding: var(--space-3); }
 .activity-actions .button { width: 100%; min-height: 2rem; padding: .35rem .55rem; }
 .activity-actions .remove { color: var(--danger); }
@@ -71,6 +72,8 @@
   .activity-main > header { align-items: flex-start; flex-direction: column; gap: var(--space-2); }
   .activity-facts { justify-content: flex-start; }
   .participant { min-width: calc(50% - var(--space-1)); flex: 1; }
+  .team-handoff { align-items: stretch; flex-direction: column; }
+  .team-handoff .button { width: 100%; }
   .activity-actions { grid-column: 1 / -1; min-width: 0; align-items: center; flex-direction: row; border-top: 1px solid var(--border); border-left: 0; }
   .order-actions { width: auto; }
   .order-actions button { width: 2.4rem; flex: none; }

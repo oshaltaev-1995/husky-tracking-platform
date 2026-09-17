@@ -54,6 +54,10 @@ These instructions apply to the entire repository.
 - Planned sled distance uses the shared workload rule: only 5/10 km Training activities
   count, and their per-dog daily sum may not exceed 30 km. P6 may extend a Training
   activity with lineups but must not replace its selected participant pool.
+- Team Builder is planning-only. Candidate workload queries must use actual work strictly
+  before the plan date; saved slots must stay within the selected pool, match explicit
+  Lead/Team/Wheel capability, and interpret `hard_conflict` as must-not-share one harness
+  pair. Team mutations participate in the Daily Plan optimistic revision.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a

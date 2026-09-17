@@ -98,6 +98,10 @@ version, reference date, counts, and checksum. P3 adds focused read APIs:
   activity creation, editing, ordering, and removal;
 - `GET /api/v1/daily-plans/{date}/eligible-dogs` — one bounded participant projection
   with dated housing, effective state, planned km, and human-facing exclusion reasons.
+- `GET /api/v1/daily-plans/{date}/activities/{activityId}/team-builder` — selected-pool
+  context, dated workload/capability/relationship projection, and saved lineups;
+- `POST .../teams/generate` — deterministic unsaved lineup preview with explanations;
+- `PUT .../teams` — revision-checked complete-lineup validation and persistence.
 
 `EffectiveDogState` is the shared half-open-period resolver used by both
 `DogReadService` and `KennelMapReadService`, so Profile and Map agree for the same dog
@@ -228,9 +232,37 @@ The participant picker shows eligible and disabled dogs together with dated hous
 class, availability, already-planned Training km, and concise reasons. At phone widths
 the dialog becomes a full-height one-column workspace with no page-level overflow.
 
-P5 intentionally retains only a selected participant pool. No Team/position model,
-solver, pair/conflict UI, or inert Team Builder button is introduced. P6 can attach
-lineups to the stable Training activity UUID and reuse its date/distance/pool.
+P5 retains the selected participant pool as the builder boundary. P6 adds a functional
+`Build teams`/`View teams` link to `/daily/{date}/activities/{activityId}/teams` without
+changing participant ownership. Distance or pool edits that affect saved teams return a
+stable conflict until the UI obtains explicit confirmation; the backend then applies
+the edit and lineup deletion in one revision-checked transaction.
+
+### Team Builder
+
+P6 separates candidate projection, pure deterministic solving, explanation, validation,
+and persistence. The projection uses bounded aggregate queries for actual workload
+strictly before the plan date: 7-day km, 14-day km/starts, season-to-date km, and days
+since last work. It also returns total planned Training km on the selected date without
+double-counting the activity. Effective lifecycle/class/availability/housing comes from
+the same dated state policy used by P3–P5; later actual sessions never affect an earlier
+generation.
+
+The solver works in harness pairs and keeps a deterministic beam of the 240 strongest
+partial arrangements. Hard rules are selected-pool membership, dated P5 eligibility,
+unique dog use, explicit role capability, supported geometry, same-pair hard conflicts,
+and the existing 30 km planning limit. Candidate scoring uses transparent weights:
+`+1.3` per recovery day (capped at 14), `-1.8` per 7-day km, `-0.55` per 14-day km,
+`-0.04` per season km, `-1.5` per 14-day start, and `-1.5` per planned km today.
+Preferred pairs add `120`, exact dated home pairs add `28`, and team-to-team 7/14-day
+workload spreads cost `0.8`/`0.2` per km. Name then stable dog UUID supplies the final
+tie-break. Role correctness always outranks soft scoring.
+
+Generated teams are client-visible previews only. Explicit Save persists complete
+Lead/Team/Wheel, Left/Right slots and increments the owning Daily Plan revision. The
+click-based editor supports replace, swap, move, clear, and fill without a drag-only
+interaction. Server validation repeats every hard rule; preferred/home/workload choices
+remain manually overridable. Reopening shows saved geometry rather than regenerating.
 
 ## Plans, actuals, and analytics
 

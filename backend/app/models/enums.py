@@ -57,3 +57,8 @@ class PlannedActivityType(StrEnum):
     OPEN_SPACE_WALK = "open_space_walk"
     INDIVIDUAL_EXERCISE = "individual_exercise"
     REST = "rest"
+
+
+class TeamSide(StrEnum):
+    LEFT = "left"
+    RIGHT = "right"

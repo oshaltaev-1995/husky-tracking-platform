@@ -1,0 +1,172 @@
+<header class="page-header builder-header">
+  <div>
+    <a class="back-link" routerLink="/daily" [queryParams]="{ date }">← Daily Plan</a>
+    <p class="eyebrow">Operations · Training lineup</p>
+    <h1>Team Builder</h1>
+  </div>
+  <span class="planning-badge">Planning only · no actual work created</span>
+</header>
+
+@if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+@if (error()) { <p class="message error" role="alert">{{ error() }}</p> }
+
+@if (loading()) {
+  <div class="page-state" aria-live="polite">Loading the selected Training activity…</div>
+} @else if (context(); as builder) {
+  <section class="builder-context surface" aria-labelledby="activity-title">
+    <div>
+      <p class="eyebrow">{{ builder.activity.date }} · {{ builder.activity.distance_km }} km Training</p>
+      <h2 id="activity-title">{{ builder.activity.title }}</h2>
+      <p>{{ builder.activity.participant_count }} selected dogs · revision {{ builder.activity.plan_revision }}</p>
+    </div>
+    <div class="context-facts" aria-label="Training activity context">
+      <span><strong>{{ builder.activity.distance_km }} km</strong><small>Planned distance</small></span>
+      <span><strong>{{ eligibleCandidates().length }}</strong><small>Eligible selected</small></span>
+      <span><strong>{{ builder.saved_teams.length }}</strong><small>Saved teams</small></span>
+    </div>
+  </section>
+
+  @if (!builder.candidates.length) {
+    <section class="empty-builder">
+      <h2>Select dogs before building teams</h2>
+      <p>This Training activity has no selected participant pool.</p>
+      <a class="button primary" routerLink="/daily" [queryParams]="{ date }">Return to Daily Plan</a>
+    </section>
+  } @else {
+    <section class="configuration surface" aria-labelledby="configuration-title">
+      <div class="configuration-copy">
+        <p class="eyebrow">Configuration</p>
+        <h2 id="configuration-title">Arrange the harness</h2>
+        <p>Recommended: {{ builder.recommended_team_count }} × {{ builder.recommended_team_size }}. Generation is deterministic and remains a preview until saved.</p>
+      </div>
+      <div class="configuration-controls">
+        <label class="form-field">
+          <span>Number of teams</span>
+          <input type="number" min="1" max="6" [(ngModel)]="teamCount" />
+        </label>
+        <label class="form-field">
+          <span>Dogs per team</span>
+          <select [(ngModel)]="teamSize">
+            @for (size of builder.supported_team_sizes; track size) { <option [ngValue]="size">{{ size }}</option> }
+          </select>
+        </label>
+        <button class="button primary" type="button" [disabled]="busy() || eligibleCandidates().length < 4" (click)="generate()">
+          {{ busy() ? 'Generating…' : builder.saved_teams.length ? 'Rebuild teams' : 'Generate teams' }}
+        </button>
+      </div>
+      <div class="capability-summary" aria-label="Selected pool capability summary">
+        <span><strong>{{ builder.capability_summary.lead }}</strong> Lead capable <small>{{ requiredRoleCount() }} needed</small></span>
+        <span><strong>{{ builder.capability_summary.team }}</strong> Team capable</span>
+        <span><strong>{{ builder.capability_summary.wheel }}</strong> Wheel capable <small>{{ requiredRoleCount() }} needed</small></span>
+      </div>
+      @if (teamCount * teamSize > eligibleCandidates().length) {
+        <p class="inline-warning" role="status">Requested slots exceed the {{ eligibleCandidates().length }} eligible selected dogs.</p>
+      }
+      @if (confirmingRebuild()) {
+        <div class="confirmation" role="alert">
+          <span><strong>Replace the current arrangement?</strong> The saved lineup remains unchanged until you save the new preview.</span>
+          <button class="button quiet" type="button" (click)="confirmingRebuild.set(false)">Cancel</button>
+          <button class="button secondary" type="button" (click)="generate()">Generate replacement</button>
+        </div>
+      }
+    </section>
+
+    @if (builder.saved_teams.length && !editing()) {
+      <section class="saved-summary surface" aria-labelledby="saved-title">
+        <div><p class="eyebrow">Saved planned truth</p><h2 id="saved-title">{{ builder.saved_teams.length }} {{ builder.saved_teams.length === 1 ? 'team' : 'teams' }} arranged</h2></div>
+        <button class="button secondary" type="button" (click)="editSaved()">Edit saved lineup</button>
+      </section>
+    }
+
+    @if (teams().length) {
+      <section class="lineup-workspace" [class.editing]="editing()" aria-labelledby="lineup-title">
+        <div class="lineup-heading">
+          <div>
+            <p class="eyebrow">{{ editing() ? generated() ? 'Generated preview · not saved' : 'Manual edit · not saved' : 'Saved lineup' }}</p>
+            <h2 id="lineup-title">Harness lineups</h2>
+            @if (editing()) { <p>Select two occupied slots to swap, or select a slot and choose an unassigned dog.</p> }
+          </div>
+          @if (editing()) {
+            <div class="lineup-actions">
+              <button class="button quiet" type="button" (click)="cancelEditing()">Cancel edits</button>
+              <button class="button primary" type="button" [disabled]="busy()" (click)="save()">{{ busy() ? 'Saving…' : 'Save teams' }}</button>
+            </div>
+          }
+        </div>
+
+        @if (editError()) { <p class="message error" role="alert">{{ editError() }}</p> }
+        @for (warning of softWarnings(); track warning) { <p class="soft-warning" role="status">{{ warning }} · allowed manual override</p> }
+
+        <div class="teams-grid">
+          @for (team of teams(); track team.sequence; let teamIndex = $index) {
+            <article class="team-card">
+              <header><div><p class="eyebrow">Team {{ team.sequence }}</p><h3>{{ team.display_label }}</h3></div><span>{{ team.team_size }} dogs</span></header>
+              <div class="direction" aria-hidden="true"><span>Direction of travel</span><strong>↑</strong></div>
+              <div class="harness">
+                @for (pairIndex of pairIndexes(team); track pairIndex) {
+                  <section class="harness-pair" [attr.aria-label]="pairSlots(team, pairIndex)[0].pair_label + ' pair'">
+                    <h4>{{ pairSlots(team, pairIndex)[0].pair_label }}</h4>
+                    <div class="pair-line" aria-hidden="true"></div>
+                    <div class="pair-slots">
+                      @for (slot of pairSlots(team, pairIndex); track slot.position_order) {
+                        <div class="dog-slot" [class.selected]="isSelected(teamIndex, slot.position_order - 1)" [class.empty]="!slot.dog_id">
+                          <span class="side-label">{{ roleLabel(slot.side) }}</span>
+                          @if (slot.dog_id) {
+                            <button type="button" class="slot-select" [disabled]="!editing()" [attr.aria-pressed]="isSelected(teamIndex, slot.position_order - 1)" (click)="selectSlot(teamIndex, slot.position_order - 1)">
+                              <strong>{{ slot.dog_name }}</strong>
+                              @if (candidate(slot.dog_id); as dog) {
+                                <small>{{ dog.housing_code || 'No housing' }} · 7d: {{ dog.workload.km_7d }} km</small>
+                                <small>14d: {{ dog.workload.km_14d }} km · today {{ dog.workload.planned_km_today }} km</small>
+                              }
+                            </button>
+                            <div class="slot-meta">
+                              @for (reason of slot.explanations.slice(0, 2); track reason) { <span>{{ reason }}</span> }
+                              <a [routerLink]="['/dogs', slot.dog_id]" [attr.aria-label]="'Open ' + slot.dog_name + ' profile'">Profile</a>
+                            </div>
+                            @if (editing()) { <button class="clear-slot" type="button" (click)="clearSlot(teamIndex, slot.position_order - 1)">Clear slot</button> }
+                          } @else {
+                            <button type="button" class="slot-select empty-action" [disabled]="!editing()" (click)="selectSlot(teamIndex, slot.position_order - 1)">Empty · select to fill</button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </section>
+                }
+              </div>
+              <div class="sled" aria-hidden="true"><span></span><strong>Sled</strong></div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (unassigned().length) {
+      <section class="unassigned surface" aria-labelledby="unassigned-title">
+        <div><p class="eyebrow">Selected pool</p><h2 id="unassigned-title">Unassigned</h2><p>{{ unassigned().length }} selected {{ unassigned().length === 1 ? 'dog is' : 'dogs are' }} outside the requested slots.</p></div>
+        <div class="unassigned-list">
+          @for (dog of unassigned(); track dog.dog_id) {
+            <article>
+              <div><a [routerLink]="['/dogs', dog.dog_id]">{{ dog.dog_name }}</a><span>{{ dog.reason }}</span></div>
+              @if (candidate(dog.dog_id); as details) { <small>{{ details.capabilities.join(' · ') }} · 7d {{ details.workload.km_7d }} km · 14d {{ details.workload.km_14d }} km</small> }
+              @if (editing()) { <button class="button quiet" type="button" (click)="placeUnassigned(dog)">Place in selected slot</button> }
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (ineligibleCandidates().length) {
+      <section class="unassigned excluded surface" aria-labelledby="excluded-title">
+        <div><p class="eyebrow">Revalidated on {{ date }}</p><h2 id="excluded-title">Excluded selected dogs</h2><p>These dogs remain in the Daily Plan pool but cannot occupy a saved harness slot.</p></div>
+        <div class="unassigned-list">
+          @for (dog of ineligibleCandidates(); track dog.id) {
+            <article>
+              <div><a [routerLink]="['/dogs', dog.id]">{{ dog.name }}</a><span>{{ dog.reasons.join(' · ') }}</span></div>
+              <small>{{ dog.dog_class || 'No class' }} · {{ dog.availability || 'No availability' }} · planned today {{ dog.workload.planned_km_today }} km</small>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  }
+}

@@ -225,29 +225,44 @@ reasoning without replacing P5 persistence or converting plans into actual work.
 
 ## P6 — Team Builder
 
+**Status:** completed. P6 delivers the deep-linked Training Team Builder, deterministic
+workload/role/relationship solver, unsaved preview, accessible manual refinement,
+revision-safe saved Lead/Team/Wheel geometry, Daily Plan summary, and explicit stale-
+lineup clearing. It creates no actual work and leaves the immutable checksum unchanged.
+
 **Objective:** propose safe, balanced, explainable lineups for planned training.
 
-**Required behavior:** filter by effective state/class/exclusion; use recent km/starts,
-roles, hard conflicts, soft preferred pairs, double-booking, and optional underuse bias;
-support approved 5/6/8-dog geometries; allow reviewed manual edits; save to Daily Plan.
+**Required behavior:** implemented effective state/class revalidation, 7/14-day and
+season-before-date workload, explicit capabilities, same-pair hard conflicts, preferred
+and dated home pairs, team balance, deterministic tie-breaking, supported 4/6/8/10/12
+geometries, reviewed manual edits, and explicit Daily Plan save.
 
-**Backend:** eligibility policy, workload projection, deterministic scoring/solver,
-structured explanation codes, lineup validation and persistence transaction.
+**Backend:** delivered bounded candidate/workload/relationship projection, pure
+pair-oriented deterministic beam search, structured failure/explanation codes, complete
+lineup revalidation, composite persistence constraints, and revision transactions.
 
-**Frontend:** candidate pool, exclusions/reasons, proposed harness rows, workload context,
-warnings, manual swap/edit, accept/save, shortage guidance.
+**Frontend:** delivered context/capability summary, generated harness rows, meaningful
+workload labels, unassigned explanations, shortage guidance, click-based swap/replace/
+clear/fill, save/reopen/rebuild, profile links, and responsive layouts.
 
-**Data/migrations:** relationship/exclusion refinements only if P2 schema lacks an
-accepted rule; optional suggestion audit metadata, not full solver traces in core rows.
+**Data/migrations:** `planned_teams` and `planned_team_slots` persist accepted geometry;
+solver scores/traces are deliberately not persisted.
 
-**Tests:** hard blockers always win; pair preference never overrides safety; role and
-geometry shortages; deterministic ties; no dog reuse/overlap; accepted lineup roundtrip.
+**Tests:** hard blockers, all role capabilities, preferred/home softness, shortages,
+all supported representative layouts, deterministic repeats, workload bias, no future
+actual leakage, uniqueness/cascades, reset, roundtrip, manual editor, and rebuild/clear
+confirmation are covered.
 
 **Acceptance:** seeded scenarios yield valid reproducible teams and intelligible reasons
-for selection/exclusion.
+for selection/unassignment; saved rows are the planned source for P7.
 
 **Exclusions:** no opaque ML selection, named production-dog rules, or autumn/carousel
 workflow.
+
+**P7 handoff:** Daily Entry can read one Training activity's date/distance and selected
+pool, its ordered saved teams, and each persisted pair/side/role/dog. Unassigned selected
+dogs remain derivable by pool minus saved slots. P7 must create actual WorkSession/
+WorkParticipation rows explicitly and must not treat a saved plan as completed work.
 
 ## P7 — Daily Entry
 

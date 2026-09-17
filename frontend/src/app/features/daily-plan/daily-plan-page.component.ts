@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import {
   ActivityWrite,
@@ -19,7 +19,7 @@ const SEASON_END = '2026-03-31';
 
 @Component({
   selector: 'ht-daily-plan-page',
-  imports: [ActivityEditorComponent, DatePipe, FormsModule],
+  imports: [ActivityEditorComponent, DatePipe, FormsModule, RouterLink],
   templateUrl: './daily-plan-page.component.html',
   styleUrl: './daily-plan-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +42,8 @@ export class DailyPlanPageComponent {
   protected readonly savingNotes = signal(false);
   protected readonly noteDirty = signal(false);
   protected readonly pendingDeleteId = signal<string | null>(null);
+  protected readonly lineupClearRequired = signal(false);
+  private pendingLineupChange: ActivityWrite | null = null;
 
   constructor() {
     this.route.queryParamMap.subscribe((params) => {
@@ -97,12 +99,15 @@ export class DailyPlanPageComponent {
     this.editorOpen.set(false);
     this.editingActivity.set(null);
     this.editorError.set('');
+    this.lineupClearRequired.set(false);
+    this.pendingLineupChange = null;
   }
 
   protected saveActivity(payload: ActivityWrite): void {
     const activity = this.editingActivity();
     this.savingEditor.set(true);
     this.editorError.set('');
+    this.lineupClearRequired.set(false);
     const request = activity
       ? this.plans.updateActivity(this.selectedDate, activity.id, payload)
       : this.plans.createActivity(this.selectedDate, payload);
@@ -115,9 +120,41 @@ export class DailyPlanPageComponent {
       },
       error: (error: HttpErrorResponse) => {
         this.savingEditor.set(false);
-        this.editorError.set(this.errorMessage(error));
+        if (error.error?.detail?.code === 'saved_teams_require_clear') {
+          this.pendingLineupChange = payload;
+          this.lineupClearRequired.set(true);
+        } else {
+          this.editorError.set(this.errorMessage(error));
+        }
       },
     });
+  }
+
+  protected confirmLineupClear(): void {
+    const activity = this.editingActivity();
+    const payload = this.pendingLineupChange;
+    if (!activity || !payload) return;
+    this.savingEditor.set(true);
+    this.lineupClearRequired.set(false);
+    this.plans
+      .updateActivity(this.selectedDate, activity.id, { ...payload, clear_saved_teams: true })
+      .subscribe({
+        next: (plan) => {
+          this.acceptPlan(plan);
+          this.savingEditor.set(false);
+          this.closeEditor();
+          this.successMessage.set('Activity updated and saved teams cleared.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.savingEditor.set(false);
+          this.editorError.set(this.errorMessage(error));
+        },
+      });
+  }
+
+  protected keepLineup(): void {
+    this.lineupClearRequired.set(false);
+    this.pendingLineupChange = null;
   }
 
   protected saveNotes(): void {

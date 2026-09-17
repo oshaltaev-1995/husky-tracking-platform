@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P5 application foundation
+## P6 application foundation
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -36,12 +36,13 @@ reference project.
   Unavailable visual layers
 - PostgreSQL-backed Daily Plans with ordered activities, dated manual participant pools,
   optimistic revisions, and the shared 30 km per-dog/day training guardrail
+- deterministic Team Builder previews and saved Lead/Team/Wheel harness lineups with
+  workload context, pair constraints, manual refinement, and explicit rebuild safety
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P6 Team Builder. P5 deliberately stops at selected dog
-pools: it adds no harness positions, pair optimization, auto-fill, actual confirmation,
-or kennel analytics. See
+The next product package is P7 Daily Entry. P6 remains planning-only: saving teams does
+not create actual work, confirmation state, or kennel analytics. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -77,6 +78,7 @@ Then open:
 - dated map API: <http://localhost:8030/api/v1/kennel-map?date=2026-03-31>
 - Daily Plan: <http://localhost:4300/daily>
 - Daily Plan API: <http://localhost:8030/api/v1/daily-plans/2026-03-31>
+- Team Builder opens from a Training activity on Daily Plan
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is
@@ -107,8 +109,8 @@ workload, and the semantic checksum.
 The checksum covers the immutable canonical world (including work sessions and starts)
 after sorting and replacing database keys with stable names/codes. It excludes mutable
 Daily Plan workspace rows, generated timestamps, and PostgreSQL metadata. Demo reset
-clears those planning rows and restores the known zero-plan baseline while preserving
-the same core checksum.
+clears plans, activities, planned teams, and slots and restores the known zero-workspace
+baseline while preserving the same core checksum.
 
 ## Local checks
 

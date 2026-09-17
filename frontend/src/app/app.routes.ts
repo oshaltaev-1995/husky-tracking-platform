@@ -37,6 +37,15 @@ export const routes: Routes = [
     data: { layout: 'wide' },
   },
   {
+    path: 'daily/:date/activities/:activityId/teams',
+    loadComponent: () =>
+      import('./features/team-builder/team-builder-page.component').then(
+        (component) => component.TeamBuilderPageComponent,
+      ),
+    title: 'Team Builder · Husky Tracking',
+    data: { layout: 'wide' },
+  },
+  {
     path: 'archive',
     loadComponent: () =>
       import('./features/archive/archive-registry.component').then(
