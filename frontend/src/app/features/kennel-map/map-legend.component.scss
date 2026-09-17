@@ -46,6 +46,7 @@
 }
 
 .legend-item[data-tone='female'] b { color: var(--map-gender-female); background: var(--map-gender-female-soft); }
+.legend-item[data-tone='default'] b { color: var(--brand-strong); background: var(--surface-brand-soft); }
 .legend-item[data-tone='male'] b { color: var(--map-gender-male); background: var(--map-gender-male-soft); }
 .legend-item[data-tone='intact'] b { color: var(--map-intact); background: var(--map-intact-soft); }
 .legend-item[data-tone='neutered'] b { color: var(--map-neutered); background: var(--map-neutered-soft); }

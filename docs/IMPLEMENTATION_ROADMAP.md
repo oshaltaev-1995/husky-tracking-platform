@@ -166,6 +166,22 @@ wide-workspace toolbar patterns, and the dated location/resident snapshot shape 
 context links. P5 adds plan persistence and activity editing separately; it must not
 turn the P4 map into a housing or planning editor.
 
+## P4.1 — Kennel Ground Layout Refinement
+
+**Status:** completed. P4.1 keeps the accepted P4 API, layers, date projection, URL
+state, finder, and navigation unchanged while replacing desktop floating enclosure
+cards with continuous physical row blocks. Adult cells share walls, A1/A2 and B1/B2
+are paired around stable service aisles, resident and empty slots stay inside fixed
+cells, and the two puppy areas read as separate buildings on the same ground system.
+
+**Responsive contract:** wide and tablet workspaces preserve the five-cell ground rows
+when readable; narrow layouts keep logical row grouping and stack cells without page
+overflow. Layer and date changes alter cell semantics and occupancy only—never the
+canonical location order or geometry.
+
+**P5 handoff:** unchanged from P4. Daily Plan may reuse the wide workspace and dated
+resident projection, but does not own or edit housing geometry.
+
 ## P5 — Daily Plan
 
 **Objective:** create the simplified universal plan that feeds Team Builder.

@@ -8,7 +8,10 @@ interface LegendItem {
   tone: string;
 }
 
-const LEGENDS: Record<Exclude<KennelMapLayer, 'default'>, LegendItem[]> = {
+const LEGENDS: Record<KennelMapLayer, LegendItem[]> = {
+  default: [
+    { label: 'Class and sex · unavailable status marked', marker: 'D', tone: 'default' },
+  ],
   gender: [
     { label: 'Female', marker: 'F', tone: 'female' },
     { label: 'Male', marker: 'M', tone: 'male' },
@@ -53,8 +56,5 @@ const LEGENDS: Record<Exclude<KennelMapLayer, 'default'>, LegendItem[]> = {
 })
 export class MapLegendComponent {
   readonly layer = input.required<KennelMapLayer>();
-  protected readonly items = computed(() => {
-    const layer = this.layer();
-    return layer === 'default' ? [] : LEGENDS[layer];
-  });
+  protected readonly items = computed(() => LEGENDS[this.layer()]);
 }

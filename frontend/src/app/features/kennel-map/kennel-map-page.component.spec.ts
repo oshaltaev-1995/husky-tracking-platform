@@ -128,6 +128,14 @@ describe('KennelMapPageComponent', () => {
     expect(text).toContain('B2-05');
     expect(text).toContain('PUPPY-A');
     expect(fixture.nativeElement.querySelectorAll('ht-kennel-location-card').length).toBe(22);
+    const zoneA = fixture.nativeElement.querySelector('[data-zone="A"]');
+    expect(zoneA.querySelectorAll('.paired-row-block [data-row]').length).toBe(2);
+    expect(zoneA.querySelector('.kennel-aisle')).not.toBeNull();
+    expect(
+      Array.from(
+        zoneA.querySelectorAll('[data-row="A1"] [data-location-code]') as NodeListOf<HTMLElement>,
+      ).map((cell) => cell.dataset['locationCode']),
+    ).toEqual(['A1-01', 'A1-02', 'A1-03', 'A1-04', 'A1-05']);
     const dogLink = fixture.nativeElement.querySelector(
       'a[href="/dogs/maple-id"]',
     ) as HTMLAnchorElement;
@@ -140,6 +148,10 @@ describe('KennelMapPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
+    const geometryBefore = Array.from(
+      fixture.nativeElement.querySelectorAll('[data-location-code]') as NodeListOf<HTMLElement>,
+    ).map((cell) => cell.dataset['locationCode']);
+
     const classButton = Array.from(
       fixture.nativeElement.querySelectorAll('.layer-control button') as NodeListOf<HTMLButtonElement>,
     ).find((button) => button.textContent.trim() === 'Class') as HTMLButtonElement;
@@ -151,6 +163,38 @@ describe('KennelMapPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.map-legend').textContent).toContain('Puppy');
     expect(router.url).toContain('layer=class');
     expect(fixture.nativeElement.querySelector('[data-tone="standard"]')).not.toBeNull();
+    expect(
+      Array.from(
+        fixture.nativeElement.querySelectorAll('[data-location-code]') as NodeListOf<HTMLElement>,
+      ).map((cell) => cell.dataset['locationCode']),
+    ).toEqual(geometryBefore);
+  });
+
+  it('keeps fixed resident slots visible in partial and empty historical enclosures', async () => {
+    const { fixture, http } = await setup();
+    const partialDog: KennelMapResident = {
+      ...maple,
+      id: 'cedar-id',
+      name: 'Cedar',
+      availability: 'available',
+      housing_code: 'A1-02',
+    };
+    const historicalSnapshot: KennelMapSnapshot = {
+      ...snapshot,
+      locations: snapshot.locations.map((item) =>
+        item.code === 'A1-02' ? { ...item, residents: [partialDog] } : item,
+      ),
+    };
+    http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush(historicalSnapshot);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const partial = fixture.nativeElement.querySelector('[data-location-code="A1-02"]');
+    const empty = fixture.nativeElement.querySelector('[data-location-code="A1-03"]');
+    expect(partial.querySelectorAll('.resident-dog').length).toBe(1);
+    expect(partial.querySelectorAll('.empty-resident-slot').length).toBe(1);
+    expect(empty.querySelectorAll('.empty-resident-slot').length).toBe(2);
+    expect(empty.textContent).toContain('0 / 2');
   });
 
   it('reloads a dated snapshot and keeps the selected date in the URL', async () => {

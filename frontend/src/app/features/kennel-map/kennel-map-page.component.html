@@ -99,28 +99,41 @@
 
       <div class="kennel-canvas" [attr.data-layer]="activeLayer">
         @for (block of blocks(state.data); track block.zone) {
-          <section class="kennel-block" [attr.aria-labelledby]="'zone-' + block.zone">
+          <section
+            class="kennel-block"
+            [attr.data-zone]="block.zone"
+            [attr.aria-labelledby]="'zone-' + block.zone"
+          >
             <header>
               <div><p class="eyebrow">Adult housing</p><h2 [id]="'zone-' + block.zone">{{ block.label }}</h2></div>
               <span>Paired rows {{ block.zone }}1 / {{ block.zone }}2</span>
             </header>
-            @for (row of block.rows; track row.code) {
-              <section class="kennel-row" [attr.aria-labelledby]="'row-' + row.code">
-                <div class="row-label">
-                  <h3 [id]="'row-' + row.code">{{ row.code }}</h3>
-                  <span>{{ row.locations.length }} enclosures</span>
-                </div>
-                <div class="enclosure-grid">
-                  @for (location of row.locations; track location.id) {
-                    <ht-kennel-location-card
-                      [location]="location"
-                      [layer]="activeLayer"
-                      [highlightedDogId]="highlightedDogId"
-                    />
-                  }
-                </div>
-              </section>
-            }
+            <div class="paired-row-block">
+              @for (row of block.rows; track row.code; let last = $last) {
+                <section
+                  class="kennel-row"
+                  [attr.data-row]="row.code"
+                  [attr.aria-labelledby]="'row-' + row.code"
+                >
+                  <div class="row-label">
+                    <h3 [id]="'row-' + row.code">{{ row.code }}</h3>
+                    <span>{{ row.locations.length }} enclosures</span>
+                  </div>
+                  <div class="enclosure-grid" [attr.aria-label]="'Enclosures in row ' + row.code">
+                    @for (location of row.locations; track location.id) {
+                      <ht-kennel-location-card
+                        [location]="location"
+                        [layer]="activeLayer"
+                        [highlightedDogId]="highlightedDogId"
+                      />
+                    }
+                  </div>
+                </section>
+                @if (!last) {
+                  <div class="kennel-aisle" aria-hidden="true"><span>Service aisle</span></div>
+                }
+              }
+            </div>
           </section>
         }
 
@@ -129,7 +142,7 @@
             <div><p class="eyebrow">Separate buildings</p><h2 id="puppy-areas-title">Puppy areas</h2></div>
             <span>Complete litters stay together</span>
           </header>
-          <div class="puppy-grid">
+          <div class="puppy-grid" aria-label="Puppy buildings">
             @for (location of puppyAreas(state.data); track location.id) {
               <ht-kennel-location-card
                 [location]="location"

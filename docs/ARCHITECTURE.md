@@ -187,13 +187,17 @@ date and Default layer. Public browsing is constrained to `2025-12-01` through
 housing on that same calendar date. A historical housing gap stays empty rather than
 falling back to a current assignment.
 
-The desktop DOM groups five enclosure cards into each horizontal A1, A2, B1, and B2
-row, with two larger puppy-building cards below. Tablet keeps row identity while
-wrapping cards; phone widths stack cards within named row sections and never require
-page-wide horizontal scrolling. Default, Gender, Neutered, Class, and Unavailable are
-single-select presentation layers over the same payload. Text markers and compact
-legends accompany shared semantic colors. Search focuses a dated resident and its
-enclosure; every resident name is a normal `/dogs/{public_id}` link.
+P4.1 renders each five-enclosure adult row as a continuous physical block with shared
+walls and fixed resident slots. A1/A2 and B1/B2 remain paired around a narrow service
+aisle, so layer or historical-state changes update the residents inside stable
+geography rather than rearranging locations. Puppy areas use separate building
+footprints on the same ground surface. At tablet widths the compact five-cell rows are
+retained while readable; narrower layouts reflow within named rows, and phone widths
+stack cells without page-wide horizontal scrolling. Default, Gender, Neutered, Class,
+and Unavailable are single-select presentation layers over the same payload. Text
+markers and compact legends accompany shared semantic colors. Search focuses a dated
+resident and outlines its enclosure; every resident name is a normal
+`/dogs/{public_id}` link.
 
 The canonical archived dogs keep valid housing history, but their assignments all end
 before the public demo season. P4 therefore truthfully shows no archived resident in a

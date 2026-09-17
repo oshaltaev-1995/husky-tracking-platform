@@ -14,7 +14,7 @@
 .dog-finder label { min-width: 10rem; flex: 1; }
 .dog-finder input { min-height: 2.3rem; }
 .dog-finder .button { min-height: 2.3rem; padding-block: .45rem; }
-ht-map-legend { display: block; margin-bottom: var(--space-3); }
+ht-map-legend { display: block; min-height: 2.5rem; margin-bottom: var(--space-3); }
 .snapshot-strip { display: flex; min-width: 0; align-items: center; gap: var(--space-6); margin-bottom: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-card); padding: .7rem var(--space-4); background: var(--surface-card); }
 .snapshot-strip div { display: flex; gap: var(--space-2); align-items: baseline; }
 .snapshot-strip strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
@@ -23,20 +23,111 @@ ht-map-legend { display: block; margin-bottom: var(--space-3); }
 .search-announcement { display: flex; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); border: 1px solid var(--focus); border-radius: var(--radius-control); padding: .65rem .8rem; color: var(--text-secondary); background: color-mix(in srgb, var(--focus) 9%, var(--surface-card)); font-size: .74rem; }
 .search-announcement.not-found { border-color: var(--border-strong); background: var(--surface-card); }
 .kennel-canvas { display: grid; gap: var(--space-6); min-width: 0; }
-.kennel-block, .puppy-block { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-panel); padding: var(--space-4); background: var(--surface-soft); }
-.kennel-block > header, .puppy-block > header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+.kennel-block, .puppy-block { min-width: 0; }
+.kennel-block > header, .puppy-block > header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-3); padding-inline: var(--space-1); }
 .kennel-block > header h2, .puppy-block > header h2 { margin: .12rem 0 0; font-size: 1.15rem; }
 .kennel-block > header > span, .puppy-block > header > span { color: var(--text-muted); font-size: .7rem; }
-.kennel-row { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: var(--space-3); align-items: stretch; min-width: 0; }
-.kennel-row + .kennel-row { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); }
-.row-label { display: flex; align-items: center; justify-content: center; flex-direction: column; border-radius: var(--radius-control); color: var(--text-inverse); background: var(--text-primary); text-align: center; }
-.row-label h3 { margin: 0; font-size: .9rem; }
-.row-label span { margin-top: .15rem; color: var(--text-sidebar); font-size: .52rem; line-height: 1.25; }
-.enclosure-grid { display: grid; min-width: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-2); }
-.puppy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+
+.paired-row-block {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--kennel-wall-strong);
+  border-radius: var(--radius-card);
+  background: var(--kennel-ground);
+  box-shadow: 0 .45rem 1.15rem rgba(24, 55, 50, .06);
+}
+
+.kennel-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.row-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-right: 1px solid var(--kennel-wall-strong);
+  color: var(--text-inverse);
+  background: var(--brand-strong);
+  text-align: center;
+}
+
+.row-label h3 { margin: 0; font-size: .9rem; letter-spacing: .03em; }
+.row-label span { margin-top: .12rem; color: var(--surface-sidebar-mark); font-size: .6rem; line-height: 1.2; }
+
+.enclosure-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: var(--kennel-wall);
+}
+
+.enclosure-grid ht-kennel-location-card + ht-kennel-location-card {
+  border-left: 1px solid var(--kennel-wall-strong);
+}
+
+.kennel-aisle {
+  display: grid;
+  min-height: 1.35rem;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: center;
+  border-block: 1px solid var(--kennel-wall-strong);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--kennel-aisle) 80%, transparent) 0,
+      color-mix(in srgb, var(--kennel-aisle) 80%, transparent) .35rem,
+      var(--kennel-ground-soft) .35rem,
+      var(--kennel-ground-soft) .7rem
+    );
+}
+
+.kennel-aisle::before { content: ''; }
+.kennel-aisle span {
+  justify-self: center;
+  border-radius: var(--radius-pill);
+  padding: .08rem .45rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+  font-size: .52rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.puppy-block {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-5);
+}
+
+.puppy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--kennel-wall);
+  border-radius: var(--radius-card);
+  background: var(--kennel-ground-soft);
+}
+
+.puppy-grid ht-kennel-location-card {
+  overflow: hidden;
+  border: 1px solid var(--kennel-wall-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  box-shadow: 0 .35rem .9rem rgba(24, 55, 50, .05);
+}
 
 @media (max-width: 75rem) {
-  .enclosure-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .enclosure-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+  }
+
+  .enclosure-grid ht-kennel-location-card + ht-kennel-location-card { border-left: 0; }
 }
 
 @include mixins.tablet {
@@ -45,7 +136,14 @@ ht-map-legend { display: block; margin-bottom: var(--space-3); }
   .layer-control > div { width: 100%; overflow-x: auto; }
   .layer-control button { flex: 1 0 auto; }
   .dog-finder { width: 100%; min-width: 0; }
-  .enclosure-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .enclosure-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .enclosure-grid ht-kennel-location-card + ht-kennel-location-card {
+    border-left: 1px solid var(--kennel-wall-strong);
+  }
 }
 
 @media (max-width: 42rem) {
@@ -53,9 +151,14 @@ ht-map-legend { display: block; margin-bottom: var(--space-3); }
   .snapshot-strip div { align-items: flex-start; flex-direction: column; gap: 0; }
   .snapshot-strip p { grid-column: 1 / -1; margin: var(--space-1) 0 0; }
   .search-announcement { align-items: flex-start; flex-direction: column; gap: var(--space-1); }
+  .paired-row-block { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
   .kennel-row { grid-template-columns: 1fr; }
-  .row-label { min-height: 2.2rem; justify-content: space-between; flex-direction: row; padding: 0 var(--space-3); text-align: left; }
+  .kennel-row + .kennel-row { margin-top: var(--space-3); }
+  .row-label { min-height: 2.2rem; justify-content: space-between; flex-direction: row; border: 0; border-radius: var(--radius-control) var(--radius-control) 0 0; padding: 0 var(--space-3); text-align: left; }
   .row-label span { margin: 0; }
+  .enclosure-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: hidden; gap: 1px; border: 1px solid var(--kennel-wall-strong); border-radius: 0 0 var(--radius-control) var(--radius-control); }
+  .enclosure-grid ht-kennel-location-card + ht-kennel-location-card { border-left: 0; }
+  .kennel-aisle { display: none; }
 }
 
 @include mixins.phone {
@@ -66,6 +169,7 @@ ht-map-legend { display: block; margin-bottom: var(--space-3); }
   .dog-finder { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
   .dog-finder .button.quiet { grid-column: 1 / -1; min-height: auto; justify-self: start; }
   .enclosure-grid, .puppy-grid { grid-template-columns: 1fr; }
-  .kennel-block, .puppy-block { padding: var(--space-3); }
   .kennel-block > header, .puppy-block > header { align-items: flex-start; flex-direction: column; gap: var(--space-1); }
+  .enclosure-grid { gap: 1px; }
+  .puppy-grid { gap: var(--space-3); padding: var(--space-3); }
 }

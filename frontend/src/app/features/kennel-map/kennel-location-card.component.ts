@@ -14,6 +14,7 @@ import { ResidentDogComponent } from './resident-dog.component';
       class="location-card"
       [class.puppy-area]="location().location_type === 'puppy_area'"
       [class.highlighted]="containsHighlight()"
+      [attr.data-location-code]="location().code"
       [attr.aria-label]="location().display_name + ', ' + occupancyLabel()"
     >
       <header>
@@ -33,8 +34,12 @@ import { ResidentDogComponent } from './resident-dog.component';
             [layer]="layer()"
             [highlighted]="dog.id === highlightedDogId()"
           />
-        } @empty {
-          <p class="vacant">No residents on this date</p>
+        }
+        @for (slot of emptySlots(); track slot) {
+          <div class="empty-resident-slot" aria-label="Empty resident place">
+            <span aria-hidden="true">—</span>
+            <small>Empty</small>
+          </div>
         }
       </div>
     </article>
@@ -53,6 +58,13 @@ export class KennelLocationCardComponent {
 
   protected occupancyLabel(): string {
     return `${this.location().residents.length} / ${this.location().capacity}`;
+  }
+
+  protected emptySlots(): number[] {
+    return Array.from(
+      { length: Math.max(0, this.location().capacity - this.location().residents.length) },
+      (_, index) => index,
+    );
   }
 
   protected litterLabel(): string {

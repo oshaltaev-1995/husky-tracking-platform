@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as mixins;
+
 .resident-dog {
   display: grid;
   min-width: 0;
@@ -5,17 +7,16 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--space-2);
   align-items: center;
-  border: 1px solid transparent;
-  border-radius: var(--radius-control);
+  border: 0;
   padding: 0.45rem;
   color: var(--text-primary);
-  background: var(--surface-elevated);
+  background: transparent;
   text-decoration: none;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.resident-dog:hover { border-color: var(--brand); background: var(--surface-brand-soft); }
-.resident-dog.highlighted { border-color: var(--focus); box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--focus) 28%, transparent); }
+.resident-dog:hover { background: var(--surface-brand-soft); }
+.resident-dog.highlighted { box-shadow: inset 0 0 0 0.16rem var(--focus); }
 .resident-dog.receded { opacity: 0.58; }
 
 .resident-initial,
@@ -63,3 +64,14 @@
 .resident-dog[data-tone='restricted'] .resident-marker { color: var(--archived); }
 .resident-dog[data-tone='retired'] { background: var(--disabled-soft); }
 .resident-dog[data-tone='retired'] .resident-marker { color: var(--disabled); }
+
+@include mixins.tablet {
+  .resident-dog {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-1);
+    padding-inline: .35rem;
+  }
+
+  .resident-initial { width: 1.45rem; }
+  .resident-marker { width: 1.25rem; }
+}
