@@ -492,28 +492,7 @@ class AnalyticsService:
 
     def overview(self, date_from: date, date_to: date) -> AnalyticsOverviewRead:
         session_ids, rows, analyses, peer_medians = self._analysis(date_from, date_to)
-        weekly: list[WeeklyAnalyticsRead] = []
-        week_start = date_from - timedelta(days=date_from.weekday())
-        while week_start <= date_to:
-            week_end = week_start + timedelta(days=6)
-            week_rows = [row for row in rows if week_start <= row.work_date <= week_end]
-            week_session_ids = {
-                session_id
-                for session_id, work_date in session_ids.items()
-                if week_start <= work_date <= week_end
-            }
-            summary = _summary(week_session_ids, week_rows)
-            weekly.append(
-                WeeklyAnalyticsRead(
-                    week_start=week_start,
-                    week_end=week_end,
-                    period_start=max(week_start, date_from),
-                    period_end=min(week_end, date_to),
-                    iso_week=week_start.isocalendar().week,
-                    **summary.model_dump(),
-                )
-            )
-            week_start += timedelta(days=7)
+        weekly = self._weekly(date_from, date_to, session_ids, rows)
 
         attention: list[tuple[DogAnalysis, str, float]] = []
         for item in analyses:
@@ -592,6 +571,43 @@ class AnalyticsService:
             underused=underused,
             higher_workload=higher,
         )
+
+    def weekly(self, date_from: date, date_to: date) -> list[WeeklyAnalyticsRead]:
+        """Return zero-filled calendar-week workload without dog attention analysis."""
+        self.validate_range(date_from, date_to)
+        session_ids, rows = self._work(date_from, date_to)
+        return self._weekly(date_from, date_to, session_ids, rows)
+
+    @staticmethod
+    def _weekly(
+        date_from: date,
+        date_to: date,
+        session_ids: dict[int, date],
+        rows: list[WorkRow],
+    ) -> list[WeeklyAnalyticsRead]:
+        weekly: list[WeeklyAnalyticsRead] = []
+        week_start = date_from - timedelta(days=date_from.weekday())
+        while week_start <= date_to:
+            week_end = week_start + timedelta(days=6)
+            week_rows = [row for row in rows if week_start <= row.work_date <= week_end]
+            week_session_ids = {
+                session_id
+                for session_id, work_date in session_ids.items()
+                if week_start <= work_date <= week_end
+            }
+            summary = _summary(week_session_ids, week_rows)
+            weekly.append(
+                WeeklyAnalyticsRead(
+                    week_start=week_start,
+                    week_end=week_end,
+                    period_start=max(week_start, date_from),
+                    period_end=min(week_end, date_to),
+                    iso_week=week_start.isocalendar().week,
+                    **summary.model_dump(),
+                )
+            )
+            week_start += timedelta(days=7)
+        return weekly
 
     def dogs(
         self,

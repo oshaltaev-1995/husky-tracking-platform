@@ -341,27 +341,43 @@ existing read services. It must not duplicate any metric or effective-state rule
 
 ## P9 — Dashboard and integrated UX
 
+**Status:** completed. P9 delivers `/dashboard` as the application landing route and a
+single read-only dashboard projection composed from the established Population, Kennel
+Map, Daily Plan, Team Builder, Daily Entry, and Analytics services. It adds no schema,
+stored aggregates, seed changes, or competing metric semantics.
+
 **Objective:** make the six-feature loop feel like one coherent operational product.
 
 **Required behavior:** operational overview for the demo reference/selected date,
 consistent navigation/date context, attention summaries, recent plans/work, and useful
 deep links.
 
-**Backend:** lean dashboard projection composed from existing services; no duplicate
-business rules.
+**Backend:** `GET /api/v1/dashboard?date=...` composes effective-dated population and
+housing, unavailable resident details, persisted plan/team state, P7 actual-day totals,
+P8's inclusive 14-day attention rules, and the latest six Monday-based workload weeks.
+The selected date is demo-season validated and all values remain live projections.
 
-**Frontend:** final app shell/navigation, dashboard cards, shared date/season context,
-cross-feature breadcrumbs/links, polished responsive and empty/error states.
+**Frontend:** Dashboard is first in the existing sidebar and `/` redirects to it. The
+operational page provides a compact class/availability strip, purposeful zero-plan CTA,
+plan/team and actual-work summaries, dated housing/unavailable residents, representative
+attention dogs, six-week dog-km trend, and direct links into every owning module. Loading,
+error, desktop/tablet/mobile, keyboard, and zero-plan states are explicit.
 
 **Data/migrations:** none expected.
 
-**Tests:** date consistency across features, deep links, navigation accessibility,
-responsive workflow smoke tests, end-to-end core loop.
+**Tests:** canonical baseline and date bounds; bounded composition; plan/team-present
+state; cross-module Population, Map, Entry, and Analytics agreement; navigation/deep
+links; no-plan/error states; frontend actions and responsive live inspection.
 
 **Acceptance:** a new visitor can traverse Map → Profile → Plan → Builder → Entry →
 Analytics without losing date or conceptual context.
 
 **Exclusions:** no unrelated admin portal.
+
+**P10 handoff:** dog identity links already use stable UUID routes and the existing
+P10-ready media contract remains unchanged. Synthetic portraits can be introduced in
+shared dog-media presentation (and optionally small Dashboard dog rows) without changing
+Dashboard persistence, metric services, or projection semantics.
 
 ## P10 — Synthetic dog media
 

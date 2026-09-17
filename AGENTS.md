@@ -68,6 +68,9 @@ These instructions apply to the entire repository.
   use actual `WorkSession`/`WorkParticipation` rows only. Planned/not-run work is never
   counted, weeks run Monday–Sunday, and attention rules normalize by eligible days and
   class peers rather than comparing Puppy/Junior dogs with working adults.
+- Dashboard is the fixed-reference `/dashboard` operational home. Its projection must
+  compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
+  services; do not persist dashboard totals or create alternate KPI/attention rules.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a

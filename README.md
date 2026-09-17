@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P8 application foundation
+## P9 application foundation
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -21,8 +21,8 @@ reference project.
   fictional dogs
 - persistent desktop application sidebar, accessible mobile drawer, and standard/wide
   content modes ready for later operational modules
-- responsive `/dogs`, `/archive`, `/kennel`, `/daily`, `/daily-entry`, `/analytics`, and deep-linked
-  `/dogs/:dogId` product routes
+- responsive `/dashboard`, `/dogs`, `/archive`, `/kennel`, `/daily`, `/daily-entry`,
+  `/analytics`, and deep-linked `/dogs/:dogId` product routes
 - server-supported registry/archive search, domain filters, and focused sorting
 - one lifecycle-aware Dog Profile with Overview, Pedigree, Work, and History views
 - clickable parents, grandparents, litter siblings, offspring, and archived relatives
@@ -43,11 +43,14 @@ reference project.
 - effective-dated Population analytics plus actual-ledger Workload analytics with
   canonical KPIs, weekly trends, role/distance mix, class-aware attention signals,
   streaks, and Dog Profile drill-down
+- integrated operational Dashboard composed from Population, Kennel Map, Daily Plan,
+  Team Builder, Daily Entry, and Analytics projections without persisted summary data
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P9 Dashboard. Plans and saved teams remain intentions; only
-Daily Entry `WorkSession`/`WorkParticipation` rows are workload truth for analytics. See
+The next product package is P10 synthetic dog media. Plans and saved teams remain
+intentions; only Daily Entry `WorkSession`/`WorkParticipation` rows are workload truth
+for analytics and the Dashboard. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -75,6 +78,8 @@ docker compose exec backend uv run python -m app.demo.seed
 Then open:
 
 - frontend: <http://localhost:4300>
+- Dashboard: <http://localhost:4300/dashboard>
+- Dashboard projection API: <http://localhost:8030/api/v1/dashboard?date=2026-03-31>
 - API health: <http://localhost:8030/api/v1/health>
 - dataset summary: <http://localhost:8030/api/v1/demo-dataset>
 - dogs registry API: <http://localhost:8030/api/v1/dogs>

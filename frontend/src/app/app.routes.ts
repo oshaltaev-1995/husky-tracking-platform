@@ -1,7 +1,16 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'dogs' },
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./features/dashboard/dashboard-page.component').then(
+        (component) => component.DashboardPageComponent,
+      ),
+    title: 'Dashboard · Husky Tracking',
+    data: { layout: 'wide' },
+  },
   {
     path: 'dogs',
     loadComponent: () =>
@@ -71,5 +80,5 @@ export const routes: Routes = [
       ),
     title: 'Archive · Husky Tracking',
   },
-  { path: '**', redirectTo: 'dogs' },
+  { path: '**', redirectTo: 'dashboard' },
 ];

@@ -40,6 +40,7 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Winter 2025–2026',
     );
+    expect(fixture.nativeElement.textContent).toContain('Dashboard');
     expect(fixture.nativeElement.textContent).toContain('Dogs');
     expect(fixture.nativeElement.textContent).toContain('Kennel Map');
     expect(fixture.nativeElement.textContent).toContain('Daily Plan');

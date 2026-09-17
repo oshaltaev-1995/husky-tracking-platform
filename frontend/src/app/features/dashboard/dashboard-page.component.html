@@ -1,0 +1,177 @@
+@if (state$ | async; as state) {
+  @switch (state.kind) {
+    @case ('loading') {
+      <div class="page-state" aria-live="polite">Loading the operational dashboard…</div>
+    }
+    @case ('error') {
+      <div class="page-state error" role="alert">
+        <h2>Dashboard unavailable</h2>
+        <p>The operational snapshot could not be loaded.</p>
+        <button class="button secondary" type="button" (click)="retry()">Try again</button>
+      </div>
+    }
+    @case ('ready') {
+      <div class="dashboard-page">
+        <header class="page-header dashboard-header">
+          <div>
+            <p class="eyebrow">Operational home</p>
+            <h1>Dashboard</h1>
+            <p>A concise view of the kennel, today’s work, and signals that need planning attention.</p>
+          </div>
+          <div class="demo-date" aria-label="Fixed demo context">
+            <span>Demo date</span>
+            <strong>{{ (state.data.context.selected_date + 'T12:00:00Z') | date: 'd MMM y':'UTC' }}</strong>
+            <small>{{ state.data.context.season_label }}</small>
+          </div>
+        </header>
+
+        <section class="population-strip" aria-labelledby="population-title">
+          <div class="population-primary">
+            <p class="eyebrow">Current population</p>
+            <div><strong>{{ state.data.population.active_dogs }}</strong><span id="population-title">Active dogs</span></div>
+          </div>
+          <dl class="class-counts">
+            <div data-class="puppy"><dt>Puppy</dt><dd>{{ count(state.data.population.class_counts, 'puppy') }}</dd></div>
+            <div data-class="junior"><dt>Junior</dt><dd>{{ count(state.data.population.class_counts, 'junior') }}</dd></div>
+            <div data-class="training"><dt>Training</dt><dd>{{ count(state.data.population.class_counts, 'training') }}</dd></div>
+            <div data-class="standard"><dt>Standard</dt><dd>{{ count(state.data.population.class_counts, 'standard') }}</dd></div>
+          </dl>
+          <div class="availability-total">
+            <span><strong>{{ state.data.population.available_dogs }}</strong> available</span>
+            <span class="attention"><strong>{{ state.data.population.unavailable_dogs }}</strong> unavailable</span>
+          </div>
+          <a class="button quiet" routerLink="/dogs">Browse dogs <span aria-hidden="true">→</span></a>
+        </section>
+
+        <div class="operations-grid">
+          <section class="operation-panel plan-panel" aria-labelledby="plan-title">
+            <header class="section-header">
+              <div><p class="eyebrow">Today’s operations</p><h2 id="plan-title">Daily Plan</h2></div>
+              <a class="button quiet" routerLink="/daily" [queryParams]="{ date: selectedDate }">{{ state.data.plan.exists ? 'Open plan' : 'Create plan' }} <span aria-hidden="true">→</span></a>
+            </header>
+            @if (!state.data.plan.exists) {
+              <div class="focused-empty">
+                <span class="empty-mark" aria-hidden="true">＋</span>
+                <div><h3>No plan for this date</h3><p>Create activities and select dogs for the day.</p></div>
+              </div>
+            } @else {
+              <dl class="operational-metrics">
+                <div><dt>Activities</dt><dd>{{ state.data.plan.activities_count }}</dd></div>
+                <div><dt>Planned dogs</dt><dd>{{ state.data.plan.planned_dogs }}</dd></div>
+                <div><dt>Planned dog-km</dt><dd>{{ state.data.plan.planned_dog_km }}</dd></div>
+              </dl>
+              <div class="activity-summary" aria-label="Activity breakdown">
+                @for (entry of state.data.plan.activity_counts | keyvalue; track entry.key) {
+                  <span>{{ activityLabel(entry.key) | titlecase }} <strong>{{ entry.value }}</strong></span>
+                }
+              </div>
+              @if (state.data.plan.notes_preview) { <p class="plan-note">{{ state.data.plan.notes_preview }}</p> }
+              @if (state.data.plan.training.length) {
+                <div class="training-list">
+                  @for (activity of state.data.plan.training; track activity.id) {
+                    <article>
+                      <div><strong>{{ activity.title }}</strong><small>{{ activity.distance_km }} km · {{ activity.participant_count }} selected</small></div>
+                      <div class="training-state">
+                        <span class="actual-state" [attr.data-state]="activity.actual_status">{{ statusLabel(activity.actual_status) }}</span>
+                        @if (activity.team_count) {
+                          <a [routerLink]="['/daily', selectedDate, 'activities', activity.id, 'teams']">{{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} arranged</a>
+                        } @else {
+                          <a [routerLink]="['/daily', selectedDate, 'activities', activity.id, 'teams']">Teams not arranged</a>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            }
+          </section>
+
+          <section class="operation-panel actual-panel" aria-labelledby="actual-title">
+            <header class="section-header">
+              <div><p class="eyebrow">Canonical actual ledger</p><h2 id="actual-title">Actual work</h2></div>
+              <a class="button quiet" routerLink="/daily-entry" [queryParams]="{ date: selectedDate }">Open Daily Entry <span aria-hidden="true">→</span></a>
+            </header>
+            <dl class="actual-metrics">
+              <div><dt>Sessions</dt><dd>{{ state.data.actual.sessions }}</dd></div>
+              <div><dt>Dogs worked</dt><dd>{{ state.data.actual.dogs_worked }}</dd></div>
+              <div><dt>Dog starts</dt><dd>{{ state.data.actual.dog_starts }}</dd></div>
+              <div><dt>Dog-km</dt><dd>{{ state.data.actual.dog_km }}</dd></div>
+            </dl>
+            <p class="truth-note"><span aria-hidden="true">✓</span> Derived only from recorded Work Sessions and participations.</p>
+          </section>
+        </div>
+
+        <div class="context-grid">
+          <section class="context-panel kennel-panel" aria-labelledby="kennel-title">
+            <header class="section-header">
+              <div><p class="eyebrow">Housing and availability</p><h2 id="kennel-title">Kennel now</h2></div>
+              <a class="button quiet" routerLink="/kennel" [queryParams]="{ date: selectedDate, layer: 'unavailable' }">Open map <span aria-hidden="true">→</span></a>
+            </header>
+            <div class="housing-summary">
+              <strong>{{ state.data.population.resident_dogs }} residents</strong>
+              <span>{{ state.data.population.occupied_locations }} occupied locations</span>
+            </div>
+            <dl class="housing-areas">
+              @for (area of state.data.population.housing_areas | keyvalue; track area.key) {
+                <div><dt>{{ area.key }}</dt><dd>{{ area.value }}</dd></div>
+              }
+            </dl>
+            <div class="unavailable-heading"><h3>Unavailable residents</h3><span>{{ state.data.population.unavailable_dogs }}</span></div>
+            <div class="unavailable-list">
+              @for (dog of state.data.unavailable_dogs; track dog.id) {
+                <a [routerLink]="['/dogs', dog.id]">
+                  <span><strong>{{ dog.name }}</strong><small>{{ dog.housing_code }}</small></span>
+                  <span class="status-badge" [attr.data-status]="dog.availability">{{ dog.availability | titlecase }}</span>
+                </a>
+              }
+            </div>
+          </section>
+
+          <section class="context-panel attention-panel" aria-labelledby="attention-title">
+            <header class="section-header">
+              <div><p class="eyebrow">{{ state.data.attention.label }} · ending {{ (state.data.attention.date_to + 'T12:00:00Z') | date: 'd MMM':'UTC' }}</p><h2 id="attention-title">Workload attention</h2></div>
+              <a class="button quiet" routerLink="/analytics" [queryParams]="{ from: state.data.attention.date_from, to: state.data.attention.date_to }">View Analytics <span aria-hidden="true">→</span></a>
+            </header>
+            <div class="attention-columns">
+              <div>
+                <div class="attention-title"><h3>Underused</h3><strong>{{ state.data.attention.underused_count }}</strong></div>
+                @for (dog of state.data.attention.underused; track dog.id) {
+                  <a class="attention-dog" [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }">
+                    <span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }}</small></span>
+                    <span><strong>{{ dog.dog_km }} km</strong><small>{{ dog.reason }}</small></span>
+                  </a>
+                }
+              </div>
+              <div>
+                <div class="attention-title higher"><h3>Higher workload</h3><strong>{{ state.data.attention.higher_workload_count }}</strong></div>
+                @for (dog of state.data.attention.higher_workload; track dog.id) {
+                  <a class="attention-dog" [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }">
+                    <span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }}</small></span>
+                    <span><strong>{{ dog.dog_km }} km</strong><small>{{ dog.reason }}</small></span>
+                  </a>
+                }
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="trend-panel" aria-labelledby="trend-title">
+          <header class="section-header">
+            <div><p class="eyebrow">Latest six demo weeks</p><h2 id="trend-title">Recent workload</h2><p>Total dog-km from actual recorded work.</p></div>
+            <a class="button quiet" routerLink="/analytics" [queryParams]="{ from: state.data.recent_weekly[0].period_start, to: selectedDate }">Explore trend <span aria-hidden="true">→</span></a>
+          </header>
+          <div class="trend-chart" role="img" aria-label="Weekly total dog kilometres">
+            @for (week of state.data.recent_weekly; track week.week_start) {
+              <div class="trend-week">
+                <span class="trend-value">{{ week.dog_km }} km</span>
+                <div class="bar-track"><span [style.height.%]="trendHeight(week, state.data)"></span></div>
+                <strong>{{ (week.period_start + 'T12:00:00Z') | date: 'd MMM':'UTC' }}</strong>
+                <small>{{ week.dog_starts }} starts · {{ week.dogs_worked }} dogs</small>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    }
+  }
+}

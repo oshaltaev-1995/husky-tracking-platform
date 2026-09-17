@@ -55,7 +55,7 @@ frontend/
   src/app/
     core/                  singleton API/config/layout concerns
     shared/                reusable presentational pieces
-    features/              map, dogs, plans, builder, entry, analytics
+    features/              dashboard, map, dogs, plans, builder, entry, analytics
 docs/                      canonical product and engineering decisions
 media/                     ignored generated media root
 ```
@@ -344,6 +344,28 @@ class, availability, and housing. The API returns headline lifecycle counts plus
 server-computed age bands, birth cohorts, sex, class, neuter, availability, capability,
 and housing-area distributions. Cohorts show represented active and archived history;
 the other distributions describe active dogs at the selected snapshot date.
+
+### Operational Dashboard
+
+P9 makes `/dashboard` the application landing route while keeping it separate from the
+future P11 public marketing shell. The Dashboard is anchored to the DemoClock reference
+date (`2026-03-31`) and uses a single `GET /api/v1/dashboard?date=...` projection so the
+Angular shell does not fan out across many endpoints.
+
+`DashboardService` is orchestration, not a second analytics implementation. It composes
+the existing Population snapshot, dated Kennel Map, Daily Plan, Daily Entry, P8 attention,
+and weekly workload services. Population and availability use effective state for the
+same selected date; actual-day totals retain P7/P8 session/start/dog-km semantics; the
+attention window is the inclusive previous 14 days ending on the dashboard date. The
+recent trend is the latest six Monday-based demo weeks. No Dashboard table, cache, or
+stored aggregate exists, so plan/team and actual-work mutations appear on the next read.
+
+The response stays summary-sized: headline population/class/availability/housing counts,
+current unavailable residents, concise plan/team/actual state, up to three representative
+dogs in each attention category, and six weekly points. Every item links back to its
+owning feature instead of duplicating editors, maps, profiles, or analytics. The wide
+workspace uses a compact responsive section grid; at phone width it becomes a single
+column with textual chart values and no page-level horizontal overflow.
 
 ## Configuration and environments
 

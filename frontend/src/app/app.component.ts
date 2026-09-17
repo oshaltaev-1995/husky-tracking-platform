@@ -55,6 +55,10 @@ export class AppComponent {
   protected readonly layoutMode = signal<'standard' | 'wide'>('standard');
   protected readonly navigation: NavigationSection[] = [
     {
+      label: 'Overview',
+      items: [{ label: 'Dashboard', route: '/dashboard', mark: 'H' }],
+    },
+    {
       label: 'Kennel',
       items: [
         { label: 'Dogs', route: '/dogs', mark: 'D' },
