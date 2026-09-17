@@ -55,6 +55,15 @@ export const routes: Routes = [
     data: { layout: 'wide' },
   },
   {
+    path: 'analytics',
+    loadComponent: () =>
+      import('./features/analytics/analytics-page.component').then(
+        (component) => component.AnalyticsPageComponent,
+      ),
+    title: 'Analytics · Husky Tracking',
+    data: { layout: 'wide' },
+  },
+  {
     path: 'archive',
     loadComponent: () =>
       import('./features/archive/archive-registry.component').then(

@@ -76,9 +76,10 @@ rest, restriction, and retirement. Dog interactions open Dog Profile.
 - Daily Entry supports a selected historical/demo date, meaningful grouping, worked
   versus not worked, 5/10 km or related activity, status, notes, search, and reopening
   saved entries. Its grouping uses housing effective on the selected date.
-- Analytics includes dogs worked, dog starts, total and average km, per-dog workload,
-  distribution, weekly comparisons, under/high workload, streaks, and individual
-  history.
+- Analytics has a dated Population area for lifecycle, cohorts, age, class, sex,
+  neuter, availability, capability, and housing composition, plus a Workload area for
+  dogs worked, dog starts, dog-km, per-dog distribution, weekly comparison,
+  under/higher workload, streaks, and individual history.
 
 ## Explicitly out of scope
 

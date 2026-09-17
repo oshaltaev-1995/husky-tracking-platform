@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.demo_clock import DemoClock
+from app.domain.analytics import summarize_work_distances
 from app.models import (
     Dog,
     HousingAssignment,
@@ -504,19 +505,20 @@ class DogReadService:
             week_start = entry.date - timedelta(days=entry.date.weekday())
             weekly[week_start][0] += 1
             weekly[week_start][1] += entry.distance_km
-        total_km = sum(entry.distance_km for entry in entries)
-        starts = len(entries)
+        totals = summarize_work_distances(entry.distance_km for entry in entries)
         return DogWorkRead(
             dog_id=public_id,
             season_start=self.clock.season_start,
             season_end=self.clock.season_end,
             summary=DogWorkSummaryRead(
-                total_km=total_km,
-                starts=starts,
-                starts_5km=sum(entry.distance_km == 5 for entry in entries),
-                starts_10km=sum(entry.distance_km == 10 for entry in entries),
+                total_km=totals.dog_km,
+                starts=totals.dog_starts,
+                starts_5km=totals.starts_5km,
+                starts_10km=totals.starts_10km,
                 last_work_date=max((entry.date for entry in entries), default=None),
-                average_km_per_start=(round(total_km / starts, 1) if starts else None),
+                average_km_per_start=(
+                    totals.average_km_per_start if totals.dog_starts else None
+                ),
             ),
             weekly=[
                 DogWeeklyWorkRead(

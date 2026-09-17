@@ -234,6 +234,44 @@ daily total above 30 km. The deterministic generator and semantic validator use 
 rule; P5/P6/P7 must reuse it rather than copy a numeric limit into plan or entry code.
 Season totals such as 70–350 km are independent cumulative measures.
 
+## Derived analytics semantics
+
+P8 adds no analytics tables or stored aggregates. `WorkSession` and
+`WorkParticipation` remain the only workload truth:
+
+- **Sessions** is the number of actual session headers in the inclusive selected range.
+- **Dogs worked** is the number of distinct participating dogs.
+- **Dog starts** is the number of participation rows; multiple starts on one date remain
+  multiple starts.
+- **Dog-km** is the session distance summed once per participation.
+- **Worked day** is one dog/calendar date with at least one participation, regardless of
+  the number of starts that day.
+- **Average km / worked dog** and **average km / start** divide dog-km by their named
+  denominator and return zero when that denominator is empty.
+- Actual role totals use `WorkParticipation.assigned_role`; a null role is reported as
+  Not recorded and is never inferred from capability or a planned slot.
+
+Weeks are Monday–Sunday and the API returns every week intersecting the requested
+range, including zero-work and partial boundary weeks. Work streaks are consecutive
+calendar dates with a start. An eligible rest streak counts consecutive dates ending
+at the range end where the dog was born, active, available, and in Training or Standard
+class but had no start; an ineligible date or worked date breaks that streak.
+
+Workload attention is deterministic operational guidance, not a health diagnosis.
+Only dogs active at the range end with at least one eligible day and a Training or
+Standard class enter the attention population; retired and archived-at-end dogs are
+historical context only. Dog-km is normalized to km per seven eligible days and compared
+with the median for the same class. Below 95% is **Underused**, above 115% is **Higher
+workload**, and the middle band is **Balanced**. Puppy and Junior dogs remain visible
+with zero work but are never labelled underused.
+
+Population analytics is a separate effective-dated projection. Dogs not yet born on the
+snapshot date are absent. Headline represented counts split effective active/archived
+lifecycle; sex, age, class, neuter, availability, capability, and housing distributions
+use active dogs on that date. Age derives from date of birth and the snapshot date;
+cohorts retain both active and archived represented dogs so historical generations stay
+visible.
+
 ## Deletion and archive policy
 
 All core history, parent, housing, relationship, and work foreign keys use `RESTRICT`.

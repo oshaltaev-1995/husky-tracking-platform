@@ -1,0 +1,220 @@
+<header class="analytics-header">
+  <div>
+    <p class="eyebrow">Kennel intelligence</p>
+    <h1>Analytics</h1>
+    <p>Population and actual workload · Winter 2025–2026</p>
+  </div>
+  <span class="truth-note">{{ activeArea === 'workload' ? 'Actual ledger truth' : 'Effective-dated snapshot' }}</span>
+</header>
+
+<nav class="analytics-areas" aria-label="Analytics area">
+  <button type="button" [class.active]="activeArea === 'population'" [attr.aria-pressed]="activeArea === 'population'" (click)="selectArea('population')"><span>Population</span><small>Composition and cohorts</small></button>
+  <button type="button" [class.active]="activeArea === 'workload'" [attr.aria-pressed]="activeArea === 'workload'" (click)="selectArea('workload')"><span>Workload</span><small>Actual work intelligence</small></button>
+</nav>
+
+@if (activeArea === 'population') {
+  <section class="population-date" aria-labelledby="population-date-heading">
+    <div><p class="eyebrow">Historical snapshot</p><h2 id="population-date-heading">Population on selected date</h2><p>Class, lifecycle, availability, housing, and age all resolve on the same day.</p></div>
+    <form (ngSubmit)="applyPopulationDate()"><label>Snapshot date<input type="date" name="populationDate" min="2025-12-01" max="2026-03-31" [(ngModel)]="populationDate" required /></label><button class="button primary" type="submit">View snapshot</button></form>
+  </section>
+
+  @if (populationState$ | async; as populationState) {
+    @switch (populationState.kind) {
+      @case ('loading') { <section class="page-state" aria-live="polite"><h2>Resolving population</h2><p>Reading dated lifecycle, class, status, and housing…</p></section> }
+      @case ('error') { <section class="page-state" role="alert"><h2>Population snapshot unavailable</h2><p>The selected snapshot date could not be loaded.</p><button class="button secondary" type="button" (click)="retryPopulation()">Try again</button></section> }
+      @case ('ready') {
+        <section class="population-kpis" aria-label="Population summary">
+          <div class="primary"><strong>{{ populationState.data.headline.active_dogs }}</strong><span>Active dogs</span></div>
+          <div><strong>{{ populationState.data.headline.total_represented }}</strong><span>Represented</span></div>
+          <div><strong>{{ populationState.data.headline.archived_dogs }}</strong><span>Archived context</span></div>
+          <div><strong>{{ populationState.data.headline.average_age_years | number: '1.1-1' }}</strong><span>Average age</span></div>
+          <div><strong>{{ populationState.data.headline.median_age_years | number: '1.1-1' }}</strong><span>Median age</span></div>
+        </section>
+
+        <div class="population-grid">
+          <section class="panel cohort-panel" aria-labelledby="cohort-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Three generations</p><h2 id="cohort-heading">Birth cohorts</h2></div><span>{{ populationState.data.headline.total_represented }} born by {{ populationState.data.snapshot_date | date: 'mediumDate' }}</span></div>
+            <div class="cohort-chart" aria-label="Dogs by birth year">
+              @for (cohort of populationState.data.birth_cohorts; track cohort.birth_year) {
+                <div class="cohort-column"><strong>{{ cohort.total }}</strong><div class="cohort-track"><span [style.height.%]="cohortHeight(cohort, populationState.data.birth_cohorts)"><i [style.height.%]="cohort.total ? cohort.archived / cohort.total * 100 : 0"></i></span></div><b>{{ cohort.birth_year }}</b><small>{{ cohort.litter_codes.length ? ('Litter ' + cohort.litter_codes.join('/')) : 'Foundation' }}</small></div>
+              }
+            </div>
+            <div class="cohort-legend"><span><i class="active"></i>Active</span><span><i class="archived"></i>Archived</span></div>
+          </section>
+
+          <section class="panel population-panel" aria-labelledby="class-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Operational stage</p><h2 id="class-heading">Class</h2></div><span>{{ populationState.data.distribution_basis }}</span></div>
+            <div class="distribution-list class-distribution">
+              @for (item of populationState.data.classes; track item.key) { <div><span><strong>{{ item.label }}</strong><b>{{ item.count }}</b></span><i><em [attr.data-class]="item.key" [style.width.%]="distributionWidth(item, populationState.data.classes)"></em></i></div> }
+            </div>
+          </section>
+
+          <section class="panel population-panel" aria-labelledby="age-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Age at snapshot</p><h2 id="age-heading">Age distribution</h2></div></div>
+            <div class="distribution-list">
+              @for (item of populationState.data.age_bands; track item.key) { <div><span><strong>{{ item.label }}</strong><b>{{ item.count }}</b></span><i><em [style.width.%]="distributionWidth(item, populationState.data.age_bands)"></em></i></div> }
+            </div>
+          </section>
+
+          <section class="panel population-panel" aria-labelledby="status-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Operational state</p><h2 id="status-heading">Availability</h2></div></div>
+            <div class="distribution-list status-distribution">
+              @for (item of populationState.data.availability; track item.key) { <div><span><strong>{{ item.label }}</strong><b>{{ item.count }}</b></span><i><em [attr.data-status]="item.key" [style.width.%]="distributionWidth(item, populationState.data.availability)"></em></i></div> }
+            </div>
+          </section>
+
+          <section class="panel population-panel demographics" aria-labelledby="demographics-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Population mix</p><h2 id="demographics-heading">Sex and neuter status</h2></div></div>
+            <div class="compact-distributions">
+              <div><h3>Sex</h3>@for (item of populationState.data.sex; track item.key) { <p><span>{{ item.label }}</span><strong>{{ item.count }}</strong></p> }</div>
+              <div><h3>Neuter state</h3>@for (item of populationState.data.neuter_status; track item.key) { <p><span>{{ item.label }}</span><strong>{{ item.count }}</strong></p> }</div>
+            </div>
+          </section>
+
+          <section class="panel population-panel" aria-labelledby="capability-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Working roles</p><h2 id="capability-heading">Capability coverage</h2></div></div>
+            <div class="capability-list">@for (item of populationState.data.capabilities; track item.key) { <div><span>{{ item.label }}</span><strong>{{ item.count }}</strong></div> }</div>
+            <p class="chart-caption">Multi-role dogs appear in every capability they hold. Puppies and Juniors have no sled-work capability.</p>
+          </section>
+
+          <section class="panel population-panel housing-panel" aria-labelledby="housing-heading">
+            <div class="panel-heading"><div><p class="eyebrow">Synthetic kennel</p><h2 id="housing-heading">Housing areas</h2></div></div>
+            <div class="housing-list">@for (item of populationState.data.housing_areas; track item.key) { <div><span>{{ item.label }}</span><strong>{{ item.count }}</strong></div> }</div>
+          </section>
+        </div>
+      }
+    }
+  }
+} @else {
+<section class="range-panel" aria-labelledby="range-heading">
+  <div class="range-heading">
+    <div><p class="eyebrow">Selected period</p><h2 id="range-heading">Inclusive date range</h2></div>
+    <div class="quick-ranges" aria-label="Quick date ranges">
+      @for (range of quickRanges; track range.label) {
+        <button type="button" [class.active]="isQuickRange(range)" [attr.aria-pressed]="isQuickRange(range)" (click)="chooseRange(range)">{{ range.label }}</button>
+      }
+    </div>
+  </div>
+  <form class="range-form" (ngSubmit)="applyRange()">
+    <label>From<input type="date" name="dateFrom" min="2025-12-01" max="2026-03-31" [(ngModel)]="dateFrom" required /></label>
+    <span aria-hidden="true">→</span>
+    <label>To<input type="date" name="dateTo" min="2025-12-01" max="2026-03-31" [(ngModel)]="dateTo" required /></label>
+    <button class="button primary" type="submit" [disabled]="dateFrom > dateTo">Apply range</button>
+  </form>
+  @if (dateFrom > dateTo) { <p class="validation" role="alert">From date must be on or before To date.</p> }
+</section>
+
+@if (state$ | async; as state) {
+  @switch (state.kind) {
+    @case ('loading') { <section class="page-state" aria-live="polite"><h2>Calculating workload</h2><p>Reading actual sessions and dog participation…</p></section> }
+    @case ('error') { <section class="page-state" role="alert"><h2>Analytics unavailable</h2><p>The selected workload period could not be loaded.</p><button class="button secondary" type="button" (click)="retry()">Try again</button></section> }
+    @case ('ready') {
+      <section class="kpi-strip" aria-label="Actual work summary">
+        <div><strong>{{ state.data.overview.summary.sessions }}</strong><span>Sessions</span></div>
+        <div><strong>{{ state.data.overview.summary.dogs_worked }}</strong><span>Dogs worked</span></div>
+        <div><strong>{{ state.data.overview.summary.dog_starts | number }}</strong><span>Dog starts</span></div>
+        <div class="primary"><strong>{{ state.data.overview.summary.dog_km | number }}</strong><span>Total dog-km</span></div>
+        <div><strong>{{ state.data.overview.summary.average_km_per_worked_dog | number: '1.1-1' }}</strong><span>Avg km / dog</span></div>
+        <div><strong>{{ state.data.overview.summary.average_km_per_start | number: '1.1-1' }}</strong><span>Avg km / start</span></div>
+      </section>
+
+      <div class="analytics-grid">
+        <section class="panel trend-panel" aria-labelledby="weekly-heading">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Monday–Sunday</p><h2 id="weekly-heading">Weekly trend</h2></div>
+            <div class="metric-switch" aria-label="Weekly trend metric">
+              <button type="button" [class.active]="trendMetric === 'dog_km'" [attr.aria-pressed]="trendMetric === 'dog_km'" (click)="selectTrend('dog_km')">Dog-km</button>
+              <button type="button" [class.active]="trendMetric === 'dog_starts'" [attr.aria-pressed]="trendMetric === 'dog_starts'" (click)="selectTrend('dog_starts')">Starts</button>
+              <button type="button" [class.active]="trendMetric === 'dogs_worked'" [attr.aria-pressed]="trendMetric === 'dogs_worked'" (click)="selectTrend('dogs_worked')">Dogs</button>
+            </div>
+          </div>
+          @if (state.data.overview.summary.dog_starts) {
+            <div class="trend-chart" [attr.aria-label]="'Weekly ' + trendLabel()">
+              @for (week of state.data.overview.weekly; track week.week_start) {
+                <div class="trend-week">
+                  <span class="trend-value">{{ trendValue(week) | number }}</span>
+                  <div class="trend-track"><span [style.height.%]="trendHeight(week, state.data.overview)"></span></div>
+                  <time [attr.datetime]="week.period_start" [title]="(week.period_start | date: 'mediumDate') + ' – ' + (week.period_end | date: 'mediumDate')">{{ week.period_start | date: 'MMM d' }}</time>
+                  <small>W{{ week.iso_week }}</small>
+                </div>
+              }
+            </div>
+            <p class="chart-caption">Each bar is labelled with its exact {{ trendLabel().toLowerCase() }} value. Partial boundary weeks include only selected dates.</p>
+          } @else {
+            <div class="inline-empty"><strong>No actual work in this range</strong><span>Weekly buckets remain available, with zero recorded starts.</span></div>
+          }
+        </section>
+
+        <aside class="panel breakdown-panel" aria-labelledby="breakdown-heading">
+          <div class="panel-heading"><div><p class="eyebrow">Starts and roles</p><h2 id="breakdown-heading">Work mix</h2></div></div>
+          <div class="distance-list">
+            @for (distance of state.data.overview.distance_breakdown; track distance.distance_km) {
+              <div><span><strong>{{ distance.distance_km }} km</strong><small>{{ distance.dog_starts }} starts</small></span><b>{{ distance.dog_km | number }} dog-km</b></div>
+            }
+          </div>
+          <div class="role-list" aria-label="Actual role breakdown">
+            @for (role of state.data.overview.role_breakdown; track role.role) {
+              <div><span>{{ role.role === 'unpositioned' ? 'Not recorded' : (role.role | titlecase) }}</span><strong>{{ role.dog_starts }} starts</strong></div>
+            }
+          </div>
+          <p>Roles come from actual participation only; capability and planned positions are never inferred.</p>
+        </aside>
+      </div>
+
+      <section class="attention-section" aria-labelledby="attention-heading">
+        <div class="section-heading"><div><p class="eyebrow">Rule-based signals</p><h2 id="attention-heading">Workload attention</h2></div><p>{{ state.data.overview.attention_population }} Training or Standard dogs compared by eligible-day peer pace.</p></div>
+        <div class="attention-grid">
+          <article class="attention-list underused">
+            <header><span aria-hidden="true">↓</span><div><h3>Underused</h3><p>Below 95% of class peer pace</p></div></header>
+            @if (state.data.overview.underused.length) {
+              @for (dog of state.data.overview.underused; track dog.id) {
+                <a [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }"><span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }} · {{ dog.reason }}</small></span><b>{{ dog.dog_km }} km</b></a>
+              }
+            } @else { <p class="attention-empty">No underused signal for this period.</p> }
+          </article>
+          <article class="attention-list higher">
+            <header><span aria-hidden="true">↑</span><div><h3>Higher workload</h3><p>Above 115% of class peer pace</p></div></header>
+            @if (state.data.overview.higher_workload.length) {
+              @for (dog of state.data.overview.higher_workload; track dog.id) {
+                <a [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }"><span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }} · {{ dog.reason }}</small></span><b>{{ dog.dog_km }} km</b></a>
+              }
+            } @else { <p class="attention-empty">No higher-workload signal for this period.</p> }
+          </article>
+        </div>
+        <p class="method-note">Signals normalize actual dog-km by dates the dog was active, available, born, and in Training or Standard class. Puppy, Junior, retired, and archived-at-period-end dogs stay visible in history but are not flagged.</p>
+      </section>
+
+      <section class="panel dog-workload" aria-labelledby="dog-workload-heading">
+        <div class="section-heading"><div><p class="eyebrow">{{ state.data.dogs.result_count }} relevant dogs</p><h2 id="dog-workload-heading">Workload by dog</h2></div><p>Class, availability, and housing are resolved at {{ state.data.dogs.context_date | date: 'mediumDate' }}.</p></div>
+        <form class="dog-filters" (ngSubmit)="applyDogFilters()">
+          <label class="search-field">Search dog<input type="search" name="search" [(ngModel)]="search" placeholder="Name" /></label>
+          <label>Class<select name="dogClass" [(ngModel)]="dogClass"><option value="">All classes</option><option value="puppy">Puppy</option><option value="junior">Junior</option><option value="training">Training</option><option value="standard">Standard</option></select></label>
+          <label>Sort<select name="sort" [(ngModel)]="sort"><option value="highest_km">Highest km</option><option value="lowest_km">Lowest km</option><option value="most_starts">Most starts</option><option value="fewest_starts">Fewest starts</option><option value="name">Name</option></select></label>
+          <button class="button secondary" type="submit">Apply</button>
+          @if (search || dogClass || sort !== 'highest_km') { <button class="button quiet" type="button" (click)="clearDogFilters()">Clear</button> }
+        </form>
+
+        @if (state.data.dogs.items.length) {
+          <div class="dog-table" role="table" aria-label="Dog workload detail">
+            <div class="dog-table-head" role="row">
+              <span role="columnheader">Dog</span><span role="columnheader">Context</span><span role="columnheader">Workload</span><span role="columnheader">Starts</span><span role="columnheader">Recent</span><span role="columnheader">Signal</span>
+            </div>
+            @for (dog of state.data.dogs.items; track dog.id) {
+              <article class="dog-row" role="row">
+                <div class="dog-identity" role="cell"><a [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }">{{ dog.name }}</a><small>{{ dog.sex | titlecase }} · {{ dog.housing_code || 'No housing' }}</small></div>
+                <div role="cell"><strong>{{ dog.dog_class ? (dog.dog_class | titlecase) : 'Historical' }}</strong><small>{{ dog.availability ? (dog.availability | titlecase) : (dog.lifecycle | titlecase) }}</small></div>
+                <div class="km-cell" role="cell"><strong>{{ dog.dog_km }} km</strong><span class="workload-track"><i [style.width.%]="workloadBar(dog, state.data.dogs.items)"></i></span><small>{{ dog.worked_days }} worked / {{ dog.eligible_days }} eligible days</small></div>
+                <div role="cell"><strong>{{ dog.dog_starts }}</strong><small>{{ dog.starts_5km }} × 5 · {{ dog.starts_10km }} × 10</small></div>
+                <div role="cell"><strong>{{ dog.recent_14d_km }} km / 14d</strong><small>Longest streak {{ dog.longest_work_streak }}d</small></div>
+                <div role="cell"><span class="workload-status" [attr.data-status]="dog.workload_status">{{ statusLabel(dog.workload_status) }}</span><small>{{ dog.last_work_date ? ('Last ' + (dog.last_work_date | date: 'MMM d')) : 'No starts' }}</small></div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="inline-empty"><strong>No dogs match these filters</strong><span>Clear the search or class filter to restore the workload population.</span></div>
+        }
+      </section>
+    }
+  }
+}
+}

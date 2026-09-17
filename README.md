@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P7 application foundation
+## P8 application foundation
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -21,7 +21,7 @@ reference project.
   fictional dogs
 - persistent desktop application sidebar, accessible mobile drawer, and standard/wide
   content modes ready for later operational modules
-- responsive `/dogs`, `/archive`, `/kennel`, `/daily`, `/daily-entry`, and deep-linked
+- responsive `/dogs`, `/archive`, `/kennel`, `/daily`, `/daily-entry`, `/analytics`, and deep-linked
   `/dogs/:dogId` product routes
 - server-supported registry/archive search, domain filters, and focused sorting
 - one lifecycle-aware Dog Profile with Overview, Pedigree, Work, and History views
@@ -40,11 +40,14 @@ reference project.
   workload context, pair constraints, manual refinement, and explicit rebuild safety
 - canonical Daily Entry over the existing actual ledger, including plan confirmation,
   manual sessions, reopened correction, plan deviation, dated housing, and dog finding
+- effective-dated Population analytics plus actual-ledger Workload analytics with
+  canonical KPIs, weekly trends, role/distance mix, class-aware attention signals,
+  streaks, and Dog Profile drill-down
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-The next product package is P8 Analytics. Plans and saved teams remain intentions; only
-Daily Entry `WorkSession`/`WorkParticipation` rows are workload truth. See
+The next product package is P9 Dashboard. Plans and saved teams remain intentions; only
+Daily Entry `WorkSession`/`WorkParticipation` rows are workload truth for analytics. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Demo time
@@ -83,6 +86,9 @@ Then open:
 - Team Builder opens from a Training activity on Daily Plan
 - Daily Entry: <http://localhost:4300/daily-entry>
 - Daily Entry API: <http://localhost:8030/api/v1/daily-entry/2026-03-31>
+- Analytics: <http://localhost:4300/analytics>
+- Population snapshot API: <http://localhost:8030/api/v1/analytics/population?date=2026-03-31>
+- Workload overview API: <http://localhost:8030/api/v1/analytics/overview?from=2025-12-01&to=2026-03-31>
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is

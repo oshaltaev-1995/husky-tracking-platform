@@ -318,6 +318,33 @@ Actual sled work has a hard reusable ceiling of 30 km per dog per calendar date.
 semantic validator call it, and P5/P7 must call the same policy before saving planned or
 actual participation.
 
+### Analytics workspace
+
+P8 adds the read-only `/analytics` wide workspace with Population and Workload areas.
+The reload-safe Workload range uses `from`/`to` query parameters; Population uses a
+dated `view=population&date=...` snapshot. Invalid values normalize inside the demo
+season. Angular consumes explicit projections rather than recomputing domain state from
+a raw dog list.
+
+`AnalyticsService` performs two bounded actual-ledger projections plus bounded
+select-in loading of all dog histories. It never queries per dog and never reads Daily
+Plan or Planned Team rows. Shared participation-distance summarization keeps Dog Profile
+and kennel analytics totals identical. No cache or materialized summary means P7
+create/edit/delete mutations appear on the next read.
+
+Workload overview returns semantic KPIs, zero-filled Monday–Sunday weeks, 5/10 km and
+recorded-role breakdowns, and class/eligible-day-normalized attention lists. The dog
+projection intentionally includes relevant zero-start and archived historical dogs,
+then adds selected-range streaks and end-date state/housing context. Lightweight
+DOM/CSS charts retain exact textual values and responsive dog cards replace the desktop
+row layout below the tablet breakpoint.
+
+Population uses the same `EffectiveDogState` resolver as Map/Profile/Plan for lifecycle,
+class, availability, and housing. The API returns headline lifecycle counts plus
+server-computed age bands, birth cohorts, sex, class, neuter, availability, capability,
+and housing-area distributions. Cohorts show represented active and archived history;
+the other distributions describe active dogs at the selected snapshot date.
+
 ## Configuration and environments
 
 Pydantic Settings reads environment values. `.env.example` documents safe local

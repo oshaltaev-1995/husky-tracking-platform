@@ -303,29 +303,41 @@ drill-down. Plan and team tables are optional comparison context, never workload
 
 ## P8 — Analytics and workload intelligence
 
+**Status:** completed. P8 delivers `/analytics` with effective-dated Population and
+actual-ledger Workload areas, reload-safe ranges/snapshot dates, compact KPI and
+distribution views, Monday–Sunday trends, class-aware attention, streaks, role/distance
+mix, and Dog Profile drill-down. It adds no schema or competing workload truth.
+
 **Objective:** turn canonical actual work into clear kennel and individual insights.
 
 **Required behavior:** dogs worked, starts, total km, average km per working dog, per-dog
 distribution, weekly comparison, underused/high-use dogs, work/rest streaks, and
 individual history for selected periods.
 
-**Backend:** aggregate query services over WorkParticipation, explicit meaningful-work rules,
-period comparison, stable thresholds/configuration, optional export endpoints only when
-they strengthen the demo.
+**Backend:** bounded projections over WorkSession/WorkParticipation, shared profile
+distance summarization, explicit metric/streak semantics, stable eligible-day/class-peer
+attention thresholds, and an EffectiveDogState-based population snapshot.
 
-**Frontend:** overview metrics, accessible tables/charts, period controls, definitions,
-drill-down to dogs, honest empty/partial-period handling.
+**Frontend:** Population/Workload navigation, snapshot/range controls, accessible compact
+charts and exact values, responsive dog workload rows/cards, query-state restoration,
+drill-down, and honest empty/partial-period handling.
 
-**Data/migrations:** query indexes; materialization only after profiling. Never add a
-competing work ledger.
+**Data/migrations:** none. Existing indexes and the small deterministic world support
+bounded live derivation; materialization was neither needed nor introduced.
 
-**Tests:** hand-calculated fixtures, week boundaries, starts versus dogs-worked semantics,
-zero/rest rows, no double counting, chart/table equivalence, accessibility.
+**Tests:** hand-calculated starts/dog-km, multiple starts per worked day, week boundaries
+and zero weeks, actual-only/edit/delete behavior, future exclusion, profile agreement,
+effective eligibility/streaks, Population sums/ages/birth/class/lifecycle boundaries,
+Map/registry consistency, bounded queries, UI ranges/tabs/filtering/empty/error states.
 
 **Acceptance:** every displayed aggregate traces to canonical work and agrees across
 profile, entry, and analytics views.
 
 **Exclusions:** no predictive ML or production-specific export pack.
+
+**P9 handoff:** Dashboard may compose current population counts, actual workload KPIs,
+weekly trend, attention signals, Daily Plan context, and dated Map/housing context from
+existing read services. It must not duplicate any metric or effective-state rule.
 
 ## P9 — Dashboard and integrated UX
 

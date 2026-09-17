@@ -68,6 +68,7 @@ export class AppComponent {
         { label: 'Daily Entry', route: '/daily-entry', mark: 'E' },
       ],
     },
+    { label: 'Insights', items: [{ label: 'Analytics', route: '/analytics', mark: 'I' }] },
     { label: 'Records', items: [{ label: 'Archive', route: '/archive', mark: 'A' }] },
   ];
 

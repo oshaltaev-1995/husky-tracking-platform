@@ -63,6 +63,11 @@ These instructions apply to the entire repository.
   eligibility and housing on the selected historical date, preserve plan/actual
   independence, and enforce the shared 30 km actual limit on every mutation. Runtime
   actual edits may change the live checksum; full reset must restore the baseline hash.
+- Analytics is the read-only `/analytics` wide workspace. Population snapshots reuse
+  effective lifecycle/class/availability/housing on the selected date; workload totals
+  use actual `WorkSession`/`WorkParticipation` rows only. Planned/not-run work is never
+  counted, weeks run Monday–Sunday, and attention rules normalize by eligible days and
+  class peers rather than comparing Puppy/Junior dogs with working adults.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a
