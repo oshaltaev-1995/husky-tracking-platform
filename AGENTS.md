@@ -74,7 +74,9 @@ These instructions apply to the entire repository.
 - Dog media uses one optional canonical `photo_key` per Dog. Keys are UUID-based WebP
   filenames served from `/media/dogs/`; absent or failed assets use the shared local
   placeholder. The `dog-media-v1` manifest is separate from the domain dataset, and
-  real, stock, scraped, or reference-repository dog photographs are prohibited.
+  real, stock, scraped, or reference-repository dog photographs are prohibited. The
+  canonical seed activates all 60 validated portraits; media keys remain outside the
+  domain semantic checksum.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a

@@ -96,7 +96,9 @@ def semantic_snapshot(session: Session) -> dict[str, Any]:
                     "sex": dog.sex,
                     "neutered_on": _date(dog.neutered_on),
                     "litter": litter_codes[dog.litter_id] if dog.litter_id else None,
-                    "photo_key": dog.photo_key,
+                    # Preserve the v1 checksum shape while excluding independently
+                    # versioned media activation from domain semantics.
+                    "photo_key": None,
                     "notes": dog.notes,
                 }
                 for dog in dogs

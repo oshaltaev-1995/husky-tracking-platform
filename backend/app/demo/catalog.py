@@ -68,6 +68,11 @@ class DogSpec:
     def public_id(self) -> UUID:
         return uuid5(DEMO_NAMESPACE, f"{DEMO_DATASET_VERSION}:dog:{self.name}")
 
+    @property
+    def photo_key(self) -> str:
+        """Return the canonical media filename owned by this stable dog identity."""
+        return f"{self.public_id}.webp"
+
 
 @dataclass(frozen=True, slots=True)
 class LitterSpec:

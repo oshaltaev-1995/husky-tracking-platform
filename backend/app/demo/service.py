@@ -122,7 +122,7 @@ def seed_demo_world(
             sex=spec.sex.value,
             is_neutered=spec.neutered_on is not None,
             neutered_on=spec.neutered_on,
-            photo_key=None,
+            photo_key=spec.photo_key,
             notes="Fictional canonical demo dog.",
         )
         session.add(dog)

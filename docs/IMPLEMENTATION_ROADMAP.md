@@ -406,7 +406,9 @@ procedural fake photos; no carousel, upload, editor, gallery, or P11 work.
 
 ## P10B — Generated portrait ingestion and visual acceptance
 
-**Status:** pending generated image assets.
+**Status:** completed. Exactly 60 generated WebP portraits were structurally validated,
+individually reviewed, activated, and integrated without re-encoding or non-media
+domain changes.
 
 **Objective:** generate, review, optimize, and integrate exactly one coherent synthetic
 snow portrait for every one of the 60 manifest identities.
@@ -419,6 +421,10 @@ Archive; desktop/tablet/mobile layouts and bandwidth meet the documented budget.
 portrait with credible age/anatomy/family resemblance, no source/privacy issue, and no
 fallback or failed asset. Follow `docs/P10B_MEDIA_HANDOFF.md`; do not mark full P10
 complete earlier.
+
+**Data/migrations:** no migration. Seeded `photo_key` values are deterministic UUID
+filenames; media activation is separately versioned and excluded from the immutable
+domain checksum, which remains the canonical P2–P9 value.
 
 **Exclusions:** no carousel, gallery, user upload/editor, regeneration UI, real media,
 or P11 marketing work.

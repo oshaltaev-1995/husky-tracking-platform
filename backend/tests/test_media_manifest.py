@@ -20,6 +20,7 @@ from app.media.validation import (
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_PATH = REPOSITORY_ROOT / "docs" / "dog-media-manifest.json"
+ASSET_DIRECTORY = REPOSITORY_ROOT / "frontend" / "public" / "media" / "dogs"
 
 
 def _manifest(payload: dict[str, Any] | None = None) -> DogMediaManifest:
@@ -52,6 +53,13 @@ def test_committed_manifest_matches_all_canonical_dogs() -> None:
     assert sum(dog.lifecycle == "active" for dog in manifest.dogs) == 50
     assert sum(dog.lifecycle == "archived" for dog in manifest.dogs) == 10
     assert len({dog.target_filename for dog in manifest.dogs}) == 60
+
+
+def test_committed_portraits_match_the_strict_asset_contract() -> None:
+    manifest = load_manifest(MANIFEST_PATH)
+    report = validate_assets(manifest, ASSET_DIRECTORY, require_all=True, strict=True)
+    assert report.expected_files == report.found_files == 60
+    assert report.maximum_size_kb < 500
 
 
 def test_manifest_rejects_missing_dog() -> None:

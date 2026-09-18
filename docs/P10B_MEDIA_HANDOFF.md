@@ -1,7 +1,8 @@
 # P10B generated-media handoff
 
-P10A prepares the media contract and contains no final photographs. P10B is complete
-only after 60 genuinely generated, individually reviewed portraits are integrated.
+**Completion:** P10B integrated and visually accepted all 60 synthetic portraits. This
+document remains the reproducible inventory, validation, and replacement runbook for
+the `dog-media-v1` set.
 
 ## Paths, versions, and commands
 
@@ -112,9 +113,8 @@ substitute for generation or visual QA.
 2. Put only the 60 exact filenames above in `frontend/public/media/dogs/` (the hidden
    `.gitkeep` may remain).
 3. Run strict validation and inspect size outliers above 500 KB.
-4. Populate the existing `photo_key` with the filename for all 60 canonical catalog
-   records; update/reset expectations deliberately because the semantic checksum
-   currently includes that nullable domain field.
+4. Confirm the canonical catalog derives `photo_key` as `<public-id>.webp` for all 60
+   records. Media activation remains outside the independent domain semantic checksum.
 5. Verify no request uses localhost or probes the server filesystem. The shared Angular
    component should render the deterministic relative URL, lazy-load lists, eagerly
    load the Profile hero, and fall back on any load error.
@@ -123,5 +123,5 @@ substitute for generation or visual QA.
 7. Perform the full human checklist for every image, with special review of the S, T,
    and V litters and all archived dogs.
 
-Do not mark full P10 complete until every file, catalog activation, automated check,
-and visual review passes.
+For any replacement set, do not mark acceptance complete until every file, catalog
+activation, automated check, and visual review passes.

@@ -85,7 +85,7 @@ def build_manifest() -> dict[str, Any]:
                 "mother": _parent(litter.mother if litter else None),
                 "father": _parent(litter.father if litter else None),
                 "lifecycle": "archived" if dog.name in ARCHIVE_SPECS else "active",
-                "target_filename": f"{dog.public_id}.webp",
+                "target_filename": dog.photo_key,
                 "visual_traits": {
                     "coat_base": identity.coat_base,
                     "coat_secondary": identity.coat_secondary,

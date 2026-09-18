@@ -369,7 +369,7 @@ column with textual chart values and no page-level horizontal overflow.
 
 ### Synthetic dog media
 
-P10A keeps one media identity per stable Dog UUID without adding a gallery or probing
+P10 keeps one media identity per stable Dog UUID without adding a gallery or probing
 the filesystem during API reads. `Dog.photo_key` is the nullable activation contract;
 the existing read DTOs expose it unchanged. A null or unsafe key renders the polished
 placeholder and makes no image request. An activated key must be exactly
@@ -388,8 +388,10 @@ is the simple cache-invalidation boundary for a curated replacement set.
 `winter-2025-2026-v1`. The media CLI validates canonical ownership, filenames, required
 traits, pedigree/litter mapping, WebP container structure, exact 1086×1448 dimensions,
 and file-size distribution. It does not claim to automate subjective anatomy or source
-review; those remain explicit P10B human gates. P10A intentionally ships no photograph
-and leaves all seed `photo_key` values null, so the domain checksum is unchanged.
+review; those remain explicit human gates. P10B ships 60 reviewed synthetic portraits
+and deterministically seeds all 60 UUID filenames. Media keys are deliberately excluded
+from the domain semantic checksum, so the canonical world hash remains stable while
+`dog-media-v1` versions the independent visual artifact set.
 
 ## Configuration and environments
 

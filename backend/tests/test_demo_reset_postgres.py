@@ -13,6 +13,7 @@ from app.demo.catalog import (
     EXPECTED_SEMANTIC_CHECKSUM,
     FORBIDDEN_STREAMLIT_NAMES,
 )
+from app.demo.semantic import semantic_checksum
 from app.demo.service import reset_demo_world
 from app.demo.validation import DemoValidationError, validate_demo_world
 from app.domain.workload import MAX_DAILY_DOG_DISTANCE_KM
@@ -98,6 +99,11 @@ def test_two_postgres_resets_have_identical_semantic_checksum() -> None:
     assert report_b.max_daily_dog_distance_km == 10
     assert report_b.max_daily_dog_distance_km <= MAX_DAILY_DOG_DISTANCE_KM
 
+    with SessionLocal() as session:
+        seeded_dogs = session.scalars(select(Dog).order_by(Dog.name)).all()
+        assert len(seeded_dogs) == 60
+        assert all(dog.photo_key == f"{dog.public_id}.webp" for dog in seeded_dogs)
+
     response = TestClient(app).get("/api/v1/demo-dataset")
     assert response.status_code == 200
     assert response.json() == {
@@ -107,6 +113,17 @@ def test_two_postgres_resets_have_identical_semantic_checksum() -> None:
         "archived_dogs": 10,
         "semantic_checksum": EXPECTED_SEMANTIC_CHECKSUM,
     }
+
+
+def test_media_activation_is_outside_the_domain_semantic_checksum() -> None:
+    with SessionLocal() as session:
+        aurora = session.scalar(select(Dog).where(Dog.name == "Aurora"))
+        assert aurora is not None
+        checksum_before = semantic_checksum(session)
+        aurora.photo_key = None
+        session.flush()
+        assert semantic_checksum(session) == checksum_before
+        session.rollback()
 
 
 def test_seeded_postgres_population_excludes_owner_forbidden_names() -> None:

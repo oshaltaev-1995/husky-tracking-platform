@@ -12,10 +12,16 @@ from app.demo.catalog import (
 
 def test_curated_catalog_has_canonical_population_and_no_forbidden_names() -> None:
     names = [dog.name for dog in DOG_SPECS]
+    photo_keys = [dog.photo_key for dog in DOG_SPECS]
 
     assert DEMO_DATASET_VERSION == "winter-2025-2026-v1"
     assert len(names) == 60
     assert len(set(names)) == 60
+    assert len(set(photo_keys)) == 60
+    assert all(
+        key == f"{dog.public_id}.webp"
+        for key, dog in zip(photo_keys, DOG_SPECS, strict=True)
+    )
     assert set(names).isdisjoint(FORBIDDEN_STREAMLIT_NAMES)
     assert Counter(dog.birth_date.year for dog in DOG_SPECS) == {
         2016: 4,

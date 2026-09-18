@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## P10A application foundation
+## Application foundation through P10
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -31,8 +31,8 @@ reference project.
 - one reusable Dog media component with a stable 3:4 frame, nullable activation,
   versioned static URL, lazy/eager loading policy, accessible alt text, and load-error
   fallback
-- complete `dog-media-v1` generation manifest for all 60 synthetic dogs, including
-  pedigree-aware visual identities and strict P10B asset validation
+- complete `dog-media-v1` portrait set for all 60 synthetic dogs, including
+  pedigree-aware visual identities, strict asset validation, and responsive media
 - semantic validation and checksum independent of database identities and timestamps
 - reusable actual-work guardrail enforcing at most 30 km per dog per calendar date
 - historical Kennel Map snapshots with A1/A2/B1/B2 rows, two puppy buildings,
@@ -52,9 +52,9 @@ reference project.
 - linting, typing, build, and test infrastructure
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-P10A is complete without adding fake or sourced photographs; P10B remains responsible
-for generating, reviewing, optimizing, activating, and visually accepting all 60 final
-WebPs. Plans and saved teams remain intentions; only Daily Entry
+P10 is complete with 60 synthetic, UUID-owned, individually reviewed WebP portraits;
+no real, stock, scraped, or reference-repository photograph is used. Plans and saved
+teams remain intentions; only Daily Entry
 `WorkSession`/`WorkParticipation` rows are workload truth for analytics and the
 Dashboard. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
@@ -127,17 +127,18 @@ uv run python -m app.demo.inspect
 The reset report includes cohorts, litters/parents, class and archive distributions,
 current statuses, housing-history coverage, seasonal workload range, maximum daily dog
 workload, and the semantic checksum.
-The checksum covers the canonical world (including baseline work sessions and starts)
+The checksum covers the canonical domain world (including baseline work sessions and starts)
 after sorting and replacing database keys with stable names/codes. It excludes mutable
-Daily Plan/Team rows, generated timestamps, and PostgreSQL metadata. Runtime Daily Entry
+Daily Plan/Team rows, generated timestamps, PostgreSQL metadata, and the separately
+versioned media activation keys. Runtime Daily Entry
 edits intentionally change the live semantic checksum because actual work is canonical
 truth. Demo reset clears plans/teams, reconstructs the baseline actual ledger, and
 restores `2ad3418ecb5edad1d4676a9a6e0cf43b2cfbfa167c0218e96d9749fd12e24af2`.
 
 ## Synthetic dog media
 
-P10A keeps final media deliberately absent while the app remains fully usable through
-its polished placeholder. The canonical identity contract is
+P10 integrates one canonical synthetic portrait for every dog while retaining the
+polished placeholder as a load-failure safeguard. The canonical identity contract is
 [`docs/dog-media-manifest.json`](docs/dog-media-manifest.json), the shared generation
 rules are in
 [`docs/DOG_IMAGE_GENERATION_GUIDE.md`](docs/DOG_IMAGE_GENERATION_GUIDE.md), and the
@@ -158,7 +159,9 @@ uv run python -m app.media.validate --require-assets --strict-assets
 ```
 
 The media manifest version `dog-media-v1` is independent of the domain dataset version.
-No image bytes or base64 payloads are stored in PostgreSQL or API responses.
+All 60 seed `photo_key` values are deterministic UUID WebP filenames; activation remains
+outside the domain semantic checksum. No image bytes or base64 payloads are stored in
+PostgreSQL or API responses.
 
 ## Local checks
 

@@ -218,5 +218,6 @@ Tests and the seed validator enforce:
   zero Puppy/Junior workload, and no dog/date total above 30 km;
 - two PostgreSQL resets yielding the expected identical semantic checksum.
 
-P10, not P2, generates dog images. `photo_key` remains null and the frontend retains
-the neutral placeholder strategy.
+P10 supplies one validated synthetic portrait per dog. Every canonical `photo_key` is
+the dog's UUID-based WebP filename; the frontend retains its neutral placeholder only
+as a missing/load-failure safeguard. Media activation is outside the domain checksum.
