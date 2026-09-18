@@ -26,7 +26,7 @@ def get_demo_workspace(
     token: str | None = Cookie(default=None, alias=COOKIE_NAME),
 ) -> DemoWorkspaceContext:
     with SessionLocal.begin() as session:
-        workspace = resolve_workspace(session, token)
+        workspace = resolve_workspace(session, token, settings.demo_session_secret)
         if workspace is not None:
             session.expunge(workspace)
             response.headers["X-Demo-Session-State"] = "active"
@@ -34,7 +34,11 @@ def get_demo_workspace(
                 workspace.expires_at.isoformat()
             )
             return DemoWorkspaceContext(workspace, False, False)
-        issued = create_workspace(session, settings.demo_workspace_ttl_hours)
+        issued = create_workspace(
+            session,
+            settings.demo_workspace_ttl_hours,
+            settings.demo_session_secret,
+        )
         session.expunge(issued.workspace)
     response.set_cookie(
         key=COOKIE_NAME,

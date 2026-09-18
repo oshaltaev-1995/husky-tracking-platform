@@ -8,11 +8,19 @@ def test_reset_refuses_production() -> None:
     settings = Settings(
         _env_file=None,
         app_env="production",
+        public_base_url="https://huskytracking.com",
+        database_url="postgresql+psycopg://app:strong@db:5432/husky_tracking",
+        cors_origins=["https://huskytracking.com"],
+        allowed_hosts=["huskytracking.com"],
         demo_reset_enabled=True,
         demo_cookie_secure=True,
+        demo_origin_check_enabled=True,
+        demo_session_secret="a-strong-production-session-secret-12345",
+        privacy_controller_name="Example controller",
         privacy_contact_email="privacy@example.com",
         privacy_controller_country="Example EEA country",
         privacy_hosting_region="Example EEA region",
+        contact_delivery_mode="disabled",
     )
 
     with pytest.raises(DemoResetNotAllowedError, match="production"):

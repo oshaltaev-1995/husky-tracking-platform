@@ -49,6 +49,8 @@ def test_demo_cookie_is_opaque_scoped_and_hardened() -> None:
     assert "HttpOnly" in cookie
     assert "SameSite=lax" in cookie
     assert "Path=/api/v1" in cookie
+    assert response.headers["Cache-Control"] == "no-store"
+    assert response.headers["Pragma"] == "no-cache"
     token = client.cookies.get("ht_demo_session")
     assert token is not None and len(token) >= 40
     with SessionLocal() as session:
@@ -62,10 +64,18 @@ def test_production_cookie_is_secure() -> None:
     settings = Settings(
         _env_file=None,
         app_env="production",
+        public_base_url="https://huskytracking.com",
+        database_url="postgresql+psycopg://app:strong@db:5432/husky_tracking",
+        cors_origins=["https://huskytracking.com"],
+        allowed_hosts=["huskytracking.com"],
         demo_cookie_secure=True,
+        demo_origin_check_enabled=True,
+        demo_session_secret="a-strong-production-session-secret-12345",
+        privacy_controller_name="Example controller",
         privacy_contact_email="privacy@example.com",
         privacy_controller_country="Example EEA country",
         privacy_hosting_region="Example EEA region",
+        contact_delivery_mode="disabled",
     )
     app.dependency_overrides[get_settings] = lambda: settings
     response = TestClient(app).get("/api/v1/demo/session")
@@ -296,7 +306,9 @@ def test_tampered_token_cannot_resolve_existing_workspace() -> None:
 
 def test_concurrent_first_materialization_creates_one_workspace_day() -> None:
     with SessionLocal.begin() as session:
-        workspace_id = create_workspace(session, 24).workspace.id
+        workspace_id = create_workspace(
+            session, 24, get_settings().demo_session_secret
+        ).workspace.id
 
     def materialize() -> None:
         with SessionLocal.begin() as session:

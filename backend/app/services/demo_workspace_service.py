@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -32,15 +33,17 @@ class WorkspaceToken:
     token: str
 
 
-def token_digest(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+def token_digest(token: str, secret: str) -> str:
+    return hmac.new(
+        secret.encode("utf-8"), token.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
 
 
-def create_workspace(session: Session, ttl_hours: int) -> WorkspaceToken:
+def create_workspace(session: Session, ttl_hours: int, secret: str) -> WorkspaceToken:
     token = secrets.token_urlsafe(32)
     now = datetime.now(UTC)
     workspace = DemoWorkspace(
-        token_hash=token_digest(token),
+        token_hash=token_digest(token, secret),
         schema_version=WORKSPACE_SCHEMA_VERSION,
         created_at=now,
         expires_at=now + timedelta(hours=ttl_hours),
@@ -50,13 +53,15 @@ def create_workspace(session: Session, ttl_hours: int) -> WorkspaceToken:
     return WorkspaceToken(workspace=workspace, token=token)
 
 
-def resolve_workspace(session: Session, token: str | None) -> DemoWorkspace | None:
+def resolve_workspace(
+    session: Session, token: str | None, secret: str
+) -> DemoWorkspace | None:
     if not token or not 20 <= len(token) <= 200:
         return None
     now = datetime.now(UTC)
     return session.scalar(
         select(DemoWorkspace).where(
-            DemoWorkspace.token_hash == token_digest(token),
+            DemoWorkspace.token_hash == token_digest(token, secret),
             DemoWorkspace.expires_at > now,
             DemoWorkspace.schema_version == WORKSPACE_SCHEMA_VERSION,
         )

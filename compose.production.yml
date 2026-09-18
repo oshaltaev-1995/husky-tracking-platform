@@ -1,0 +1,107 @@
+name: husky-tracking-production
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    volumes:
+      - production-postgres-data:/var/lib/postgresql
+
+  backend:
+    build:
+      context: ./backend
+      target: production
+    environment:
+      APP_ENV: production
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:?ALLOWED_HOSTS is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-5}
+      DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-30}
+      DB_POOL_RECYCLE_SECONDS: ${DB_POOL_RECYCLE_SECONDS:-1800}
+      DEMO_SEASON_START: ${DEMO_SEASON_START:-2025-12-01}
+      DEMO_SEASON_END: ${DEMO_SEASON_END:-2026-03-31}
+      DEMO_REFERENCE_DATE: ${DEMO_REFERENCE_DATE:-2026-03-31}
+      DEMO_RESET_ENABLED: "false"
+      DEMO_WORKSPACE_TTL_HOURS: ${DEMO_WORKSPACE_TTL_HOURS:-24}
+      DEMO_SESSION_SECRET: ${DEMO_SESSION_SECRET:?DEMO_SESSION_SECRET is required}
+      DEMO_COOKIE_SECURE: "true"
+      DEMO_ORIGIN_CHECK_ENABLED: "true"
+      PRIVACY_CONTROLLER_NAME: ${PRIVACY_CONTROLLER_NAME:?PRIVACY_CONTROLLER_NAME is required}
+      PRIVACY_CONTACT_EMAIL: ${PRIVACY_CONTACT_EMAIL:?PRIVACY_CONTACT_EMAIL is required}
+      PRIVACY_CONTROLLER_COUNTRY: ${PRIVACY_CONTROLLER_COUNTRY:?PRIVACY_CONTROLLER_COUNTRY is required}
+      PRIVACY_HOSTING_REGION: ${PRIVACY_HOSTING_REGION:?PRIVACY_HOSTING_REGION is required}
+      PRIVACY_EFFECTIVE_DATE: ${PRIVACY_EFFECTIVE_DATE:-2026-09-18}
+      PRIVACY_MAIL_PROVIDER_NAME: ${PRIVACY_MAIL_PROVIDER_NAME:-}
+      PRIVACY_MAIL_PROVIDER_REGION: ${PRIVACY_MAIL_PROVIDER_REGION:-}
+      CONTACT_DELIVERY_MODE: ${CONTACT_DELIVERY_MODE:-disabled}
+      CONTACT_RECIPIENT_EMAIL: ${CONTACT_RECIPIENT_EMAIL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      SMTP_USE_SSL: ${SMTP_USE_SSL:-false}
+      SMTP_TIMEOUT_SECONDS: ${SMTP_TIMEOUT_SECONDS:-10}
+    command:
+      - /opt/venv/bin/uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "${UVICORN_WORKERS:-2}"
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+      - --no-access-log
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        - CMD
+        - /opt/venv/bin/python
+        - -c
+        - "import urllib.request; request=urllib.request.Request('http://127.0.0.1:8000/api/v1/ready', headers={'Host':'huskytracking.com'}); urllib.request.urlopen(request, timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    environment:
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${PUBLIC_HTTP_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  production-postgres-data:

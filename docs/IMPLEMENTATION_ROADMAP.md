@@ -491,33 +491,45 @@ and remaining production controls.
 transfer, mailbox-retention, and log-retention configuration; validate TLS, headers,
 proxy redaction, CSRF/origin policy, rate limits, and cross-browser expiry in deployment.
 
-## P12 — Production-demo hardening
+## P12A — Production readiness and repository security baseline
 
-**Objective:** make deployment repeatable, safe, observable, resettable, and acceptance
-tested.
+**Status:** completed. The canonical production origin is
+`https://huskytracking.com`; live infrastructure remains intentionally unconfigured.
 
-**Required behavior:** controlled deterministic reset, immutable builds, HTTPS/reverse
-proxy readiness, database migrations, backups/restore, health/readiness, logs/metrics,
-security baseline, responsive/accessibility/SEO acceptance, rollback runbook.
+**Repository controls:** explicit development/test/production settings, fail-fast
+production URL/session/cookie/privacy/SMTP/database validation, allowed hosts,
+canonical-origin CORS and cookie-mutation Origin checks, HMAC session digests, safe
+request IDs/log fields, no-store APIs, production-disabled interactive OpenAPI, and
+database-backed multi-worker correctness.
 
-**Backend:** production settings validation, restricted reset command, readiness,
-structured logging, error policy, request limits/security review, migration release step.
+**Delivery shape:** `compose.production.yml` publishes only frontend/Nginx; FastAPI and
+PostgreSQL remain on the private network. Nginx owns same-origin `/api`, SPA/media
+serving, restrictive CSP/security headers, body bounds, compression, and separate
+immutable/static versus no-store cache policy. Production Angular source maps are off
+and runtime `PUBLIC_BASE_URL` drives canonical metadata without breaking localhost.
 
-**Frontend:** production config, caching/security headers, final performance and browser
-QA, error/recovery experience.
+**Operations:** liveness/readiness are distinct; Alembic and non-destructive first-time
+initialization are explicit jobs; web startup never seeds/resets. The P12B runbook
+documents hourly cleanup, trusted forwarding, proxy rate-limit defaults, resources,
+logs/retention, backup/restore rehearsal, rollback, monitoring, DNS/TLS/HSTS gates, and
+first/repeat deployment sequences.
 
-**Data/migrations:** production migration rehearsal, seed/reset preservation policy,
-backup/restore verification, media backup strategy.
+**Data/migrations:** no domain migration and no seed/media mutation. Baseline checksum,
+workspace-reset semantics, and 60 portraits remain unchanged.
 
-**Tests:** clean deploy, upgrade, rollback, reset checksum, backup restore, container
-smoke, dependency/image scan, OWASP-oriented checks, accessibility audit, Core Web
-Vitals/performance budget, full acceptance suite.
+## P12B — Live infrastructure deployment
 
-**Acceptance:** documented one-command/release-pipeline deployment can be reproduced;
-reset cannot leak or destroy out-of-scope data; all product and privacy requirements
-pass; the repository is safe to publish.
+**Status:** open. Execute `PRODUCTION_DEPLOYMENT.md` only after VPS/provider details and
+real secrets are available.
 
-**Exclusions:** no scale infrastructure unsupported by measured demo needs.
+**Remaining external work:** server/OS capacity preparation, private environment and
+database credentials, production SMTP/provider facts, DNS A/AAAA and optional `www`,
+certificate/renewal, HTTP→HTTPS and optional `www` redirects, post-acceptance HSTS,
+public proxy/firewall/rate limits, actual log rotation, cleanup/backup schedulers,
+monitoring, restore rehearsal, and real-domain security/performance/accessibility QA.
+
+**Exclusions:** no unsupported scale infrastructure and no claim of a live public
+deployment until every go-live gate passes.
 
 ## Completion discipline
 

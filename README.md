@@ -5,11 +5,12 @@ demonstration built entirely from fictional data. Its core product loop is:
 
 **Kennel Map → Dog Profile → Daily Plan → Team Builder → Daily Entry → Analytics**
 
-The intended public hostname is `huskytracking.com`; domain purchase and DNS are not
-assumed. This repository is a new implementation, not a migration or copy of either
-reference project.
+The canonical production hostname is `huskytracking.com`. P12A prepares the repository
+for deployment; DNS, TLS, VPS, firewall, scheduler, backup, monitoring, and real SMTP
+configuration remain explicit P12B operator work. This repository is a new
+implementation, not a migration or copy of either reference project.
 
-## Product foundation through P11.5
+## Product foundation through P12A
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -56,6 +57,8 @@ reference project.
   non-persistent validated contact delivery abstraction
 - anonymous 24-hour demo workspaces with date-level copy-on-write isolation, scoped
   reset, expiry cleanup, and baseline-only checksum semantics
+- production-safe same-origin configuration, strict startup validation, private
+  Compose networking, readiness/health checks, response hardening, and a P12B runbook
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
 P11 adds the public product presentation while preserving the mature application. P10
@@ -102,6 +105,7 @@ Then open:
 - Archive: <http://localhost:4300/demo/archive>
 - Dashboard projection API: <http://localhost:8030/api/v1/dashboard?date=2026-03-31>
 - API health: <http://localhost:8030/api/v1/health>
+- API readiness: <http://localhost:8030/api/v1/ready>
 - dataset summary: <http://localhost:8030/api/v1/demo-dataset>
 - dogs registry API: <http://localhost:8030/api/v1/dogs>
 - archive API: <http://localhost:8030/api/v1/archive>
@@ -130,9 +134,9 @@ The public route shell is distinct from the operational demo shell. Old links su
 preserving identity and query state. Both shells use the same Angular bundle and Nginx
 SPA fallback, so direct refreshes remain valid.
 
-The intended hostname is `https://huskytracking.com`, but P11 does not claim that DNS or
-deployment is live. Route metadata, `robots.txt`, and `sitemap.xml` use this documented
-target; P12 finalizes the production host.
+The canonical production origin is `https://huskytracking.com`, but this repository
+does not claim that DNS or deployment is live. Runtime SEO configuration, `robots.txt`,
+and `sitemap.xml` use this production identity; local development uses its own origin.
 
 `POST /api/v1/contact` never stores messages in PostgreSQL. Local development defaults
 to `CONTACT_DELIVERY_MODE=sink`, which accepts the flow and logs only field-length
@@ -243,6 +247,20 @@ dogs, people, housing, notes, and generated assets. Never import production Kenn
 Operations data, photographs, exports, topology, customer records, employee names, or
 secrets.
 
+## Production preparation
+
+P12A adds `compose.production.yml` and a safe `.env.production.example`. Production
+publishes only the frontend/Nginx entrypoint; PostgreSQL and FastAPI remain private.
+Migrations and first-time baseline initialization are explicit release operations—web
+workers never migrate, seed, or reset on startup. Production settings reject insecure
+public URLs, cookie/session configuration, privacy placeholders, local databases, and
+incomplete/plaintext SMTP.
+
+See [`PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md) for first-deploy,
+redeploy, cleanup, backup/restore, rollback, trusted-proxy, rate-limit, and P12B go-live
+procedures. Do not use `.env.production.example` unchanged and never run the
+development reset against production.
+
 ## Canonical documentation
 
 - [`PRODUCT_SCOPE.md`](docs/PRODUCT_SCOPE.md)
@@ -251,5 +269,6 @@ secrets.
 - [`DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md)
 - [`ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - [`IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md)
+- [`PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md)
 - [`DOG_IMAGE_GENERATION_GUIDE.md`](docs/DOG_IMAGE_GENERATION_GUIDE.md)
 - [`P10B_MEDIA_HANDOFF.md`](docs/P10B_MEDIA_HANDOFF.md)

@@ -1,10 +1,12 @@
 from datetime import date
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
+from sqlalchemy import text
 
 from app.core.config import get_settings
 from app.core.demo_clock import DemoClock
+from app.db.session import SessionLocal
 
 router = APIRouter()
 
@@ -31,4 +33,30 @@ def health() -> HealthResponse:
         demo_season_start=clock.season_start,
         demo_season_end=clock.season_end,
         demo_reference_date=clock.reference_date,
+    )
+
+
+class ReadinessResponse(BaseModel):
+    status: str
+    service: str
+    version: str
+
+
+@router.get("/ready", response_model=ReadinessResponse)
+def ready(response: Response) -> ReadinessResponse:
+    settings = get_settings()
+    try:
+        with SessionLocal() as session:
+            session.execute(text("SELECT 1"))
+    except Exception:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return ReadinessResponse(
+            status="unavailable",
+            service=settings.app_name,
+            version=settings.app_version,
+        )
+    return ReadinessResponse(
+        status="ready",
+        service=settings.app_name,
+        version=settings.app_version,
     )

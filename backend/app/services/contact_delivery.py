@@ -76,12 +76,13 @@ class SmtpContactDelivery:
             f"Message:\n{message.message}"
         )
         try:
-            with smtplib.SMTP(
+            smtp_type = smtplib.SMTP_SSL if self.settings.smtp_use_ssl else smtplib.SMTP
+            with smtp_type(
                 host,
                 self.settings.smtp_port,
                 timeout=self.settings.smtp_timeout_seconds,
             ) as client:
-                if self.settings.smtp_starttls:
+                if self.settings.smtp_starttls and not self.settings.smtp_use_ssl:
                     client.starttls()
                 if self.settings.smtp_username:
                     client.login(

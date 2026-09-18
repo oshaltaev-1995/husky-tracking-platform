@@ -11,7 +11,7 @@
 .public-nav > a:not(.button) { border-radius: var(--radius-control); padding: var(--space-3); color: var(--text-secondary); font-size: .78rem; font-weight: 750; text-decoration: none; }
 .public-nav > a:not(.button):hover, .public-nav > a.active:not(.button) { color: var(--brand-strong); background: var(--surface-brand-soft); }
 .public-menu-button, .public-mobile-menu, .public-menu-backdrop { display: none; }
-.public-main { min-height: calc(100vh - 24rem); }
+.public-main { min-height: calc(100vh - 24rem); overflow-x: clip; }
 .public-footer { padding: var(--space-12) var(--page-gutter) var(--space-6); color: var(--text-sidebar); background: var(--surface-sidebar); }
 .public-footer-inner { display: grid; width: min(100%, 72rem); grid-template-columns: minmax(0, 1.5fr) minmax(16rem, .7fr); gap: var(--space-12); margin-inline: auto; }
 .public-footer .public-brand { color: var(--text-inverse); }

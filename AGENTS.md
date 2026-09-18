@@ -95,6 +95,13 @@ These instructions apply to the entire repository.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a
   production migration mechanism.
 - Use `.env.example` for public configuration; never commit secrets.
+- Production uses `https://huskytracking.com`, a same-origin `/api` proxy, host-only
+  Secure demo cookies, origin-checked cookie mutations, private backend/database
+  networking, and explicit migration/initialization jobs. Never migrate, seed, or reset
+  automatically in application startup. Follow `docs/PRODUCTION_DEPLOYMENT.md`.
+- Production API responses are `no-store`; static hashed/media assets may be cached.
+  Logs may include generated request IDs and request metadata, but never query strings,
+  cookies/tokens, Contact bodies, demo notes, database URLs, or credentials.
 
 ## Quality gates
 

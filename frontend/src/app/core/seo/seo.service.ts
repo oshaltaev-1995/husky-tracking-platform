@@ -5,7 +5,6 @@ import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
-export const PUBLIC_SITE_URL = 'https://huskytracking.com';
 const DEFAULT_DESCRIPTION =
   'Explore Husky Tracking, an independent demonstration of modern sled-dog kennel operations software.';
 const DEFAULT_SOCIAL_IMAGE =
@@ -40,9 +39,10 @@ export class SeoService {
         ? route.data['description']
         : DEFAULT_DESCRIPTION;
     const path = this.router.url.split('?')[0].split('#')[0];
-    const publicPath = path === '/' || ['/features', '/about', '/contact'].includes(path);
-    const canonicalUrl = `${PUBLIC_SITE_URL}${publicPath ? path : '/'}`;
-    const imageUrl = `${PUBLIC_SITE_URL}${DEFAULT_SOCIAL_IMAGE}`;
+    const publicPath = path === '/' || ['/features', '/about', '/contact', '/privacy'].includes(path);
+    const publicSiteUrl = this.publicSiteUrl();
+    const canonicalUrl = `${publicSiteUrl}${publicPath ? path : '/'}`;
+    const imageUrl = `${publicSiteUrl}${DEFAULT_SOCIAL_IMAGE}`;
 
     this.title.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });
@@ -57,6 +57,15 @@ export class SeoService {
     this.meta.updateTag({ name: 'twitter:description', content: description });
     this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
     this.updateCanonical(canonicalUrl);
+    this.updateStructuredData(publicSiteUrl);
+  }
+
+  private publicSiteUrl(): string {
+    const runtimeWindow = this.document.defaultView as
+      | (Window & { __HT_CONFIG__?: { publicBaseUrl?: string } })
+      | null;
+    const configured = runtimeWindow?.__HT_CONFIG__?.publicBaseUrl?.trim().replace(/\/$/, '');
+    return configured || this.document.location?.origin || 'http://localhost:4300';
   }
 
   private deepest(route: ActivatedRouteSnapshot): ActivatedRouteSnapshot {
@@ -73,5 +82,25 @@ export class SeoService {
       this.document.head.append(link);
     }
     link.href = url;
+  }
+
+  private updateStructuredData(publicSiteUrl: string): void {
+    let script = this.document.head.querySelector<HTMLScriptElement>('#ht-product-schema');
+    if (!script) {
+      script = this.document.createElement('script');
+      script.id = 'ht-product-schema';
+      script.type = 'application/ld+json';
+      this.document.head.append(script);
+    }
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Husky Tracking',
+      url: `${publicSiteUrl}/`,
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description:
+        'An independent interactive demonstration of modern sled-dog kennel operations software using fictional data.',
+    });
   }
 }

@@ -18,3 +18,14 @@ def test_health_contract_exposes_demo_clock() -> None:
         "demo_season_end": "2026-03-31",
         "demo_reference_date": "2026-03-31",
     }
+
+
+def test_readiness_checks_database_without_exposing_topology() -> None:
+    response = client.get("/api/v1/ready")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ready",
+        "service": "Husky Tracking API",
+        "version": "0.1.0",
+    }
