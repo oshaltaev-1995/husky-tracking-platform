@@ -164,16 +164,40 @@ seed/reset operation runs on ordinary application startup.
 ## Frontend architecture
 
 Angular uses standalone components, feature-route boundaries, strict templates, and
-typed API models. The app shell owns navigation and the visible demo-season marker.
-Each feature owns its pages, components, models, services, and focused utilities.
+typed API models. The root component owns only routing and metadata coordination.
+`PublicShellComponent` owns the editorial header/footer, while `DemoShellComponent`
+owns operational navigation and the visible demo-season marker. Each feature owns its
+pages, components, models, services, and focused utilities.
 
-P3 route boundaries are `/dogs`, `/archive`, and `/dogs/:dogId`. Dog Profile section
+Canonical P3 route boundaries are `/demo/dogs`, `/demo/archive`, and
+`/demo/dogs/:dogId`. Dog Profile section
 state is a `tab` query parameter, so pedigree/work/history views are deep-linkable. A
 single request bundle is retained while tabs change. Active and archived dogs render in
 the same profile composition; lifecycle changes only the projected state and visual
 context. Litter siblings come only from `Dog.litter_id`; parent sharing is not silently
 presented as litter siblinghood. The neutral `DogMediaComponent` owns the stable media
 aspect ratio and is the P10 image integration seam.
+
+### Public and demo route shells
+
+P11 separates marketing content from the operational product without duplicating
+either. Public routes are `/`, `/features`, `/about`, and `/contact`; the application
+is canonical under `/demo/...`, with `/demo` redirecting to `/demo/dashboard`.
+Pre-P11 paths remain redirect-only aliases and preserve parameters and query state.
+Unknown routes render the Public Shell's explicit 404 page rather than entering the
+demo. Nginx keeps a single SPA fallback, so public and demo deep-link refreshes resolve
+through the same production bundle.
+
+Public route data supplies distinct titles and descriptions. `SeoService` updates
+canonical, robots, Open Graph, and Twitter metadata on navigation using
+`https://huskytracking.com` as the intended base URL; P12 owns final host configuration.
+Static `robots.txt` indexes public pages while excluding `/demo`, and the sitemap lists
+only the four public routes. No tracking script or analytics cookie is included.
+
+The public pages reuse the token system and synthetic dog assets but do not render the
+operational sidebar. Their content explicitly identifies the project as an independent
+portfolio demonstration and discloses fictional records, synthetic work, AI-generated
+portraits, and resettable mutable state near demo entry.
 
 ### Application shell and Sass system
 
@@ -202,7 +226,7 @@ and cannot mutate housing or status.
 
 ### Historical Kennel Map
 
-P4 adds `/kennel` as a `.content-wide` route. `date` and `layer` query parameters make
+P4 adds `/demo/kennel` as a `.content-wide` route. `date` and `layer` query parameters make
 historical views reload-safe and shareable; invalid values normalize to the reference
 date and Default layer. Public browsing is constrained to `2025-12-01` through
 `2026-03-31`. Every snapshot resolves birth, lifecycle, class, availability, and
@@ -219,7 +243,7 @@ stack cells without page-wide horizontal scrolling. Default, Gender, Neutered, C
 and Unavailable are single-select presentation layers over the same payload. Text
 markers and compact legends accompany shared semantic colors. Search focuses a dated
 resident and outlines its enclosure; every resident name is a normal
-`/dogs/{public_id}` link.
+`/demo/dogs/{public_id}` link.
 
 The canonical archived dogs keep valid housing history, but their assignments all end
 before the public demo season. P4 therefore truthfully shows no archived resident in a
@@ -230,7 +254,7 @@ housing intervals overlap that date.
 
 ### Daily Plan workspace
 
-P5 adds `/daily` as a wide operational route. The selected date is demo-season bounded,
+P5 adds `/demo/daily` as a wide operational route. The selected date is demo-season bounded,
 defaults to `2026-03-31`, and is shareable through the `date` query parameter. The page
 uses a compact day header, explicit note save, ordered activity cards with accessible
 up/down controls, inline delete confirmation, and a focus-managed activity dialog.
@@ -239,7 +263,8 @@ class, availability, already-planned Training km, and concise reasons. At phone 
 the dialog becomes a full-height one-column workspace with no page-level overflow.
 
 P5 retains the selected participant pool as the builder boundary. P6 adds a functional
-`Build teams`/`View teams` link to `/daily/{date}/activities/{activityId}/teams` without
+`Build teams`/`View teams` link to
+`/demo/daily/{date}/activities/{activityId}/teams` without
 changing participant ownership. Distance or pool edits that affect saved teams return a
 stable conflict until the UI obtains explicit confirmation; the backend then applies
 the edit and lineup deletion in one revision-checked transaction.
@@ -272,7 +297,7 @@ remain manually overridable. Reopening shows saved geometry rather than regenera
 
 ### Daily Entry
 
-P7 adds `/daily-entry` as a wide, date-query-driven operations route. One bounded read
+P7 adds `/demo/daily-entry` as a wide, date-query-driven operations route. One bounded read
 returns Daily Plan context, canonical actual sessions, derived day totals, and every
 active resident grouped by housing resolved on that date. Find Dog highlights/focuses
 the dated resident; zero-work dogs stay visible. Seeded sessions reopen like any other
@@ -320,7 +345,7 @@ actual participation.
 
 ### Analytics workspace
 
-P8 adds the read-only `/analytics` wide workspace with Population and Workload areas.
+P8 adds the read-only `/demo/analytics` wide workspace with Population and Workload areas.
 The reload-safe Workload range uses `from`/`to` query parameters; Population uses a
 dated `view=population&date=...` snapshot. Invalid values normalize inside the demo
 season. Angular consumes explicit projections rather than recomputing domain state from
@@ -347,8 +372,8 @@ the other distributions describe active dogs at the selected snapshot date.
 
 ### Operational Dashboard
 
-P9 makes `/dashboard` the application landing route while keeping it separate from the
-future P11 public marketing shell. The Dashboard is anchored to the DemoClock reference
+P9's Dashboard now lives at `/demo/dashboard` as the operational landing route, while
+P11 uses `/` for the public product site. The Dashboard is anchored to the DemoClock reference
 date (`2026-03-31`) and uses a single `GET /api/v1/dashboard?date=...` projection so the
 Angular shell does not fan out across many endpoints.
 
@@ -399,6 +424,14 @@ Pydantic Settings reads environment values. `.env.example` documents safe local
 defaults; `.env` is ignored. Browser configuration uses relative `/api` URLs so the same
 bundle works behind a reverse proxy. CORS is restricted to configured origins and is
 primarily needed for split local development.
+
+The contact form posts plain text to `POST /api/v1/contact`. Pydantic validates bounded
+name, email, subject, message, optional organization, and an invisible honeypot. The
+delivery service has `sink`, `disabled`, and SMTP implementations selected by
+environment configuration. Sink mode logs only field-length metadata; messages are
+never persisted in PostgreSQL. SMTP credentials, sender, and recipient remain secrets
+for P12 deployment. Delivery errors return a generic safe 503 and never expose
+transport details.
 
 Environments:
 

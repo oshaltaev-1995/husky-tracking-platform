@@ -45,10 +45,13 @@ These instructions apply to the entire repository.
 - Product read APIs use explicit response schemas and feature read services. Resolve
   effective class, lifecycle, availability, and housing centrally against `DemoClock`;
   do not duplicate current-state logic in routes or Angular.
-- Kennel Map is the read-only `/kennel` wide workspace. Its `date` and `layer` URL
+- Public pages use the marketing shell at `/`, `/features`, `/about`, and `/contact`.
+  The operational application has one canonical route tree under `/demo`; legacy
+  pre-P11 routes redirect into it while retaining path and query state.
+- Kennel Map is the read-only `/demo/kennel` wide workspace. Its `date` and `layer` URL
   state must remain demo-season bounded, and its DOM/CSS layout must preserve the
   A1/A2/B1/B2 grouping without horizontal page overflow on narrow screens.
-- Daily Plan is the mutable `/daily` wide workspace. Keep plans separate from actual
+- Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.
 - Planned sled distance uses the shared workload rule: only 5/10 km Training activities
@@ -58,17 +61,17 @@ These instructions apply to the entire repository.
   before the plan date; saved slots must stay within the selected pool, match explicit
   Lead/Team/Wheel capability, and interpret `hard_conflict` as must-not-share one harness
   pair. Team mutations participate in the Daily Plan optimistic revision.
-- Daily Entry is the mutable `/daily-entry` actual-work workspace. Extend the canonical
+- Daily Entry is the mutable `/demo/daily-entry` actual-work workspace. Extend the canonical
   `WorkSession`/`WorkParticipation` ledger rather than creating another ledger; resolve
   eligibility and housing on the selected historical date, preserve plan/actual
   independence, and enforce the shared 30 km actual limit on every mutation. Runtime
   actual edits may change the live checksum; full reset must restore the baseline hash.
-- Analytics is the read-only `/analytics` wide workspace. Population snapshots reuse
+- Analytics is the read-only `/demo/analytics` wide workspace. Population snapshots reuse
   effective lifecycle/class/availability/housing on the selected date; workload totals
   use actual `WorkSession`/`WorkParticipation` rows only. Planned/not-run work is never
   counted, weeks run Monday–Sunday, and attention rules normalize by eligible days and
   class peers rather than comparing Puppy/Junior dogs with working adults.
-- Dashboard is the fixed-reference `/dashboard` operational home. Its projection must
+- Dashboard is the fixed-reference `/demo/dashboard` operational home. Its projection must
   compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
   services; do not persist dashboard totals or create alternate KPI/attention rules.
 - Dog media uses one optional canonical `photo_key` per Dog. Keys are UUID-based WebP
@@ -79,6 +82,9 @@ These instructions apply to the entire repository.
   domain semantic checksum.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
+- Contact delivery is non-persistent and plain-text. Local `sink` mode logs only
+  metadata; production SMTP is environment-configured. Never commit recipients or
+  credentials, and never echo or render contact values as trusted HTML.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a
   production migration mechanism.
 - Use `.env.example` for public configuration; never commit secrets.

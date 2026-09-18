@@ -19,7 +19,7 @@ interface ResidentPresentation {
     <a
       class="resident-dog"
       [id]="'map-dog-' + resident().id"
-      [routerLink]="['/dogs', resident().id]"
+      [routerLink]="['/demo/dogs', resident().id]"
       [class.highlighted]="highlighted()"
       [class.receded]="layer() === 'unavailable' && resident().availability === 'available'"
       [attr.data-tone]="presentation().tone"

@@ -137,7 +137,7 @@ describe('KennelMapPageComponent', () => {
       ).map((cell) => cell.dataset['locationCode']),
     ).toEqual(['A1-01', 'A1-02', 'A1-03', 'A1-04', 'A1-05']);
     const dogLink = fixture.nativeElement.querySelector(
-      'a[href="/dogs/maple-id"]',
+      'a[href="/demo/dogs/maple-id"]',
     ) as HTMLAnchorElement;
     expect(dogLink).not.toBeNull();
   });

@@ -29,7 +29,7 @@
 
   @if (current.planned_activities.length) {
     <section class="plan-context" aria-labelledby="plan-context-title">
-      <header><div><p class="eyebrow">Plan → actual</p><h2 id="plan-context-title">Daily Plan context</h2></div><a class="button quiet" routerLink="/daily" [queryParams]="{ date: selectedDate }">Open Daily Plan</a></header>
+      <header><div><p class="eyebrow">Plan → actual</p><h2 id="plan-context-title">Daily Plan context</h2></div><a class="button quiet" routerLink="/demo/daily" [queryParams]="{ date: selectedDate }">Open Daily Plan</a></header>
       <div class="plan-list">
         @for (activity of current.planned_activities; track activity.id) {
           <article class="plan-row" [attr.data-status]="activity.actual_status">
@@ -71,7 +71,7 @@
             @if (session.plan_status) { <div class="session-plan-state"><span class="actual-state" [attr.data-state]="session.plan_status">{{ statusLabel(session.plan_status) }}</span>@if (session.planned_activity_title) { <span>{{ session.planned_activity_title }}</span> }@if (session.deviations.length) { <strong>{{ session.deviations.join(' · ') }}</strong> }</div> }
             <div class="session-dogs">
               @for (dog of session.participants; track dog.dog_id) {
-                <a [routerLink]="['/dogs', dog.dog_id]"><strong>{{ dog.dog_name }}</strong><small>@if (dog.actual_team_sequence) { Team {{ dog.actual_team_sequence }} · {{ dog.pair_label }} · {{ activityLabel(dog.side || '') }} } @else { {{ dog.housing_code || 'No housing' }} }</small></a>
+                <a [routerLink]="['/demo/dogs', dog.dog_id]"><strong>{{ dog.dog_name }}</strong><small>@if (dog.actual_team_sequence) { Team {{ dog.actual_team_sequence }} · {{ dog.pair_label }} · {{ activityLabel(dog.side || '') }} } @else { {{ dog.housing_code || 'No housing' }} }</small></a>
               }
             </div>
             @if (session.note) { <p class="session-note">{{ session.note }}</p> }
@@ -92,7 +92,7 @@
           <header><div><strong>{{ group.code }}</strong><span>{{ group.display_name }}</span></div><small>{{ group.dogs.length }} {{ group.dogs.length === 1 ? 'resident' : 'residents' }}</small></header>
           <div class="resident-list">
             @for (dog of group.dogs; track dog.id) {
-              <a [id]="'daily-dog-' + dog.id" [routerLink]="['/dogs', dog.id]" [class.highlighted]="highlightedDogId() === dog.id" [attr.aria-label]="dog.name + ', ' + dog.starts + ' starts, ' + dog.actual_km + ' kilometres'">
+              <a [id]="'daily-dog-' + dog.id" [routerLink]="['/demo/dogs', dog.id]" [class.highlighted]="highlightedDogId() === dog.id" [attr.aria-label]="dog.name + ', ' + dog.starts + ' starts, ' + dog.actual_km + ' kilometres'">
                 <span><strong>{{ dog.name }}</strong><small>{{ activityLabel(dog.dog_class || '') }} · {{ activityLabel(dog.availability || '') }}</small></span>
                 <span class="dog-work"><strong>{{ dog.actual_km }} km</strong><small>{{ dog.starts }} {{ dog.starts === 1 ? 'start' : 'starts' }}</small></span>
               </a>

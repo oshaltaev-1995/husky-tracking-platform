@@ -1,0 +1,39 @@
+@use '../../../../styles/mixins' as mixins;
+
+.about-hero-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(18rem, .55fr); gap: clamp(3rem, 8vw, 7rem); align-items: end; }
+.about-fact { border-left: 1px solid var(--border-strong); padding-left: var(--space-8); }
+.about-fact span { display: block; color: var(--brand); font-size: clamp(3rem, 7vw, 5rem); font-weight: 760; letter-spacing: -.06em; line-height: 1; }
+.about-fact strong { display: block; margin-top: var(--space-2); }
+.about-fact p { margin: var(--space-3) 0 0; color: var(--text-secondary); font-size: .78rem; line-height: 1.65; }
+.story-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(24rem, 1.2fr); gap: clamp(3rem, 8vw, 7rem); }
+.story-steps { display: grid; gap: var(--space-6); margin: 0; padding: 0; list-style: none; }
+.story-steps li { display: grid; grid-template-columns: 3rem 1fr; gap: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: var(--space-6); }
+.story-steps span { color: var(--brand); font-size: .65rem; font-weight: 900; }
+.story-steps h3 { margin: 0; font-size: 1.05rem; }
+.story-steps p { margin: var(--space-2) 0 0; color: var(--text-secondary); font-size: .8rem; line-height: 1.7; }
+.priorities-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(3rem, 8vw, 7rem); }
+.priorities-grid h2, .technology-section h2, .synthetic-section h2, .about-cta h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -.045em; line-height: 1.08; }
+.priorities-grid p:not(.public-kicker), .synthetic-section p:not(.public-kicker) { color: var(--text-secondary); line-height: 1.8; }
+.technology-section { display: grid; grid-template-columns: minmax(0, 1fr) minmax(24rem, 1fr); gap: clamp(3rem, 8vw, 7rem); align-items: center; }
+.technology-section h2 { color: var(--text-inverse); }
+.technology-section p:not(.public-kicker) { color: var(--text-sidebar); line-height: 1.7; }
+.technology-section ul { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.technology-section li { border: 1px solid rgba(255, 255, 255, .15); border-radius: var(--radius-pill); padding: .65rem .85rem; color: var(--text-sidebar); font-size: .72rem; font-weight: 800; }
+.synthetic-section { display: grid; grid-template-columns: minmax(18rem, .75fr) minmax(0, 1fr); gap: clamp(3rem, 8vw, 7rem); align-items: center; }
+.synthetic-images { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); align-items: end; }
+.synthetic-images img { width: 100%; aspect-ratio: 3 / 4; border-radius: var(--radius-panel); object-fit: cover; box-shadow: var(--shadow-card); }
+.synthetic-images img:last-child { transform: translateY(2rem); }
+.about-cta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
+
+@include mixins.tablet {
+  .about-hero-grid, .story-grid, .technology-section, .synthetic-section { grid-template-columns: 1fr; }
+  .about-fact { max-width: 24rem; }
+}
+
+@include mixins.phone {
+  .about-fact { border-top: 1px solid var(--border-strong); border-left: 0; padding-top: var(--space-6); padding-left: 0; }
+  .priorities-grid { grid-template-columns: 1fr; }
+  .technology-section { gap: var(--space-8); }
+  .synthetic-images { max-width: 22rem; }
+  .about-cta { align-items: flex-start; flex-direction: column; }
+}

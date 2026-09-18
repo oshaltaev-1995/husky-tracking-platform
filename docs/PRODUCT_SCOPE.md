@@ -24,10 +24,24 @@ Navigation, APIs, and package sequencing should preserve this loop.
 ## Audience and goals
 
 The first audience is a portfolio visitor evaluating product and engineering quality.
-The demo should feel operationally credible, be quick to understand, respond well on
-desktop and mobile, and make its synthetic nature explicit. A later public shell will
-provide landing, features, about, contact, and demo routes with basic SEO and
-accessibility.
+The public shell explains the project through Landing, Features, About, and Contact,
+then hands off to the interactive application under `/demo`. The demo should feel
+operationally credible, be quick to understand, respond well on desktop and mobile,
+and make its synthetic nature explicit.
+
+## Public presentation
+
+- `/` explains the product, operational loop, synthetic boundary, and demo entry.
+- `/features` presents only implemented capabilities and links into their live routes.
+- `/about` tells a public-safe portfolio and architecture story without real employers,
+  kennels, customers, or operational claims.
+- `/contact` uses validated, non-persistent plain-text delivery; it is not a sales or
+  customer-support promise.
+- `/demo/...` owns the single operational route tree. The demo is public-facing,
+  fictional, and mutable changes may be reset.
+
+The site does not claim customers, pricing, availability for sale, veterinary insight,
+or AI-based operational decisions.
 
 ## Canonical demo state
 

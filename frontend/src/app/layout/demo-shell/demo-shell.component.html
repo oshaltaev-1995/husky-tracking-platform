@@ -7,7 +7,7 @@
 
   <div class="app-workspace">
     <header class="mobile-header">
-      <a class="mobile-brand" routerLink="/dashboard" aria-label="Husky Tracking Dashboard">
+      <a class="mobile-brand" routerLink="/demo/dashboard" aria-label="Husky Tracking Dashboard">
         <span class="brand-mark" aria-hidden="true">HT</span>
         <span><strong>Husky Tracking</strong><small>Demo kennel</small></span>
       </a>
@@ -48,7 +48,7 @@
 }
 
 <ng-template #sidebarContent>
-  <a class="brand" routerLink="/dashboard" aria-label="Husky Tracking Dashboard">
+  <a class="brand" routerLink="/demo/dashboard" aria-label="Husky Tracking Dashboard">
     <span class="brand-mark" aria-hidden="true">HT</span>
     <span><strong>Husky Tracking</strong><small>Demo kennel</small></span>
   </a>
@@ -62,7 +62,7 @@
             [routerLink]="item.route"
             routerLinkActive="active"
             ariaCurrentWhenActive="page"
-            [routerLinkActiveOptions]="{ exact: item.route === '/archive' }"
+            [routerLinkActiveOptions]="{ exact: item.route === '/demo/archive' }"
           >
             <span class="nav-mark" aria-hidden="true">{{ item.mark }}</span>
             <span>{{ item.label }}</span>
@@ -72,12 +72,14 @@
     }
   </nav>
 
+  <a class="project-link" routerLink="/about">About this project <span aria-hidden="true">↗</span></a>
+
   @if (connection$ | async; as connection) {
     <div class="demo-context" [class.unavailable]="connection.kind === 'unavailable'" aria-live="polite">
       <span class="context-dot" aria-hidden="true"></span>
       @switch (connection.kind) {
         @case ('connected') {
-          <span><strong>{{ connection.season }}</strong><small>Demo data · reference {{ connection.referenceDate }}</small></span>
+          <span><strong>{{ connection.season }}</strong><small>Fictional demo · {{ connection.referenceDate }} · changes may reset</small></span>
         }
         @case ('unavailable') {
           <span><strong>Demo API offline</strong><small>Registry unavailable</small></span>

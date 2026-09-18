@@ -1,6 +1,6 @@
 <header class="page-header builder-header">
   <div>
-    <a class="back-link" routerLink="/daily" [queryParams]="{ date }">← Daily Plan</a>
+    <a class="back-link" routerLink="/demo/daily" [queryParams]="{ date }">← Daily Plan</a>
     <p class="eyebrow">Operations · Training lineup</p>
     <h1>Team Builder</h1>
   </div>
@@ -30,7 +30,7 @@
     <section class="empty-builder">
       <h2>Select dogs before building teams</h2>
       <p>This Training activity has no selected participant pool.</p>
-      <a class="button primary" routerLink="/daily" [queryParams]="{ date }">Return to Daily Plan</a>
+      <a class="button primary" routerLink="/demo/daily" [queryParams]="{ date }">Return to Daily Plan</a>
     </section>
   } @else {
     <section class="configuration surface" aria-labelledby="configuration-title">
@@ -121,7 +121,7 @@
                             </button>
                             <div class="slot-meta">
                               @for (reason of slot.explanations.slice(0, 2); track reason) { <span>{{ reason }}</span> }
-                              <a [routerLink]="['/dogs', slot.dog_id]" [attr.aria-label]="'Open ' + slot.dog_name + ' profile'">Profile</a>
+                              <a [routerLink]="['/demo/dogs', slot.dog_id]" [attr.aria-label]="'Open ' + slot.dog_name + ' profile'">Profile</a>
                             </div>
                             @if (editing()) { <button class="clear-slot" type="button" (click)="clearSlot(teamIndex, slot.position_order - 1)">Clear slot</button> }
                           } @else {
@@ -146,7 +146,7 @@
         <div class="unassigned-list">
           @for (dog of unassigned(); track dog.dog_id) {
             <article>
-              <div><a [routerLink]="['/dogs', dog.dog_id]">{{ dog.dog_name }}</a><span>{{ dog.reason }}</span></div>
+              <div><a [routerLink]="['/demo/dogs', dog.dog_id]">{{ dog.dog_name }}</a><span>{{ dog.reason }}</span></div>
               @if (candidate(dog.dog_id); as details) { <small>{{ details.capabilities.join(' · ') }} · 7d {{ details.workload.km_7d }} km · 14d {{ details.workload.km_14d }} km</small> }
               @if (editing()) { <button class="button quiet" type="button" (click)="placeUnassigned(dog)">Place in selected slot</button> }
             </article>
@@ -161,7 +161,7 @@
         <div class="unassigned-list">
           @for (dog of ineligibleCandidates(); track dog.id) {
             <article>
-              <div><a [routerLink]="['/dogs', dog.id]">{{ dog.name }}</a><span>{{ dog.reasons.join(' · ') }}</span></div>
+              <div><a [routerLink]="['/demo/dogs', dog.id]">{{ dog.name }}</a><span>{{ dog.reasons.join(' · ') }}</span></div>
               <small>{{ dog.dog_class || 'No class' }} · {{ dog.availability || 'No availability' }} · planned today {{ dog.workload.planned_km_today }} km</small>
             </article>
           }

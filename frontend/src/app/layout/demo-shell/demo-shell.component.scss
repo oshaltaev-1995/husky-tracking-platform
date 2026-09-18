@@ -1,4 +1,4 @@
-@use '../styles/mixins' as mixins;
+@use '../../../styles/mixins' as mixins;
 
 :host { display: block; min-height: 100vh; }
 .skip-link { position: fixed; z-index: 100; top: var(--space-2); left: var(--space-2); transform: translateY(-160%); border-radius: var(--radius-control); padding: var(--space-3) var(--space-4); color: var(--text-inverse); background: var(--text-primary); }
@@ -18,7 +18,9 @@
 .nav-section a:hover { color: var(--text-inverse); background: var(--surface-sidebar-hover); }
 .nav-section a.active { color: var(--text-inverse); background: var(--brand); }
 .nav-mark { display: grid; width: 1.65rem; aspect-ratio: 1; place-items: center; border: 1px solid rgba(255, 255, 255, .14); border-radius: .42rem; font-size: .64rem; font-weight: 900; }
-.demo-context { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; margin-top: auto; border-top: 1px solid rgba(255, 255, 255, .12); padding: var(--space-5) var(--space-2) 0; }
+.project-link { display: flex; justify-content: space-between; gap: var(--space-2); margin: auto var(--space-2) var(--space-4); border-radius: var(--radius-control); padding: var(--space-3); color: var(--text-sidebar); font-size: .7rem; font-weight: 750; text-decoration: none; }
+.project-link:hover { color: var(--text-inverse); background: var(--surface-sidebar-hover); }
+.demo-context { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; border-top: 1px solid rgba(255, 255, 255, .12); padding: var(--space-5) var(--space-2) 0; }
 .context-dot { width: .5rem; aspect-ratio: 1; margin-top: .25rem; border-radius: 50%; background: var(--sidebar-online); box-shadow: 0 0 0 .2rem rgba(114, 192, 158, .13); }
 .demo-context.unavailable .context-dot { background: var(--sidebar-offline); }
 .demo-context strong, .demo-context small { display: block; }

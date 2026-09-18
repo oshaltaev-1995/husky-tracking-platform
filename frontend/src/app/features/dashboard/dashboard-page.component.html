@@ -40,14 +40,14 @@
             <span><strong>{{ state.data.population.available_dogs }}</strong> available</span>
             <span class="attention"><strong>{{ state.data.population.unavailable_dogs }}</strong> unavailable</span>
           </div>
-          <a class="button quiet" routerLink="/dogs">Browse dogs <span aria-hidden="true">→</span></a>
+          <a class="button quiet" routerLink="/demo/dogs">Browse dogs <span aria-hidden="true">→</span></a>
         </section>
 
         <div class="operations-grid">
           <section class="operation-panel plan-panel" aria-labelledby="plan-title">
             <header class="section-header">
               <div><p class="eyebrow">Today’s operations</p><h2 id="plan-title">Daily Plan</h2></div>
-              <a class="button quiet" routerLink="/daily" [queryParams]="{ date: selectedDate }">{{ state.data.plan.exists ? 'Open plan' : 'Create plan' }} <span aria-hidden="true">→</span></a>
+              <a class="button quiet" routerLink="/demo/daily" [queryParams]="{ date: selectedDate }">{{ state.data.plan.exists ? 'Open plan' : 'Create plan' }} <span aria-hidden="true">→</span></a>
             </header>
             @if (!state.data.plan.exists) {
               <div class="focused-empty">
@@ -74,9 +74,9 @@
                       <div class="training-state">
                         <span class="actual-state" [attr.data-state]="activity.actual_status">{{ statusLabel(activity.actual_status) }}</span>
                         @if (activity.team_count) {
-                          <a [routerLink]="['/daily', selectedDate, 'activities', activity.id, 'teams']">{{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} arranged</a>
+                          <a [routerLink]="['/demo/daily', selectedDate, 'activities', activity.id, 'teams']">{{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} arranged</a>
                         } @else {
-                          <a [routerLink]="['/daily', selectedDate, 'activities', activity.id, 'teams']">Teams not arranged</a>
+                          <a [routerLink]="['/demo/daily', selectedDate, 'activities', activity.id, 'teams']">Teams not arranged</a>
                         }
                       </div>
                     </article>
@@ -89,7 +89,7 @@
           <section class="operation-panel actual-panel" aria-labelledby="actual-title">
             <header class="section-header">
               <div><p class="eyebrow">Canonical actual ledger</p><h2 id="actual-title">Actual work</h2></div>
-              <a class="button quiet" routerLink="/daily-entry" [queryParams]="{ date: selectedDate }">Open Daily Entry <span aria-hidden="true">→</span></a>
+              <a class="button quiet" routerLink="/demo/daily-entry" [queryParams]="{ date: selectedDate }">Open Daily Entry <span aria-hidden="true">→</span></a>
             </header>
             <dl class="actual-metrics">
               <div><dt>Sessions</dt><dd>{{ state.data.actual.sessions }}</dd></div>
@@ -105,7 +105,7 @@
           <section class="context-panel kennel-panel" aria-labelledby="kennel-title">
             <header class="section-header">
               <div><p class="eyebrow">Housing and availability</p><h2 id="kennel-title">Kennel now</h2></div>
-              <a class="button quiet" routerLink="/kennel" [queryParams]="{ date: selectedDate, layer: 'unavailable' }">Open map <span aria-hidden="true">→</span></a>
+              <a class="button quiet" routerLink="/demo/kennel" [queryParams]="{ date: selectedDate, layer: 'unavailable' }">Open map <span aria-hidden="true">→</span></a>
             </header>
             <div class="housing-summary">
               <strong>{{ state.data.population.resident_dogs }} residents</strong>
@@ -119,7 +119,7 @@
             <div class="unavailable-heading"><h3>Unavailable residents</h3><span>{{ state.data.population.unavailable_dogs }}</span></div>
             <div class="unavailable-list">
               @for (dog of state.data.unavailable_dogs; track dog.id) {
-                <a [routerLink]="['/dogs', dog.id]">
+                <a [routerLink]="['/demo/dogs', dog.id]">
                   <span><strong>{{ dog.name }}</strong><small>{{ dog.housing_code }}</small></span>
                   <span class="status-badge" [attr.data-status]="dog.availability">{{ dog.availability | titlecase }}</span>
                 </a>
@@ -130,13 +130,13 @@
           <section class="context-panel attention-panel" aria-labelledby="attention-title">
             <header class="section-header">
               <div><p class="eyebrow">{{ state.data.attention.label }} · ending {{ (state.data.attention.date_to + 'T12:00:00Z') | date: 'd MMM':'UTC' }}</p><h2 id="attention-title">Workload attention</h2></div>
-              <a class="button quiet" routerLink="/analytics" [queryParams]="{ from: state.data.attention.date_from, to: state.data.attention.date_to }">View Analytics <span aria-hidden="true">→</span></a>
+              <a class="button quiet" routerLink="/demo/analytics" [queryParams]="{ from: state.data.attention.date_from, to: state.data.attention.date_to }">View Analytics <span aria-hidden="true">→</span></a>
             </header>
             <div class="attention-columns">
               <div>
                 <div class="attention-title"><h3>Underused</h3><strong>{{ state.data.attention.underused_count }}</strong></div>
                 @for (dog of state.data.attention.underused; track dog.id) {
-                  <a class="attention-dog" [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }">
+                  <a class="attention-dog" [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ tab: 'work' }">
                     <span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }}</small></span>
                     <span><strong>{{ dog.dog_km }} km</strong><small>{{ dog.reason }}</small></span>
                   </a>
@@ -145,7 +145,7 @@
               <div>
                 <div class="attention-title higher"><h3>Higher workload</h3><strong>{{ state.data.attention.higher_workload_count }}</strong></div>
                 @for (dog of state.data.attention.higher_workload; track dog.id) {
-                  <a class="attention-dog" [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }">
+                  <a class="attention-dog" [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ tab: 'work' }">
                     <span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }}</small></span>
                     <span><strong>{{ dog.dog_km }} km</strong><small>{{ dog.reason }}</small></span>
                   </a>
@@ -158,7 +158,7 @@
         <section class="trend-panel" aria-labelledby="trend-title">
           <header class="section-header">
             <div><p class="eyebrow">Latest six demo weeks</p><h2 id="trend-title">Recent workload</h2><p>Total dog-km from actual recorded work.</p></div>
-            <a class="button quiet" routerLink="/analytics" [queryParams]="{ from: state.data.recent_weekly[0].period_start, to: selectedDate }">Explore trend <span aria-hidden="true">→</span></a>
+            <a class="button quiet" routerLink="/demo/analytics" [queryParams]="{ from: state.data.recent_weekly[0].period_start, to: selectedDate }">Explore trend <span aria-hidden="true">→</span></a>
           </header>
           <div class="trend-chart" role="img" aria-label="Weekly total dog kilometres">
             @for (week of state.data.recent_weekly; track week.week_start) {

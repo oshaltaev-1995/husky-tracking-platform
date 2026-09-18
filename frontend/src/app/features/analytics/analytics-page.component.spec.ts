@@ -247,7 +247,9 @@ describe('AnalyticsPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Cedar');
     expect(fixture.nativeElement.textContent).toContain('Aurora');
     expect(fixture.nativeElement.textContent).toContain('Taro');
-    expect(fixture.nativeElement.querySelector('a[href="/dogs/aurora-id?tab=work"]')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('a[href="/demo/dogs/aurora-id?tab=work"]'),
+    ).not.toBeNull();
   });
 
   it('restores a custom range and changes weekly metric without refetching', async () => {

@@ -122,11 +122,11 @@ describe('DashboardPageComponent', () => {
     expect(text).toContain('120');
     expect(text).toContain('Hazel');
     expect(text).toContain('Nala');
-    expect(fixture.nativeElement.querySelector('a[href^="/daily"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('a[href^="/daily-entry"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('a[href^="/kennel"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('a[href^="/analytics"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('a[href="/dogs/hazel-id"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href^="/demo/daily"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href^="/demo/daily-entry"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href^="/demo/kennel"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href^="/demo/analytics"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href="/demo/dogs/hazel-id"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('a[href*="/dogs/nala-id"]')).not.toBeNull();
     http.verify();
   });

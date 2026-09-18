@@ -2,13 +2,13 @@
   @switch (state.kind) {
     @case ('loading') { <div class="page-state profile-loading" aria-live="polite">Loading dog profile…</div> }
     @case ('not-found') {
-      <section class="not-found" role="alert"><p class="eyebrow">Record not found</p><h1>This dog profile is unavailable.</h1><p>The link may be malformed or the record may not exist in this demo dataset.</p><a class="button primary" routerLink="/dogs">Return to Dogs</a></section>
+      <section class="not-found" role="alert"><p class="eyebrow">Record not found</p><h1>This dog profile is unavailable.</h1><p>The link may be malformed or the record may not exist in this demo dataset.</p><a class="button primary" routerLink="/demo/dogs">Return to Dogs</a></section>
     }
     @case ('error') {
-      <section class="not-found" role="alert"><p class="eyebrow">Connection issue</p><h1>We could not load this profile.</h1><p>Check the demo API, then reload this page.</p><a class="button secondary" routerLink="/dogs">Return to Dogs</a></section>
+      <section class="not-found" role="alert"><p class="eyebrow">Connection issue</p><h1>We could not load this profile.</h1><p>Check the demo API, then reload this page.</p><a class="button secondary" routerLink="/demo/dogs">Return to Dogs</a></section>
     }
     @case ('ready') {
-      <a class="back-link" [routerLink]="state.data.profile.state.lifecycle === 'archived' ? '/archive' : '/dogs'">← Back to {{ state.data.profile.state.lifecycle === 'archived' ? 'Archive' : 'Dogs' }}</a>
+      <a class="back-link" [routerLink]="state.data.profile.state.lifecycle === 'archived' ? '/demo/archive' : '/demo/dogs'">← Back to {{ state.data.profile.state.lifecycle === 'archived' ? 'Archive' : 'Dogs' }}</a>
       <header class="profile-header" [class.archived]="state.data.profile.state.lifecycle === 'archived'">
         <div class="profile-media"><ht-dog-media [name]="state.data.profile.name" [photoKey]="state.data.profile.photo_key" size="profile" /></div>
         <div class="profile-identity">

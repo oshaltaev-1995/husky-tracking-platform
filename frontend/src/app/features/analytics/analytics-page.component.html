@@ -168,7 +168,7 @@
             <header><span aria-hidden="true">↓</span><div><h3>Underused</h3><p>Below 95% of class peer pace</p></div></header>
             @if (state.data.overview.underused.length) {
               @for (dog of state.data.overview.underused; track dog.id) {
-                <a [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }"><span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }} · {{ dog.reason }}</small></span><b>{{ dog.dog_km }} km</b></a>
+                <a [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ tab: 'work' }"><span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }} · {{ dog.reason }}</small></span><b>{{ dog.dog_km }} km</b></a>
               }
             } @else { <p class="attention-empty">No underused signal for this period.</p> }
           </article>
@@ -176,7 +176,7 @@
             <header><span aria-hidden="true">↑</span><div><h3>Higher workload</h3><p>Above 115% of class peer pace</p></div></header>
             @if (state.data.overview.higher_workload.length) {
               @for (dog of state.data.overview.higher_workload; track dog.id) {
-                <a [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }"><span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }} · {{ dog.reason }}</small></span><b>{{ dog.dog_km }} km</b></a>
+                <a [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ tab: 'work' }"><span><strong>{{ dog.name }}</strong><small>{{ dog.dog_class | titlecase }} · {{ dog.reason }}</small></span><b>{{ dog.dog_km }} km</b></a>
               }
             } @else { <p class="attention-empty">No higher-workload signal for this period.</p> }
           </article>
@@ -201,7 +201,7 @@
             </div>
             @for (dog of state.data.dogs.items; track dog.id) {
               <article class="dog-row" role="row">
-                <div class="dog-identity" role="cell"><a [routerLink]="['/dogs', dog.id]" [queryParams]="{ tab: 'work' }">{{ dog.name }}</a><small>{{ dog.sex | titlecase }} · {{ dog.housing_code || 'No housing' }}</small></div>
+                <div class="dog-identity" role="cell"><a [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ tab: 'work' }">{{ dog.name }}</a><small>{{ dog.sex | titlecase }} · {{ dog.housing_code || 'No housing' }}</small></div>
                 <div role="cell"><strong>{{ dog.dog_class ? (dog.dog_class | titlecase) : 'Historical' }}</strong><small>{{ dog.availability ? (dog.availability | titlecase) : (dog.lifecycle | titlecase) }}</small></div>
                 <div class="km-cell" role="cell"><strong>{{ dog.dog_km }} km</strong><span class="workload-track"><i [style.width.%]="workloadBar(dog, state.data.dogs.items)"></i></span><small>{{ dog.worked_days }} worked / {{ dog.eligible_days }} eligible days</small></div>
                 <div role="cell"><strong>{{ dog.dog_starts }}</strong><small>{{ dog.starts_5km }} × 5 · {{ dog.starts_10km }} × 10</small></div>

@@ -85,7 +85,7 @@
       @if (state.data.items.length) {
         <div class="dog-grid">
           @for (dog of state.data.items; track dog.id) {
-            <a class="dog-card" [routerLink]="['/dogs', dog.id]" [attr.aria-label]="'Open ' + dog.name + ' profile'">
+            <a class="dog-card" [routerLink]="['/demo/dogs', dog.id]" [attr.aria-label]="'Open ' + dog.name + ' profile'">
               <div class="card-media"><ht-dog-media [name]="dog.name" [photoKey]="dog.photo_key" /><span class="status-badge" [attr.data-status]="dog.state.availability">{{ dog.state.availability | titlecase }}</span></div>
               <div class="card-content">
                 <div class="card-title"><div><p class="kicker">{{ dog.state.housing?.code || 'No current housing' }}</p><h3>{{ dog.name }}</h3></div><span class="card-arrow" aria-hidden="true">→</span></div>

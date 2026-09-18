@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     demo_season_end: date = date(2026, 3, 31)
     demo_reference_date: date = date(2026, 3, 31)
     demo_reset_enabled: bool = False
+    contact_delivery_mode: str = "sink"
+    contact_recipient_email: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+    smtp_starttls: bool = True
+    smtp_timeout_seconds: float = 10.0
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -39,6 +48,14 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @field_validator("contact_delivery_mode")
+    @classmethod
+    def validate_contact_delivery_mode(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"sink", "smtp", "disabled"}:
+            raise ValueError("contact delivery mode must be sink, smtp, or disabled")
+        return normalized
 
     @model_validator(mode="after")
     def validate_demo_clock(self) -> Settings:

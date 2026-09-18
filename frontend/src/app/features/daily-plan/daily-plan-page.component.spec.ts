@@ -259,7 +259,7 @@ describe('DailyPlanPageComponent', () => {
     const teamLink = fixture.nativeElement.querySelector('.team-handoff a') as HTMLAnchorElement;
     expect(teamLink.textContent).toContain('View teams');
     expect(teamLink.getAttribute('href')).toContain(
-      '/daily/2026-03-31/activities/activity-id/teams',
+      '/demo/daily/2026-03-31/activities/activity-id/teams',
     );
 
     const editButton = Array.from(

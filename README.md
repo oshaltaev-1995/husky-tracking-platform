@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## Application foundation through P10
+## Product foundation through P11
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -21,8 +21,10 @@ reference project.
   fictional dogs
 - persistent desktop application sidebar, accessible mobile drawer, and standard/wide
   content modes ready for later operational modules
-- responsive `/dashboard`, `/dogs`, `/archive`, `/kennel`, `/daily`, `/daily-entry`,
-  `/analytics`, and deep-linked `/dogs/:dogId` product routes
+- a public product site at `/`, `/features`, `/about`, and `/contact`, with a separate
+  operational shell under `/demo/...`
+- responsive `/demo/dashboard`, `/demo/dogs`, `/demo/archive`, `/demo/kennel`,
+  `/demo/daily`, `/demo/daily-entry`, `/demo/analytics`, and deep-linked Dog/Team routes
 - server-supported registry/archive search, domain filters, and focused sorting
 - one lifecycle-aware Dog Profile with Overview, Pedigree, Work, and History views
 - clickable parents, grandparents, litter siblings, offspring, and archived relatives
@@ -50,9 +52,12 @@ reference project.
 - integrated operational Dashboard composed from Population, Kennel Map, Daily Plan,
   Team Builder, Daily Entry, and Analytics projections without persisted summary data
 - linting, typing, build, and test infrastructure
+- route-aware SEO/social metadata, public sitemap/robots policy, intentional 404, and a
+  non-persistent validated contact delivery abstraction
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
-P10 is complete with 60 synthetic, UUID-owned, individually reviewed WebP portraits;
+P11 adds the public product presentation while preserving the mature application. P10
+is complete with 60 synthetic, UUID-owned, individually reviewed WebP portraits;
 no real, stock, scraped, or reference-repository photograph is used. Plans and saved
 teams remain intentions; only Daily Entry
 `WorkSession`/`WorkParticipation` rows are workload truth for analytics and the
@@ -84,26 +89,51 @@ docker compose exec backend uv run python -m app.demo.seed
 Then open:
 
 - frontend: <http://localhost:4300>
-- Dashboard: <http://localhost:4300/dashboard>
+- public Home: <http://localhost:4300/>
+- Features: <http://localhost:4300/features>
+- About: <http://localhost:4300/about>
+- Contact: <http://localhost:4300/contact>
+- interactive demo: <http://localhost:4300/demo>
+- Dashboard: <http://localhost:4300/demo/dashboard>
+- Dogs: <http://localhost:4300/demo/dogs>
+- Archive: <http://localhost:4300/demo/archive>
 - Dashboard projection API: <http://localhost:8030/api/v1/dashboard?date=2026-03-31>
 - API health: <http://localhost:8030/api/v1/health>
 - dataset summary: <http://localhost:8030/api/v1/demo-dataset>
 - dogs registry API: <http://localhost:8030/api/v1/dogs>
 - archive API: <http://localhost:8030/api/v1/archive>
-- Kennel Map: <http://localhost:4300/kennel>
+- Contact API: <http://localhost:8030/api/v1/contact>
+- Kennel Map: <http://localhost:4300/demo/kennel>
 - dated map API: <http://localhost:8030/api/v1/kennel-map?date=2026-03-31>
-- Daily Plan: <http://localhost:4300/daily>
+- Daily Plan: <http://localhost:4300/demo/daily>
 - Daily Plan API: <http://localhost:8030/api/v1/daily-plans/2026-03-31>
 - Team Builder opens from a Training activity on Daily Plan
-- Daily Entry: <http://localhost:4300/daily-entry>
+- Daily Entry: <http://localhost:4300/demo/daily-entry>
 - Daily Entry API: <http://localhost:8030/api/v1/daily-entry/2026-03-31>
-- Analytics: <http://localhost:4300/analytics>
+- Analytics: <http://localhost:4300/demo/analytics>
 - Population snapshot API: <http://localhost:8030/api/v1/analytics/population?date=2026-03-31>
 - Workload overview API: <http://localhost:8030/api/v1/analytics/overview?from=2025-12-01&to=2026-03-31>
 - API docs: <http://localhost:8030/api/docs>
 
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is
 explicitly removed.
+
+## Public site and contact delivery
+
+The public route shell is distinct from the operational demo shell. Old links such as
+`/dogs/...` and `/kennel?...` redirect to the canonical `/demo/...` routes while
+preserving identity and query state. Both shells use the same Angular bundle and Nginx
+SPA fallback, so direct refreshes remain valid.
+
+The intended hostname is `https://huskytracking.com`, but P11 does not claim that DNS or
+deployment is live. Route metadata, `robots.txt`, and `sitemap.xml` use this documented
+target; P12 finalizes the production host.
+
+`POST /api/v1/contact` never stores messages in PostgreSQL. Local development defaults
+to `CONTACT_DELIVERY_MODE=sink`, which accepts the flow and logs only field-length
+metadata. Use `disabled` to reject delivery safely, or configure `smtp` with
+`CONTACT_RECIPIENT_EMAIL`, `SMTP_HOST`, `SMTP_FROM`, and optional authentication/TLS
+variables from `.env.example`. Never commit recipient addresses or credentials.
 
 ## Canonical demo data commands
 

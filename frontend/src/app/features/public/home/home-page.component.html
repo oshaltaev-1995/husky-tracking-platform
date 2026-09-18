@@ -1,0 +1,66 @@
+<article class="public-page home-page">
+  <section class="public-hero">
+    <div class="public-container hero-grid">
+      <div class="hero-copy">
+        <p class="public-kicker">Sled-dog kennel operations · interactive demo</p>
+        <h1 class="public-display">Kennel operations, clearly connected.</h1>
+        <p class="public-lead">Husky Tracking brings dogs, housing, daily planning, teams, actual work and workload analytics into one coherent operational interface.</p>
+        <div class="public-actions">
+          <a class="button primary" routerLink="/demo/dashboard">Try interactive demo <span aria-hidden="true">→</span></a>
+          <a class="button secondary" routerLink="/features">Explore features</a>
+        </div>
+        <div class="public-disclosure hero-disclosure">
+          <span class="public-disclosure-mark" aria-hidden="true">✓</span>
+          <div><strong>Safe to explore</strong><p>The demo uses entirely fictional kennel data, synthetic operational records and AI-generated dog portraits. Changes may be reset.</p></div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="Husky Tracking product preview">
+        <div class="hero-product-bar"><span class="mini-brand">HT</span><strong>Operational snapshot</strong><small>31 Mar 2026</small></div>
+        <div class="hero-product-body">
+          <div class="hero-metrics"><span><small>Active dogs</small><strong>50</strong></span><span><small>Available</small><strong>46</strong></span><span><small>Unavailable</small><strong>4</strong></span></div>
+          <div class="hero-dog-card">
+            <img src="/media/dogs/6415eb4a-17f2-5878-b2cc-d04803f30245.webp?v=dog-media-v1" alt="Portrait of Nova, a fictional sled dog" width="1086" height="1448" fetchpriority="high" />
+            <div><p>Dog profile</p><h2>Nova</h2><span>Training · Available</span><small>B1-05 · Team capable</small></div>
+          </div>
+          <div class="hero-signal"><span></span><div><strong>One connected record</strong><small>Identity · Pedigree · Work · History</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section soft">
+    <div class="public-container">
+      <div class="public-section-heading"><p class="public-kicker">The operational loop</p><h2>From kennel context to workload insight.</h2><p>Every module is designed around one continuous workflow rather than isolated administration screens.</p></div>
+      <ol class="workflow-list" aria-label="Husky Tracking operational flow">
+        <li><span>1</span><strong>Kennel Map</strong></li><li><span>2</span><strong>Dog Profile</strong></li><li><span>3</span><strong>Daily Plan</strong></li><li><span>4</span><strong>Team Builder</strong></li><li><span>5</span><strong>Daily Entry</strong></li><li><span>6</span><strong>Analytics</strong></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <div class="public-container">
+      <div class="public-section-heading"><p class="public-kicker">Implemented product</p><h2>A credible kennel-management demonstration, not a generic admin template.</h2></div>
+      <div class="feature-overview">
+        @for (feature of features; track feature.title) {
+          <a [routerLink]="feature.route"><span>{{ feature.mark }}</span><h3>{{ feature.title }}</h3><p>{{ feature.copy }}</p><b aria-hidden="true">→</b></a>
+        }
+      </div>
+      <div class="public-actions centered"><a class="button primary" routerLink="/demo/dashboard">Explore the live demo</a></div>
+    </div>
+  </section>
+
+  <section class="public-section dark">
+    <div class="public-container principles-grid">
+      <div><p class="public-kicker">Historical by design</p><h2>See the kennel as it was, not only as it is.</h2><p>Housing, class and operational state are date-aware, so historical views remain internally consistent.</p></div>
+      <div><p class="public-kicker">Explainable by design</p><h2>Rules stay visible to the user.</h2><p>Role capability, availability, workload and pairing rules guide team building without opaque AI or hidden decision-making.</p></div>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <div class="public-container final-cta">
+      <img src="/media/dogs/9422673b-331b-5e72-a700-5fff0574a209.webp?v=dog-media-v1" alt="Portrait of Aurora, a fictional sled dog" width="1086" height="1448" loading="lazy" />
+      <div><p class="public-kicker">Winter 2025–2026</p><h2>Explore a complete fictional kennel.</h2><p>Browse 60 represented dogs, their family network, dated housing and a full synthetic season of work records.</p><div class="public-actions"><a class="button primary" routerLink="/demo/dashboard">Try the demo</a><a class="button secondary" routerLink="/about">About the project</a></div></div>
+    </div>
+  </section>
+</article>

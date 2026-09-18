@@ -1,0 +1,40 @@
+@use '../../../styles/mixins' as mixins;
+
+:host { display: block; min-height: 100vh; background: var(--surface-page); }
+.public-skip-link { position: fixed; z-index: 100; top: var(--space-2); left: var(--space-2); transform: translateY(-160%); border-radius: var(--radius-control); padding: var(--space-3) var(--space-4); color: var(--text-inverse); background: var(--text-primary); }
+.public-skip-link:focus { transform: none; }
+.public-header { position: sticky; z-index: 30; top: 0; border-bottom: 1px solid rgba(213, 223, 219, .82); background: rgba(243, 246, 244, .94); backdrop-filter: blur(.9rem); }
+.public-nav-wrap { display: flex; width: min(100% - 2 * var(--page-gutter), 78rem); min-height: 4.75rem; align-items: center; justify-content: space-between; gap: var(--space-6); margin-inline: auto; }
+.public-brand { display: inline-flex; align-items: center; gap: var(--space-3); color: var(--text-primary); font-size: .93rem; font-weight: 850; text-decoration: none; }
+.public-brand-mark { display: grid; width: 2.3rem; aspect-ratio: 1; place-items: center; border-radius: .65rem; color: var(--text-inverse); background: var(--brand-strong); font-size: .68rem; font-weight: 900; letter-spacing: .08em; }
+.public-nav { display: flex; align-items: center; gap: var(--space-2); }
+.public-nav > a:not(.button) { border-radius: var(--radius-control); padding: var(--space-3); color: var(--text-secondary); font-size: .78rem; font-weight: 750; text-decoration: none; }
+.public-nav > a:not(.button):hover, .public-nav > a.active:not(.button) { color: var(--brand-strong); background: var(--surface-brand-soft); }
+.public-menu-button, .public-mobile-menu, .public-menu-backdrop { display: none; }
+.public-main { min-height: calc(100vh - 24rem); }
+.public-footer { padding: var(--space-12) var(--page-gutter) var(--space-6); color: var(--text-sidebar); background: var(--surface-sidebar); }
+.public-footer-inner { display: grid; width: min(100%, 72rem); grid-template-columns: minmax(0, 1.5fr) minmax(16rem, .7fr); gap: var(--space-12); margin-inline: auto; }
+.public-footer .public-brand { color: var(--text-inverse); }
+.public-footer .public-brand-mark { color: var(--surface-sidebar); background: var(--surface-sidebar-mark); }
+.public-footer p { max-width: 31rem; margin: var(--space-4) 0 0; color: var(--text-sidebar-muted); font-size: .78rem; line-height: 1.7; }
+.public-footer nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); align-content: start; }
+.public-footer nav a { color: var(--text-sidebar); font-size: .76rem; font-weight: 750; text-decoration: none; }
+.public-footer nav a:hover { color: var(--text-inverse); }
+.public-copyright { width: min(100%, 72rem); margin: var(--space-10) auto 0 !important; border-top: 1px solid rgba(255, 255, 255, .1); padding-top: var(--space-5); font-size: .67rem !important; }
+
+@include mixins.tablet {
+  .public-nav { display: none; }
+  .public-menu-button { display: grid; width: 2.7rem; aspect-ratio: 1; place-content: center; gap: .24rem; border: 1px solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface-elevated); }
+  .public-menu-button span { width: 1rem; height: 2px; border-radius: 2px; background: var(--text-primary); }
+  .public-menu-backdrop { position: fixed; z-index: 40; inset: 0; display: block; width: 100%; border: 0; background: rgba(10, 27, 25, .58); }
+  .public-mobile-menu { position: fixed; z-index: 50; inset: 0 0 0 auto; display: flex; width: min(19rem, calc(100vw - 2.5rem)); flex-direction: column; gap: var(--space-2); padding: var(--space-5); background: var(--surface-elevated); box-shadow: var(--shadow-raised); }
+  .public-mobile-menu > a:not(.button) { border-radius: var(--radius-control); padding: var(--space-4); color: var(--text-primary); font-size: .92rem; font-weight: 800; text-decoration: none; }
+  .public-mobile-menu .button { margin-top: var(--space-3); }
+  .public-menu-close { align-self: flex-end; width: 2.7rem; aspect-ratio: 1; border: 1px solid var(--border); border-radius: var(--radius-control); color: var(--text-primary); background: var(--surface-soft); font-size: 1.4rem; }
+  .public-footer-inner { grid-template-columns: 1fr; gap: var(--space-8); }
+}
+
+@include mixins.phone {
+  .public-nav-wrap { min-height: 4.25rem; }
+  .public-footer nav { grid-template-columns: 1fr; }
+}

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes.analytics import router as analytics_router
+from app.api.routes.contact import router as contact_router
 from app.api.routes.daily_entry import router as daily_entry_router
 from app.api.routes.daily_plans import router as daily_plans_router
 from app.api.routes.dashboard import router as dashboard_router
@@ -12,6 +13,7 @@ from app.api.routes.team_builder import router as team_builder_router
 
 api_router = APIRouter()
 api_router.include_router(health_router, tags=["health"])
+api_router.include_router(contact_router, tags=["contact"])
 api_router.include_router(demo_dataset_router, tags=["demo-dataset"])
 api_router.include_router(dogs_router, tags=["dogs"])
 api_router.include_router(kennel_map_router, tags=["kennel-map"])

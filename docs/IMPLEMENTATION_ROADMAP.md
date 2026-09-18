@@ -357,7 +357,8 @@ housing, unavailable resident details, persisted plan/team state, P7 actual-day 
 P8's inclusive 14-day attention rules, and the latest six Monday-based workload weeks.
 The selected date is demo-season validated and all values remain live projections.
 
-**Frontend:** Dashboard is first in the existing sidebar and `/` redirects to it. The
+**Frontend:** Dashboard is first in the operational sidebar. P11 moved its canonical
+route to `/demo/dashboard` and made `/` the public product home. The
 operational page provides a compact class/availability strip, purposeful zero-plan CTA,
 plan/team and actual-work summaries, dated housing/unavailable residents, representative
 attention dogs, six-week dog-km trend, and direct links into every owning module. Loading,
@@ -431,28 +432,45 @@ or P11 marketing work.
 
 ## P11 — Public SaaS/demo shell
 
+**Status:** completed. P11 adds a responsive public product site and cleanly namespaces
+the complete operational application under `/demo` without changing backend domain APIs
+or canonical data.
+
 **Objective:** present the application credibly at the future public hostname.
 
 **Required behavior:** Landing, Features, About, Contact, and Demo routing; clear
 synthetic/demo disclosure; calls to action; metadata/share previews; contact mechanism
 chosen with anti-abuse protection.
 
-**Backend:** minimal contact endpoint/integration only if selected; validation, rate
-limit, and secret-backed delivery. Keep app API unchanged.
+**Backend:** `POST /api/v1/contact` validates bounded plain-text input and a honeypot,
+then delegates to environment-selected sink, disabled, or SMTP delivery. Contact
+messages are not persisted. The local sink logs length metadata only; P12 owns rate
+limiting and production SMTP/secrets.
 
-**Frontend:** public route shell, brand system, marketing copy/assets, basic SEO,
-structured navigation and 404, responsive/accessibility polish.
+**Frontend:** `/`, `/features`, `/about`, and `/contact` use a focused public shell;
+`/demo/...` uses the existing operational shell. Public copy accurately presents the
+implemented workflow and makes fictional data, synthetic work, AI-generated portraits,
+and resettable changes explicit. Legacy application URLs redirect to the canonical demo
+tree with path/query state. Distinct route metadata, canonical/Open Graph/Twitter tags,
+robots, sitemap, structured data, responsive navigation, and an intentional 404 are
+included without SSR or tracking scripts.
 
 **Data/migrations:** none unless contact persistence is explicitly chosen; prefer no
 unnecessary personal-data storage.
 
-**Tests:** route metadata, forms/validation/abuse controls, keyboard/screen-reader basics,
-social/SEO tags, performance budget.
+**Tests:** public/demo/legacy routing, form success/failure/validation/honeypot and
+transport failure, mobile navigation, 404, existing operational suites, production
+build/static output, deep-link refresh, and responsive live inspection.
 
 **Acceptance:** public visitors understand the value, synthetic boundary, and how to
 enter the demo; no domain/DNS assumption is hardcoded.
 
 **Exclusions:** no billing, tenancy, customer onboarding, or CRM.
+
+**P12 handoff:** finalize the real hostname/DNS/TLS and canonical host configuration,
+SMTP recipient and credentials, request/rate limits, anonymous mutation isolation and
+reset schedule, reverse-proxy headers, CORS, secrets, monitoring/logging, and production
+accessibility/performance/security acceptance.
 
 ## P12 — Production-demo hardening
 

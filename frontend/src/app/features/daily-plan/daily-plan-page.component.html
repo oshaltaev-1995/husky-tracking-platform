@@ -74,7 +74,7 @@
                   @if (activity.team_count) { {{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} dogs arranged }
                   @else { Selected dog pool · Teams not arranged }
                 </span>
-                <a class="button secondary" [routerLink]="['/daily', selectedDate, 'activities', activity.id, 'teams']">
+                <a class="button secondary" [routerLink]="['/demo/daily', selectedDate, 'activities', activity.id, 'teams']">
                   {{ activity.team_count ? 'View teams' : 'Build teams' }}
                 </a>
               </div>

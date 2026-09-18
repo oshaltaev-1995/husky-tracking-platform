@@ -1,0 +1,32 @@
+<article class="public-page contact-page">
+  <header class="public-page-hero">
+    <div class="public-container"><p class="public-kicker">Contact</p><h1 class="public-page-title">Start a conversation about the project.</h1><p class="public-lead">Use the form to ask about Husky Tracking, the product-design process or the technical implementation.</p></div>
+  </header>
+
+  <section class="public-section soft">
+    <div class="public-container contact-grid">
+      <div class="contact-context">
+        <p class="public-kicker">A focused portfolio project</p>
+        <h2>For project and software-development conversations.</h2>
+        <p>Husky Tracking is not presented as a commercial support service. The form is intended for thoughtful project, engineering and collaboration enquiries.</p>
+        <div class="public-disclosure"><span class="public-disclosure-mark" aria-hidden="true">i</span><div><strong>Privacy note</strong><p>Your submitted details are used to respond to your message. Husky Tracking does not store contact messages in its PostgreSQL database.</p></div></div>
+        <a routerLink="/about">Read the project story <span aria-hidden="true">→</span></a>
+      </div>
+
+      <form class="contact-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-row two-column">
+          <label><span>Name <b aria-hidden="true">*</b></span><input type="text" formControlName="name" autocomplete="name" maxlength="120" required [attr.aria-describedby]="invalid('name') ? 'name-error' : null" />@if (invalid('name')) { <small id="name-error" class="field-error">Enter at least 2 characters.</small> }</label>
+          <label><span>Email <b aria-hidden="true">*</b></span><input type="email" formControlName="email" autocomplete="email" maxlength="254" required [attr.aria-describedby]="invalid('email') ? 'email-error' : null" />@if (invalid('email')) { <small id="email-error" class="field-error">Enter a valid email address.</small> }</label>
+        </div>
+        <label><span>Company / organization <em>Optional</em></span><input type="text" formControlName="company" autocomplete="organization" maxlength="160" /></label>
+        <label><span>Subject or topic <b aria-hidden="true">*</b></span><input type="text" formControlName="subject" maxlength="160" required [attr.aria-describedby]="invalid('subject') ? 'subject-error' : null" />@if (invalid('subject')) { <small id="subject-error" class="field-error">Enter a topic between 3 and 160 characters.</small> }</label>
+        <label><span>Message <b aria-hidden="true">*</b></span><textarea formControlName="message" rows="8" minlength="20" maxlength="5000" required [attr.aria-describedby]="invalid('message') ? 'message-error' : 'message-help'"></textarea><small id="message-help" class="field-help">20–5,000 characters. Please do not include confidential information.</small>@if (invalid('message')) { <small id="message-error" class="field-error">Enter a message of at least 20 characters.</small> }</label>
+        <label class="honeypot" aria-hidden="true">Website<input type="text" formControlName="website" tabindex="-1" autocomplete="off" /></label>
+        <button class="button primary" type="submit" [disabled]="state() === 'sending'">{{ state() === 'sending' ? 'Sending…' : 'Send message' }}</button>
+        @if (state() === 'success' || state() === 'error') {
+          <p #statusMessage class="form-status" [class.error]="state() === 'error'" role="status" tabindex="-1">{{ responseMessage() }}</p>
+        }
+      </form>
+    </div>
+  </section>
+</article>
