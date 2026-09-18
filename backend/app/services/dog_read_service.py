@@ -43,6 +43,7 @@ from app.schemas.dogs import (
     PeriodHistoryRead,
     RelatedDogRead,
 )
+from app.services.demo_workspace_service import scoped_date_filter
 from app.services.effective_state import EffectiveDogState, effective_period
 
 
@@ -77,9 +78,12 @@ def location_read(location: KennelLocation) -> LocationRead:
 class DogReadService:
     """Read-only P3 projections with one shared effective-state policy."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+    ) -> None:
         self.session = session
         self.clock = clock
+        self.workspace_id = workspace_id
         self._dogs: list[Dog] | None = None
         self._pedigree_dogs: list[Dog] | None = None
         self._litters: list[Litter] | None = None
@@ -487,6 +491,9 @@ class DogReadService:
                 WorkParticipation.dog_id == dog_id,
                 WorkSession.work_date >= self.clock.season_start,
                 WorkSession.work_date <= self.clock.season_end,
+                scoped_date_filter(
+                    WorkSession, self.workspace_id, WorkSession.work_date
+                ),
             )
             .order_by(WorkSession.work_date.desc(), WorkSession.distance_km.desc())
         ).all()

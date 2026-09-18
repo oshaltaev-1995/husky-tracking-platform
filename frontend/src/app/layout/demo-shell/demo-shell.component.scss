@@ -20,6 +20,14 @@
 .nav-mark { display: grid; width: 1.65rem; aspect-ratio: 1; place-items: center; border: 1px solid rgba(255, 255, 255, .14); border-radius: .42rem; font-size: .64rem; font-weight: 900; }
 .project-link { display: flex; justify-content: space-between; gap: var(--space-2); margin: auto var(--space-2) var(--space-4); border-radius: var(--radius-control); padding: var(--space-3); color: var(--text-sidebar); font-size: .7rem; font-weight: 750; text-decoration: none; }
 .project-link:hover { color: var(--text-inverse); background: var(--surface-sidebar-hover); }
+.workspace-controls { display: grid; gap: var(--space-2); margin: 0 var(--space-2) var(--space-4); border-top: 1px solid rgba(255, 255, 255, .12); padding-top: var(--space-4); }
+.workspace-controls strong { font-size: .7rem; }
+.workspace-controls p, .workspace-controls small, .session-notice { margin: 0; color: var(--text-sidebar-muted); font-size: .61rem; line-height: 1.45; }
+.workspace-reset, .reset-confirm button { min-height: 2rem; border: 1px solid rgba(255, 255, 255, .18); border-radius: var(--radius-control); padding: .35rem .55rem; color: var(--text-sidebar); background: transparent; font-size: .63rem; font-weight: 750; }
+.workspace-reset:hover, .reset-confirm button:hover { color: var(--text-inverse); background: var(--surface-sidebar-hover); }
+.reset-confirm { display: grid; gap: var(--space-2); }
+.reset-confirm > span { color: var(--text-sidebar); font-size: .62rem; line-height: 1.4; }
+.session-notice { color: var(--warning-soft, #f1d59b); }
 .demo-context { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; border-top: 1px solid rgba(255, 255, 255, .12); padding: var(--space-5) var(--space-2) 0; }
 .context-dot { width: .5rem; aspect-ratio: 1; margin-top: .25rem; border-radius: 50%; background: var(--sidebar-online); box-shadow: 0 0 0 .2rem rgba(114, 192, 158, .13); }
 .demo-context.unavailable .context-dot { background: var(--sidebar-offline); }

@@ -74,6 +74,25 @@
 
   <a class="project-link" routerLink="/about">About this project <span aria-hidden="true">↗</span></a>
 
+  <section class="workspace-controls" aria-label="Demo workspace">
+    <strong>Private demo session</strong>
+    <p>Your edits are isolated in this browser and expire automatically. Do not enter real personal or kennel data.</p>
+    @if (demoSession.session(); as session) {
+      <small>Expires {{ session.expires_at | date: 'd MMM, HH:mm' }}</small>
+      @if (session.replaced_expired) {<span class="session-notice" role="status">Your previous session expired; a fresh workspace was created.</span>}
+    }
+    @if (!resetConfirming()) {
+      <button type="button" class="workspace-reset" (click)="requestReset()">Reset my demo data</button>
+    } @else {
+      <div class="reset-confirm" role="group" aria-label="Confirm demo reset">
+        <span>This removes only your plans, teams, and actual-work edits.</span>
+        <button type="button" (click)="confirmReset()" [disabled]="resetting()">{{ resetting() ? 'Resetting…' : 'Confirm reset' }}</button>
+        <button type="button" (click)="cancelReset()" [disabled]="resetting()">Cancel</button>
+      </div>
+    }
+    @if (resetMessage()) {<span class="session-notice" role="status">{{ resetMessage() }}</span>}
+  </section>
+
   @if (connection$ | async; as connection) {
     <div class="demo-context" [class.unavailable]="connection.kind === 'unavailable'" aria-live="polite">
       <span class="context-dot" aria-hidden="true"></span>

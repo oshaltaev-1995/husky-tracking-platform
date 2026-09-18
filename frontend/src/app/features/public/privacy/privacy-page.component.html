@@ -1,0 +1,46 @@
+<article class="public-page privacy-page">
+  <header class="public-page-hero">
+    <div class="public-container privacy-hero">
+      <p class="public-kicker">Privacy</p>
+      <h1 class="public-page-title">A small, anonymous demo with a deliberately small data footprint.</h1>
+      <p class="public-lead">Husky Tracking uses fictional kennel data. You can explore and edit the demo without creating an account or providing personal details.</p>
+    </div>
+  </header>
+
+  <section class="public-section">
+    <div class="public-container privacy-grid">
+      <nav class="privacy-index" aria-label="Privacy topics">
+        <a href="#demo">Anonymous demo</a><a href="#contact">Contact form</a><a href="#technical">Technical data</a><a href="#rights">Your choices</a>
+      </nav>
+      <div class="privacy-content">
+        <ul class="privacy-summary" aria-label="Privacy at a glance"><li>No advertising or analytics tracking</li><li>No user accounts</li><li>Fictional kennel data and synthetic portraits</li><li>Temporary anonymous demo workspaces</li><li>Contact messages are not stored in the application database</li></ul>
+        <section id="demo"><h2>Anonymous demo workspace</h2><p>Entering the interactive demo creates a random, opaque session cookie. It contains no name, email address, or kennel information and is used only to keep your plan, team, and actual-work edits separate from other visitors.</p><p>The cookie is HTTP-only, uses SameSite=Lax, and expires after the configured demo lifetime. Workspace rows expire with it and may also be removed by routine cleanup. Reset removes your mutable workspace data while preserving the shared fictional baseline.</p></section>
+        <section id="contact"><h2>Contact form</h2><p>If you choose to contact the project, the form asks for your name, email address, subject, message, and optional organisation so a reply is possible. The purpose is to respond to your request. Processing relies on the legitimate interest in communicating with visitors and, where genuinely applicable, steps you request before a possible contract.</p><p>Messages pass to the configured sink or mail transport and are not stored in the Husky Tracking database. Delivered correspondence may remain with the mail provider only as long as needed to handle the inquiry, reasonable follow-up, and applicable legal obligations. Please do not submit sensitive personal information.</p></section>
+        <section id="technical"><h2>Technical data, purposes, and legal bases</h2><p>The application and its hosting layer necessarily process ordinary request data such as IP address, user agent, timestamps, requested paths, and error or security metadata. The purpose is reliable operation, troubleshooting, and abuse prevention, based on the legitimate interest in operating and protecting the service.</p><p>The anonymous identifier and temporary edits are processed to provide a functioning, isolated public demo, based on the legitimate interest in safely demonstrating the product. Husky Tracking does not include advertising cookies, cross-site tracking, browser fingerprinting, or behavioural analytics, and it does not sell personal information or use targeted advertising.</p><p>Only one strictly necessary demo cookie is used. The application intentionally uses no localStorage, sessionStorage, IndexedDB, analytics cookies, advertising cookies, or marketing cookies. No consent banner is shown because no non-essential browser storage is used; that decision must be revisited if this changes.</p></section>
+        <section><h2>Recipients and international transfers</h2><p>Technical data may be processed by configured hosting and infrastructure providers. Contact data is received by the configured mail provider when mail delivery is enabled. The intended hosting region is shown below. A mail provider may process data in another region, depending on final deployment configuration; Husky Tracking does not claim that data never leaves the EEA.</p><p>No unconfigured transfer mechanism, certification, or provider guarantee is claimed. Final production provider arrangements remain a deployment acceptance item.</p></section>
+        <section><h2>Retention</h2><p>The anonymous workspace has the lifetime shown below. After expiry it cannot be reopened and becomes eligible for deletion by the cleanup process. Contact correspondence follows the necessity criteria described above. Technical logs should be retained for a short operational and security period; production log rotation and an exact enforceable period must be configured and verified before public launch.</p></section>
+        <section id="rights"><h2>Your choices and rights</h2><p>You can reset your demo workspace at any time from the application sidebar. You may also delete the demo cookie in your browser; expired workspace data is cleaned automatically.</p><p>Where applicable, you may have rights to access, correct, delete, restrict, object to, or receive a portable copy of personal information. Not every right applies in every situation. You may also lodge a complaint with the competent data-protection supervisory authority for your circumstances. Contact the address below to ask a privacy question or exercise a right.</p></section>
+        <section><h2>Updates</h2><p>This notice reflects the current public demo architecture. Its effective date is shown below. Material changes to data use or browser storage require this notice and the implementation review to be updated together.</p></section>
+
+        @if (metadata$ | async; as metadata) {
+          @if (metadata) {
+            <aside class="privacy-facts" aria-label="Privacy contact and configuration">
+              <h2>Controller and contact</h2>
+              <dl>
+                <div><dt>Controller</dt><dd>{{ metadata.controller_name }}</dd></div>
+                <div><dt>Country</dt><dd>{{ metadata.controller_country }}</dd></div>
+                <div><dt>Contact</dt><dd><a [href]="'mailto:' + metadata.contact_email">{{ metadata.contact_email }}</a></dd></div>
+                <div><dt>Hosting region</dt><dd>{{ metadata.hosting_region }}</dd></div>
+                <div><dt>Demo lifetime</dt><dd>{{ metadata.demo_workspace_ttl_hours }} hours</dd></div>
+                <div><dt>Effective date</dt><dd>{{ metadata.effective_date | date: 'd MMM y' }}</dd></div>
+                @if (metadata.mail_provider_name) {<div><dt>Mail provider</dt><dd>{{ metadata.mail_provider_name }} · {{ metadata.mail_provider_region }}</dd></div>}
+              </dl>
+            </aside>
+          } @else {
+            <p class="privacy-unavailable" role="status">Privacy contact details are temporarily unavailable. Please try again later.</p>
+          }
+        }
+      </div>
+    </div>
+  </section>
+</article>

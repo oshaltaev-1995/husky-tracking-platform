@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.api.dependencies.demo_workspace import DemoWorkspaceContext, get_demo_workspace
 from app.core.config import get_settings
 from app.core.demo_clock import DemoClock
 from app.db.session import get_db
@@ -21,11 +22,14 @@ from app.services.daily_plan_service import DailyPlanError, DailyPlanService
 
 router = APIRouter()
 DatabaseSession = Annotated[Session, Depends(get_db)]
+Workspace = Annotated[DemoWorkspaceContext, Depends(get_demo_workspace)]
 ResultT = TypeVar("ResultT")
 
 
-def service(session: Session) -> DailyPlanService:
-    return DailyPlanService(session, DemoClock.from_settings(get_settings()))
+def service(session: Session, workspace: DemoWorkspaceContext) -> DailyPlanService:
+    return DailyPlanService(
+        session, DemoClock.from_settings(get_settings()), workspace.workspace.id
+    )
 
 
 def run(operation: Callable[[], ResultT]) -> ResultT:
@@ -39,17 +43,22 @@ def run(operation: Callable[[], ResultT]) -> ResultT:
 
 
 @router.get("/daily-plans/{plan_date}", response_model=DailyPlanRead)
-def get_daily_plan(plan_date: date, session: DatabaseSession) -> DailyPlanRead:
-    return run(lambda: service(session).read(plan_date))
+def get_daily_plan(
+    plan_date: date, session: DatabaseSession, workspace: Workspace
+) -> DailyPlanRead:
+    return run(lambda: service(session, workspace).read(plan_date))
 
 
 @router.put("/daily-plans/{plan_date}", response_model=DailyPlanRead)
 def update_daily_plan(
-    plan_date: date, payload: PlanNoteUpdate, session: DatabaseSession
+    plan_date: date,
+    payload: PlanNoteUpdate,
+    session: DatabaseSession,
+    workspace: Workspace,
 ) -> DailyPlanRead:
     def operation() -> DailyPlanRead:
         with session.begin():
-            return service(session).update_notes(
+            return service(session, workspace).update_notes(
                 plan_date, payload.notes, payload.expected_revision
             )
 
@@ -58,11 +67,14 @@ def update_daily_plan(
 
 @router.post("/daily-plans/{plan_date}/activities", response_model=DailyPlanRead)
 def create_activity(
-    plan_date: date, payload: ActivityWrite, session: DatabaseSession
+    plan_date: date,
+    payload: ActivityWrite,
+    session: DatabaseSession,
+    workspace: Workspace,
 ) -> DailyPlanRead:
     def operation() -> DailyPlanRead:
         with session.begin():
-            return service(session).create_activity(plan_date, payload)
+            return service(session, workspace).create_activity(plan_date, payload)
 
     return run(operation)
 
@@ -76,10 +88,13 @@ def update_activity(
     activity_id: UUID,
     payload: ActivityWrite,
     session: DatabaseSession,
+    workspace: Workspace,
 ) -> DailyPlanRead:
     def operation() -> DailyPlanRead:
         with session.begin():
-            return service(session).update_activity(plan_date, activity_id, payload)
+            return service(session, workspace).update_activity(
+                plan_date, activity_id, payload
+            )
 
     return run(operation)
 
@@ -93,10 +108,11 @@ def move_activity(
     activity_id: UUID,
     payload: ActivityMove,
     session: DatabaseSession,
+    workspace: Workspace,
 ) -> DailyPlanRead:
     def operation() -> DailyPlanRead:
         with session.begin():
-            return service(session).move_activity(
+            return service(session, workspace).move_activity(
                 plan_date,
                 activity_id,
                 payload.direction.value,
@@ -115,10 +131,11 @@ def delete_activity(
     activity_id: UUID,
     expected_revision: Annotated[int, Query(ge=1)],
     session: DatabaseSession,
+    workspace: Workspace,
 ) -> DailyPlanRead:
     def operation() -> DailyPlanRead:
         with session.begin():
-            return service(session).delete_activity(
+            return service(session, workspace).delete_activity(
                 plan_date, activity_id, expected_revision
             )
 
@@ -130,11 +147,12 @@ def eligible_dogs(
     plan_date: date,
     activity_type: PlannedActivityType,
     session: DatabaseSession,
+    workspace: Workspace,
     distance_km: Annotated[int | None, Query()] = None,
     exclude_activity_id: Annotated[UUID | None, Query()] = None,
 ) -> EligibilityRead:
     return run(
-        lambda: service(session).eligibility(
+        lambda: service(session, workspace).eligibility(
             plan_date,
             activity_type,
             distance_km,

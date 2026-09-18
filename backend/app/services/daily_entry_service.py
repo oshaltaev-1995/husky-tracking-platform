@@ -45,6 +45,7 @@ from app.schemas.daily_entry import (
     PlannedActivityActualRead,
 )
 from app.services.daily_plan_service import DailyPlanService
+from app.services.demo_workspace_service import scoped_date_filter
 from app.services.effective_state import EffectiveDogState
 
 
@@ -59,10 +60,13 @@ class DailyEntryError(ValueError):
 class DailyEntryService:
     """Canonical actual-work reads and mutations for one demo-season date."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+    ) -> None:
         self.session = session
         self.clock = clock
-        self.plans = DailyPlanService(session, clock)
+        self.workspace_id = workspace_id
+        self.plans = DailyPlanService(session, clock, workspace_id)
 
     def read(self, work_date: date) -> DailyEntryRead:
         self.plans.validate_date(work_date)
@@ -135,6 +139,7 @@ class DailyEntryService:
         self, work_date: date, payload: ActualSessionCreate
     ) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        self.plans.materialize(work_date)
         dogs = self._validate_participants(
             work_date, payload.participants, payload.distance_km
         )
@@ -142,6 +147,7 @@ class DailyEntryService:
         work_session = WorkSession(
             public_id=public_id,
             source_reference=f"manual:{public_id.hex}",
+            demo_workspace_id=self.workspace_id,
             work_date=work_date,
             start_time=payload.start_time,
             distance_km=payload.distance_km,
@@ -162,6 +168,7 @@ class DailyEntryService:
         payload: ActualSessionUpdate,
     ) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        self.plans.materialize(work_date)
         work_session = self._required_session(work_date, session_id, for_update=True)
         self._check_revision(work_session, payload.expected_revision)
         dogs = self._validate_participants(
@@ -183,6 +190,7 @@ class DailyEntryService:
         self, work_date: date, session_id: UUID, expected_revision: int
     ) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        self.plans.materialize(work_date)
         work_session = self._required_session(work_date, session_id, for_update=True)
         self._check_revision(work_session, expected_revision)
         self.session.delete(work_session)
@@ -191,6 +199,7 @@ class DailyEntryService:
 
     def confirm_plan(self, work_date: date, activity_id: UUID) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        self.plans.materialize(work_date)
         plan = self.plans._required_plan(work_date)
         activity = self.plans._required_activity(plan, activity_id)
         if activity.activity_type != PlannedActivityType.TRAINING.value:
@@ -212,6 +221,7 @@ class DailyEntryService:
         work_session = WorkSession(
             public_id=public_id,
             source_reference=f"plan:{activity.public_id}",
+            demo_workspace_id=self.workspace_id,
             planned_activity_id=activity.id,
             work_date=work_date,
             start_time=activity.start_time,
@@ -231,6 +241,7 @@ class DailyEntryService:
 
     def mark_not_run(self, work_date: date, activity_id: UUID) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        self.plans.materialize(work_date)
         plan = self.plans._required_plan(work_date)
         activity = self.plans._required_activity(plan, activity_id)
         if activity.activity_type != PlannedActivityType.TRAINING.value:
@@ -253,6 +264,7 @@ class DailyEntryService:
 
     def clear_not_run(self, work_date: date, activity_id: UUID) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        self.plans.materialize(work_date)
         plan = self.plans._required_plan(work_date)
         activity = self.plans._required_activity(plan, activity_id)
         if activity.actual_not_run:
@@ -280,7 +292,12 @@ class DailyEntryService:
         return list(
             self.session.scalars(
                 select(WorkSession)
-                .where(WorkSession.work_date == work_date)
+                .where(
+                    WorkSession.work_date == work_date,
+                    scoped_date_filter(
+                        WorkSession, self.workspace_id, WorkSession.work_date
+                    ),
+                )
                 .options(
                     selectinload(WorkSession.participations).selectinload(
                         WorkParticipation.dog
@@ -299,7 +316,9 @@ class DailyEntryService:
         self, work_date: date, public_id: UUID, *, for_update: bool = False
     ) -> WorkSession:
         statement = select(WorkSession).where(
-            WorkSession.public_id == public_id, WorkSession.work_date == work_date
+            WorkSession.public_id == public_id,
+            WorkSession.work_date == work_date,
+            scoped_date_filter(WorkSession, self.workspace_id, WorkSession.work_date),
         )
         if for_update:
             statement = statement.with_for_update()
@@ -331,7 +350,12 @@ class DailyEntryService:
                 func.sum(WorkSession.distance_km),
             )
             .join(WorkSession)
-            .where(WorkSession.work_date == work_date)
+            .where(
+                WorkSession.work_date == work_date,
+                scoped_date_filter(
+                    WorkSession, self.workspace_id, WorkSession.work_date
+                ),
+            )
             .group_by(WorkParticipation.dog_id)
         )
         if exclude_session_id is not None:

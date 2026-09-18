@@ -51,6 +51,12 @@ describe('DemoShellComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Analytics');
     expect(fixture.nativeElement.textContent).toContain('Archive');
     expect(fixture.nativeElement.textContent).toContain('changes may reset');
+    expect(fixture.nativeElement.textContent).toContain('Private demo session');
+    expect(fixture.nativeElement.textContent).toContain('Do not enter real personal');
+    const reset = fixture.nativeElement.querySelector('.workspace-reset') as HTMLButtonElement;
+    reset.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('removes only your plans');
     expect(fixture.nativeElement.querySelector('a[href="/about"]')).not.toBeNull();
   });
 

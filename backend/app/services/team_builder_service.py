@@ -45,6 +45,7 @@ from app.schemas.team_builder import (
     WorkloadMetricsRead,
 )
 from app.services.daily_plan_service import DailyPlanService
+from app.services.demo_workspace_service import scoped_date_filter
 
 
 class TeamBuilderError(ValueError):
@@ -65,10 +66,13 @@ class TeamBuilderError(ValueError):
 class TeamBuilderService:
     """P6 projection, deterministic generation, and validated lineup persistence."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+    ) -> None:
         self.session = session
         self.clock = clock
-        self.plans = DailyPlanService(session, clock)
+        self.workspace_id = workspace_id
+        self.plans = DailyPlanService(session, clock, workspace_id)
 
     def context(self, plan_date: date, activity_id: UUID) -> TeamBuilderContextRead:
         activity = self._required_activity(plan_date, activity_id)
@@ -136,6 +140,7 @@ class TeamBuilderService:
         payload: SaveTeamsRequest,
     ) -> TeamBuilderContextRead:
         self.plans.validate_date(plan_date)
+        self.plans.materialize(plan_date)
         plan = self.plans._required_plan(plan_date)  # shared revision lock boundary
         self.plans._check_revision(plan, payload.expected_revision)
         activity = self.plans._required_activity(plan, activity_id)
@@ -197,6 +202,7 @@ class TeamBuilderService:
             .join(DailyPlan)
             .where(
                 DailyPlan.plan_date == plan_date,
+                scoped_date_filter(DailyPlan, self.workspace_id, DailyPlan.plan_date),
                 PlannedActivity.public_id == activity_id,
             )
             .options(
@@ -311,6 +317,9 @@ class TeamBuilderService:
                 WorkParticipation.dog_id.in_(dog_ids),
                 WorkSession.work_date >= self.clock.season_start,
                 WorkSession.work_date < plan_date,
+                scoped_date_filter(
+                    WorkSession, self.workspace_id, WorkSession.work_date
+                ),
             )
             .group_by(WorkParticipation.dog_id)
         )

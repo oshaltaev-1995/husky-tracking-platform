@@ -519,7 +519,8 @@ def test_reset_restores_mutated_actual_ledger_and_baseline_checksum(
     assert response.status_code == 200
     create_training(client, ["Aurora"])
     with SessionLocal() as session:
-        assert semantic_checksum(session) != BASELINE_CHECKSUM
+        # Workspace mutations intentionally sit outside the immutable-world checksum.
+        assert semantic_checksum(session) == BASELINE_CHECKSUM
     with SessionLocal.begin() as session:
         reset_demo_world(
             session,

@@ -9,7 +9,7 @@ The intended public hostname is `huskytracking.com`; domain purchase and DNS are
 assumed. This repository is a new implementation, not a migration or copy of either
 reference project.
 
-## Product foundation through P11
+## Product foundation through P11.5
 
 - Angular 22, TypeScript, and a token-based Sass/SCSS design system
 - FastAPI, SQLAlchemy, Alembic, and PostgreSQL 18 backend
@@ -21,7 +21,7 @@ reference project.
   fictional dogs
 - persistent desktop application sidebar, accessible mobile drawer, and standard/wide
   content modes ready for later operational modules
-- a public product site at `/`, `/features`, `/about`, and `/contact`, with a separate
+- a public product site at `/`, `/features`, `/about`, `/contact`, and `/privacy`, with a separate
   operational shell under `/demo/...`
 - responsive `/demo/dashboard`, `/demo/dogs`, `/demo/archive`, `/demo/kennel`,
   `/demo/daily`, `/demo/daily-entry`, `/demo/analytics`, and deep-linked Dog/Team routes
@@ -54,6 +54,8 @@ reference project.
 - linting, typing, build, and test infrastructure
 - route-aware SEO/social metadata, public sitemap/robots policy, intentional 404, and a
   non-persistent validated contact delivery abstraction
+- anonymous 24-hour demo workspaces with date-level copy-on-write isolation, scoped
+  reset, expiry cleanup, and baseline-only checksum semantics
 - canonical product, data, domain, architecture, reference-audit, and roadmap docs
 
 P11 adds the public product presentation while preserving the mature application. P10
@@ -93,6 +95,7 @@ Then open:
 - Features: <http://localhost:4300/features>
 - About: <http://localhost:4300/about>
 - Contact: <http://localhost:4300/contact>
+- Privacy: <http://localhost:4300/privacy>
 - interactive demo: <http://localhost:4300/demo>
 - Dashboard: <http://localhost:4300/demo/dashboard>
 - Dogs: <http://localhost:4300/demo/dogs>
@@ -103,6 +106,8 @@ Then open:
 - dogs registry API: <http://localhost:8030/api/v1/dogs>
 - archive API: <http://localhost:8030/api/v1/archive>
 - Contact API: <http://localhost:8030/api/v1/contact>
+- public privacy metadata: <http://localhost:8030/api/v1/public/privacy>
+- anonymous demo session: <http://localhost:8030/api/v1/demo/session>
 - Kennel Map: <http://localhost:4300/demo/kennel>
 - dated map API: <http://localhost:8030/api/v1/kennel-map?date=2026-03-31>
 - Daily Plan: <http://localhost:4300/demo/daily>
@@ -135,6 +140,11 @@ metadata. Use `disabled` to reject delivery safely, or configure `smtp` with
 `CONTACT_RECIPIENT_EMAIL`, `SMTP_HOST`, `SMTP_FROM`, and optional authentication/TLS
 variables from `.env.example`. Never commit recipient addresses or credentials.
 
+Entering `/demo` creates one strictly necessary, opaque HttpOnly session cookie. Mutable
+plans, teams, and actual-work edits are isolated for 24 hours by default; the demo shell
+shows expiry and a **Reset my demo data** action. Public pages and Contact/Privacy APIs
+do not create the cookie. See [`docs/PRIVACY_DATA_MAP.md`](docs/PRIVACY_DATA_MAP.md).
+
 ## Canonical demo data commands
 
 The commands are deliberately scoped to the non-production database named
@@ -152,6 +162,9 @@ DEMO_RESET_ENABLED=true uv run python -m app.demo.reset
 
 # Validate and print the currently seeded world without changing it.
 uv run python -m app.demo.inspect
+
+# Idempotently delete expired anonymous workspaces and their scoped rows.
+uv run python -m app.demo.cleanup
 ```
 
 The reset report includes cohorts, litters/parents, class and archive distributions,
@@ -160,9 +173,9 @@ workload, and the semantic checksum.
 The checksum covers the canonical domain world (including baseline work sessions and starts)
 after sorting and replacing database keys with stable names/codes. It excludes mutable
 Daily Plan/Team rows, generated timestamps, PostgreSQL metadata, and the separately
-versioned media activation keys. Runtime Daily Entry
-edits intentionally change the live semantic checksum because actual work is canonical
-truth. Demo reset clears plans/teams, reconstructs the baseline actual ledger, and
+versioned media activation keys. Workspace Daily Entry edits affect the visitor's
+effective actual-work truth but remain outside the immutable baseline checksum. Global
+demo reset clears all workspaces, reconstructs the baseline actual ledger, and
 restores `2ad3418ecb5edad1d4676a9a6e0cf43b2cfbfa167c0218e96d9749fd12e24af2`.
 
 ## Synthetic dog media

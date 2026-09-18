@@ -26,6 +26,7 @@ from app.schemas.analytics import (
     RoleBreakdownRead,
     WeeklyAnalyticsRead,
 )
+from app.services.demo_workspace_service import scoped_date_filter
 from app.services.effective_state import EffectiveDogState
 
 UNDERUSED_RATE_RATIO = 0.95
@@ -122,9 +123,12 @@ def _longest_work_streak(worked_dates: set[date], period: list[date]) -> int:
 class AnalyticsService:
     """Actual-ledger analytics with bounded work and dog-state projections."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+    ) -> None:
         self.session = session
         self.clock = clock
+        self.workspace_id = workspace_id
 
     def validate_range(self, date_from: date, date_to: date) -> None:
         if date_from > date_to:
@@ -141,6 +145,9 @@ class AnalyticsService:
             select(WorkSession.id, WorkSession.work_date).where(
                 WorkSession.work_date >= date_from,
                 WorkSession.work_date <= date_to,
+                scoped_date_filter(
+                    WorkSession, self.workspace_id, WorkSession.work_date
+                ),
             )
         ).all()
         rows = self.session.execute(
@@ -155,6 +162,9 @@ class AnalyticsService:
             .where(
                 WorkSession.work_date >= date_from,
                 WorkSession.work_date <= date_to,
+                scoped_date_filter(
+                    WorkSession, self.workspace_id, WorkSession.work_date
+                ),
             )
             .order_by(WorkSession.work_date, WorkSession.id, WorkParticipation.dog_id)
         ).all()

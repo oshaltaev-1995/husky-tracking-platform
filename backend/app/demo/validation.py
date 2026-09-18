@@ -134,8 +134,18 @@ def validate_demo_world(session: Session, clock: DemoClock) -> DemoValidationRep
     housing = list(session.scalars(select(HousingAssignment)))
     roles = list(session.scalars(select(DogRoleCapability)))
     relations = list(session.scalars(select(DogRelationshipConstraint)))
-    work_sessions = list(session.scalars(select(WorkSession)))
-    participations = list(session.scalars(select(WorkParticipation)))
+    work_sessions = list(
+        session.scalars(
+            select(WorkSession).where(WorkSession.demo_workspace_id.is_(None))
+        )
+    )
+    participations = list(
+        session.scalars(
+            select(WorkParticipation)
+            .join(WorkSession)
+            .where(WorkSession.demo_workspace_id.is_(None))
+        )
+    )
     datasets = list(session.scalars(select(DemoDataset)))
 
     class_by_dog: dict[int, list[DogClassPeriod]] = defaultdict(list)

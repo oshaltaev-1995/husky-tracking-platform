@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.dependencies.demo_workspace import DemoWorkspaceContext, get_demo_workspace
 from app.core.config import get_settings
 from app.core.demo_clock import DemoClock
 from app.db.session import get_db
@@ -20,11 +21,14 @@ from app.services.team_builder_service import TeamBuilderError, TeamBuilderServi
 
 router = APIRouter()
 DatabaseSession = Annotated[Session, Depends(get_db)]
+Workspace = Annotated[DemoWorkspaceContext, Depends(get_demo_workspace)]
 ResultT = TypeVar("ResultT")
 
 
-def service(session: Session) -> TeamBuilderService:
-    return TeamBuilderService(session, DemoClock.from_settings(get_settings()))
+def service(session: Session, workspace: DemoWorkspaceContext) -> TeamBuilderService:
+    return TeamBuilderService(
+        session, DemoClock.from_settings(get_settings()), workspace.workspace.id
+    )
 
 
 def run(operation: Callable[[], ResultT]) -> ResultT:
@@ -42,9 +46,9 @@ def run(operation: Callable[[], ResultT]) -> ResultT:
     response_model=TeamBuilderContextRead,
 )
 def get_team_builder(
-    plan_date: date, activity_id: UUID, session: DatabaseSession
+    plan_date: date, activity_id: UUID, session: DatabaseSession, workspace: Workspace
 ) -> TeamBuilderContextRead:
-    return run(lambda: service(session).context(plan_date, activity_id))
+    return run(lambda: service(session, workspace).context(plan_date, activity_id))
 
 
 @router.post(
@@ -56,9 +60,10 @@ def generate_teams(
     activity_id: UUID,
     payload: GenerateTeamsRequest,
     session: DatabaseSession,
+    workspace: Workspace,
 ) -> GeneratedTeamsRead:
     return run(
-        lambda: service(session).generate(
+        lambda: service(session, workspace).generate(
             plan_date,
             activity_id,
             team_count=payload.team_count,
@@ -76,9 +81,10 @@ def save_teams(
     activity_id: UUID,
     payload: SaveTeamsRequest,
     session: DatabaseSession,
+    workspace: Workspace,
 ) -> TeamBuilderContextRead:
     def operation() -> TeamBuilderContextRead:
         with session.begin():
-            return service(session).save(plan_date, activity_id, payload)
+            return service(session, workspace).save(plan_date, activity_id, payload)
 
     return run(operation)

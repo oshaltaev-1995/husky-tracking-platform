@@ -37,8 +37,11 @@ and make its synthetic nature explicit.
   kennels, customers, or operational claims.
 - `/contact` uses validated, non-persistent plain-text delivery; it is not a sales or
   customer-support promise.
+- `/privacy` explains the actual anonymous demo cookie, temporary visitor edits,
+  contact delivery, technical logs, retention criteria, and public controller metadata.
 - `/demo/...` owns the single operational route tree. The demo is public-facing,
-  fictional, and mutable changes may be reset.
+  fictional, and mutable changes are isolated in an expiring anonymous workspace that
+  the visitor can reset without affecting anyone else.
 
 The site does not claim customers, pricing, availability for sale, veterinary insight,
 or AI-based operational decisions.
@@ -107,7 +110,8 @@ rest, restriction, and retirement. Dog interactions open Dog Profile.
 - microservices or speculative enterprise infrastructure.
 
 Authentication and multi-tenant SaaS behavior are not required for the core demo. A
-safe public reset/reseed mechanism and deployment hardening are required before public
+temporary anonymous workspace is a privacy boundary, not a user account or a claim of
+multi-tenant SaaS functionality. Final deployment hardening is required before public
 release.
 
 ## Product principles

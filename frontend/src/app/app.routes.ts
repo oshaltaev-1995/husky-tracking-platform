@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { demoSessionGuard } from './core/guards/demo-session.guard';
 
 const demoRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -89,6 +90,8 @@ export const routes: Routes = [
       import('./layout/demo-shell/demo-shell.component').then(
         (component) => component.DemoShellComponent,
       ),
+    canActivate: [demoSessionGuard],
+    canActivateChild: [demoSessionGuard],
     children: demoRoutes,
   },
 
@@ -161,6 +164,18 @@ export const routes: Routes = [
         data: {
           description:
             'Contact the Husky Tracking project about its product design and software implementation.',
+        },
+      },
+      {
+        path: 'privacy',
+        loadComponent: () =>
+          import('./features/public/privacy/privacy-page.component').then(
+            (component) => component.PrivacyPageComponent,
+          ),
+        title: 'Privacy — Husky Tracking',
+        data: {
+          description:
+            'How Husky Tracking handles anonymous demo sessions, contact messages and public-site data.',
         },
       },
       {

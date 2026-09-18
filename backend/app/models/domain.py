@@ -19,6 +19,7 @@ from sqlalchemy import (
     Time,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import DATERANGE, ExcludeConstraint
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -354,6 +355,43 @@ class DogRelationshipConstraint(Base):
     dog_b: Mapped[Dog] = relationship(foreign_keys=[dog_b_id])
 
 
+class DemoWorkspace(Base):
+    __tablename__ = "demo_workspaces"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    schema_version: Mapped[int] = mapped_column(default=1)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+    materialized_days: Mapped[list[DemoWorkspaceDay]] = relationship(
+        back_populates="workspace", cascade="all, delete-orphan"
+    )
+
+
+class DemoWorkspaceDay(Base):
+    __tablename__ = "demo_workspace_days"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "work_date", name="uq_workspace_day"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("demo_workspaces.id", ondelete="CASCADE"), index=True
+    )
+    work_date: Mapped[date] = mapped_column(Date, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    workspace: Mapped[DemoWorkspace] = relationship(back_populates="materialized_days")
+
+
 class WorkSession(Base):
     __tablename__ = "work_sessions"
     __table_args__ = (
@@ -367,14 +405,42 @@ class WorkSession(Base):
         UniqueConstraint(
             "planned_activity_id", name="uq_work_sessions_planned_activity_id"
         ),
+        Index(
+            "uq_work_sessions_baseline_public_id",
+            "public_id",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NULL"),
+        ),
+        Index(
+            "uq_work_sessions_workspace_public_id",
+            "demo_workspace_id",
+            "public_id",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NOT NULL"),
+        ),
+        Index(
+            "uq_work_sessions_baseline_source",
+            "source_reference",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NULL"),
+        ),
+        Index(
+            "uq_work_sessions_workspace_source",
+            "demo_workspace_id",
+            "source_reference",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NOT NULL"),
+        ),
+        Index("ix_work_sessions_workspace_date", "demo_workspace_id", "work_date"),
         Index("ix_work_sessions_work_date_distance", "work_date", "distance_km"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    public_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    public_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), default=uuid4)
+    source_reference: Mapped[str] = mapped_column(String(80))
+    demo_workspace_id: Mapped[int | None] = mapped_column(
+        ForeignKey("demo_workspaces.id", ondelete="CASCADE"), index=True
     )
-    source_reference: Mapped[str] = mapped_column(String(80), unique=True)
     planned_activity_id: Mapped[int | None] = mapped_column(
         ForeignKey(
             "planned_activities.id",
@@ -456,13 +522,40 @@ class DailyPlan(Base):
     __tablename__ = "daily_plans"
     __table_args__ = (
         CheckConstraint("revision > 0", name="ck_daily_plans_positive_revision"),
+        Index(
+            "uq_daily_plans_baseline_date",
+            "plan_date",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NULL"),
+        ),
+        Index(
+            "uq_daily_plans_workspace_date",
+            "demo_workspace_id",
+            "plan_date",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NOT NULL"),
+        ),
+        Index(
+            "uq_daily_plans_baseline_public_id",
+            "public_id",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NULL"),
+        ),
+        Index(
+            "uq_daily_plans_workspace_public_id",
+            "demo_workspace_id",
+            "public_id",
+            unique=True,
+            postgresql_where=text("demo_workspace_id IS NOT NULL"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    public_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), unique=True, default=uuid4
+    public_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), default=uuid4)
+    demo_workspace_id: Mapped[int | None] = mapped_column(
+        ForeignKey("demo_workspaces.id", ondelete="CASCADE"), index=True
     )
-    plan_date: Mapped[date] = mapped_column(Date, unique=True, index=True)
+    plan_date: Mapped[date] = mapped_column(Date, index=True)
     notes: Mapped[str | None] = mapped_column(Text)
     revision: Mapped[int] = mapped_column(default=1)
     created_at: Mapped[datetime] = mapped_column(
@@ -504,12 +597,13 @@ class PlannedActivity(Base):
             deferrable=True,
             initially="DEFERRED",
         ),
+        UniqueConstraint(
+            "daily_plan_id", "public_id", name="uq_planned_activity_plan_public_id"
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    public_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), unique=True, default=uuid4
-    )
+    public_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), default=uuid4)
     daily_plan_id: Mapped[int] = mapped_column(
         ForeignKey("daily_plans.id", ondelete="CASCADE"), index=True
     )

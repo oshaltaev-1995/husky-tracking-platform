@@ -1,14 +1,18 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 
 import { routes } from '../../app.routes';
+import { DemoSessionService } from '../../core/api/demo-session.service';
 import { AboutPageComponent } from './about/about-page.component';
 import { ContactPageComponent } from './contact/contact-page.component';
 import { FeaturesPageComponent } from './features/features-page.component';
 import { HomePageComponent } from './home/home-page.component';
 import { NotFoundPageComponent } from './not-found/not-found-page.component';
+import { PrivacyPageComponent } from './privacy/privacy-page.component';
+import { of } from 'rxjs';
 
 describe('Public pages', () => {
   it('renders the positioning, disclosure, feature links, and demo CTA on Home', async () => {
@@ -122,11 +126,46 @@ describe('Public pages', () => {
     expect(fixture.nativeElement.textContent).toContain('your message has been received');
     expect(component.form.controls.message.value).toBe('');
   });
+
+  it('renders plain-language privacy metadata from the public endpoint', async () => {
+    await TestBed.configureTestingModule({
+      imports: [PrivacyPageComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(PrivacyPageComponent);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/public/privacy').flush({
+      controller_name: 'Husky Tracking project operator',
+      contact_email: 'privacy@example.com',
+      controller_country: 'Finland',
+      hosting_region: 'EEA',
+      effective_date: '2026-09-18',
+      mail_provider_name: 'Example Mail',
+      mail_provider_region: 'EEA',
+      demo_workspace_ttl_hours: 24,
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Anonymous demo workspace');
+    expect(fixture.nativeElement.textContent).toContain('privacy@example.com');
+    expect(fixture.nativeElement.textContent).toContain('24 hours');
+  });
 });
 
 describe('Public and demo routing', () => {
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
+    const session = {
+      expires_at: '2026-09-19T12:00:00Z',
+      ttl_hours: 24,
+      created: true,
+      replaced_expired: false,
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        provideHttpClient(),
+        { provide: DemoSessionService, useValue: { ensure: () => of(session), session: signal(session) } },
+      ],
+    });
   });
 
   it(
@@ -141,6 +180,8 @@ describe('Public and demo routing', () => {
       expect(router.url).toBe('/about');
       await router.navigateByUrl('/contact');
       expect(router.url).toBe('/contact');
+      await router.navigateByUrl('/privacy');
+      expect(router.url).toBe('/privacy');
       await router.navigateByUrl('/demo');
       expect(router.url).toBe('/demo/dashboard');
     },

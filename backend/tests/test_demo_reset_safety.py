@@ -9,6 +9,10 @@ def test_reset_refuses_production() -> None:
         _env_file=None,
         app_env="production",
         demo_reset_enabled=True,
+        demo_cookie_secure=True,
+        privacy_contact_email="privacy@example.com",
+        privacy_controller_country="Example EEA country",
+        privacy_hosting_region="Example EEA region",
     )
 
     with pytest.raises(DemoResetNotAllowedError, match="production"):

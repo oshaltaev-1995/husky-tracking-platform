@@ -85,6 +85,13 @@ These instructions apply to the entire repository.
 - Contact delivery is non-persistent and plain-text. Local `sink` mode logs only
   metadata; production SMTP is environment-configured. Never commit recipients or
   credentials, and never echo or render contact values as trusted HTML.
+- Anonymous `/demo` state is isolated by the backend-issued `ht_demo_session` cookie.
+  Mutable Daily Plan/Team and actual-work reads use the baseline plus date-materialized
+  workspace overlay; never query all workspace rows or mutate baseline rows from public
+  endpoints. Public pages, Contact, and Privacy must not create a workspace cookie.
+- Per-workspace reset deletes only that workspace's mutable rows. The global guarded
+  reset clears every workspace and restores the canonical baseline. Semantic checksum
+  and canonical validation always exclude workspace-owned actual rows.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a
   production migration mechanism.
 - Use `.env.example` for public configuration; never commit secrets.

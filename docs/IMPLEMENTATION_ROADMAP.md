@@ -468,9 +468,28 @@ enter the demo; no domain/DNS assumption is hardcoded.
 **Exclusions:** no billing, tenancy, customer onboarding, or CRM.
 
 **P12 handoff:** finalize the real hostname/DNS/TLS and canonical host configuration,
-SMTP recipient and credentials, request/rate limits, anonymous mutation isolation and
-reset schedule, reverse-proxy headers, CORS, secrets, monitoring/logging, and production
+SMTP recipient and credentials, request/rate limits, workspace cleanup scheduling,
+reverse-proxy headers, CORS, secrets, monitoring/logging, and production
 accessibility/performance/security acceptance.
+
+## P11.5 — Privacy and anonymous demo workspaces
+
+**Status:** completed. P11.5 adds the public `/privacy` notice and safe public metadata,
+then isolates each anonymous visitor's mutable Plan/Team/Actual state with a 24-hour
+opaque HttpOnly session and date-level copy-on-write overlay. Shared Dogs, pedigree,
+housing, state histories, media, and baseline work remain read-only.
+
+The backend resolves the effective baseline/workspace view for Daily Plan, Team Builder,
+Daily Entry, Dog Work, Analytics, and Dashboard. Per-workspace reset and expiry cleanup
+cannot alter another workspace or the canonical baseline. Global reset removes all
+workspaces and returns the baseline checksum. The frontend initializes a session only
+on `/demo`, reports expiry/replacement, warns against real data, and provides a confirmed
+Reset action. Privacy data mapping and the focused threat review record current facts
+and remaining production controls.
+
+**P12 handoff:** schedule workspace cleanup; finalize controller, hosting, mail-provider,
+transfer, mailbox-retention, and log-retention configuration; validate TLS, headers,
+proxy redaction, CSRF/origin policy, rate limits, and cross-browser expiry in deployment.
 
 ## P12 — Production-demo hardening
 

@@ -9,7 +9,7 @@ from app.core.demo_clock import DemoClock
 from app.db.session import SessionLocal
 from app.demo.service import reset_demo_world
 from app.main import app
-from app.models import DailyPlan, Dog, WorkParticipation
+from app.models import DailyPlan, Dog, WorkParticipation, WorkSession
 
 
 @pytest.fixture(autouse=True)
@@ -410,7 +410,12 @@ def test_stale_mutation_conflicts_and_actual_work_is_untouched(
     client: TestClient,
 ) -> None:
     with SessionLocal() as session:
-        before = session.scalar(select(func.count()).select_from(WorkParticipation))
+        before = session.scalar(
+            select(func.count())
+            .select_from(WorkParticipation)
+            .join(WorkSession)
+            .where(WorkSession.demo_workspace_id.is_(None))
+        )
     plan = create_activity(client, "2026-03-31", "Atlas")
     stale = client.put(
         "/api/v1/daily-plans/2026-03-31",
@@ -419,6 +424,11 @@ def test_stale_mutation_conflicts_and_actual_work_is_untouched(
     assert stale.status_code == 409
     assert stale.json()["detail"]["code"] == "plan_changed"
     with SessionLocal() as session:
-        after = session.scalar(select(func.count()).select_from(WorkParticipation))
+        after = session.scalar(
+            select(func.count())
+            .select_from(WorkParticipation)
+            .join(WorkSession)
+            .where(WorkSession.demo_workspace_id.is_(None))
+        )
     assert before == after == 1120
     assert plan["revision"] == 1

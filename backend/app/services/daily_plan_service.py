@@ -35,6 +35,7 @@ from app.schemas.daily_plans import (
     PlannedActivityRead,
     PlanParticipantRead,
 )
+from app.services.demo_workspace_service import DemoWorkspaceService, scoped_date_filter
 from app.services.effective_state import EffectiveDogState
 
 
@@ -49,9 +50,18 @@ class DailyPlanError(ValueError):
 class DailyPlanService:
     """Date-scoped planning mutations built on canonical effective dog state."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+    ) -> None:
         self.session = session
         self.clock = clock
+        self.workspace_id = workspace_id
+
+    def materialize(self, plan_date: date) -> None:
+        if self.workspace_id is not None:
+            DemoWorkspaceService(self.session, self.workspace_id).materialize_date(
+                plan_date
+            )
 
     def read(self, plan_date: date) -> DailyPlanRead:
         self.validate_date(plan_date)
@@ -61,11 +71,17 @@ class DailyPlanService:
         self, plan_date: date, notes: str | None, expected_revision: int | None
     ) -> DailyPlanRead:
         self.validate_date(plan_date)
+        self.materialize(plan_date)
         plan = self._plan(plan_date, for_update=True)
         if plan is None:
             if notes is None:
                 return self._read(None, plan_date)
-            plan = DailyPlan(plan_date=plan_date, notes=notes, revision=1)
+            plan = DailyPlan(
+                demo_workspace_id=self.workspace_id,
+                plan_date=plan_date,
+                notes=notes,
+                revision=1,
+            )
             self.session.add(plan)
         else:
             self._check_revision(plan, expected_revision)
@@ -79,6 +95,7 @@ class DailyPlanService:
 
     def create_activity(self, plan_date: date, payload: ActivityWrite) -> DailyPlanRead:
         self.validate_date(plan_date)
+        self.materialize(plan_date)
         plan = self._plan(plan_date, for_update=True)
         if plan is None:
             if payload.expected_revision is not None:
@@ -87,7 +104,9 @@ class DailyPlanService:
                     "This day changed. Reload it before saving.",
                     409,
                 )
-            plan = DailyPlan(plan_date=plan_date, revision=1)
+            plan = DailyPlan(
+                demo_workspace_id=self.workspace_id, plan_date=plan_date, revision=1
+            )
             self.session.add(plan)
             self.session.flush()
         else:
@@ -117,6 +136,7 @@ class DailyPlanService:
         self, plan_date: date, activity_id: UUID, payload: ActivityWrite
     ) -> DailyPlanRead:
         self.validate_date(plan_date)
+        self.materialize(plan_date)
         plan = self._required_plan(plan_date)
         self._check_revision(plan, payload.expected_revision)
         activity = self._required_activity(plan, activity_id)
@@ -162,6 +182,7 @@ class DailyPlanService:
         expected_revision: int,
     ) -> DailyPlanRead:
         self.validate_date(plan_date)
+        self.materialize(plan_date)
         plan = self._required_plan(plan_date)
         self._check_revision(plan, expected_revision)
         ordered = sorted(plan.activities, key=lambda item: item.sequence)
@@ -180,6 +201,7 @@ class DailyPlanService:
         self, plan_date: date, activity_id: UUID, expected_revision: int
     ) -> DailyPlanRead:
         self.validate_date(plan_date)
+        self.materialize(plan_date)
         plan = self._required_plan(plan_date)
         self._check_revision(plan, expected_revision)
         activity = self._required_activity(plan, activity_id)
@@ -209,8 +231,14 @@ class DailyPlanService:
         excluded_internal_id: int | None = None
         if exclude_activity_id is not None:
             excluded = self.session.scalar(
-                select(PlannedActivity).where(
-                    PlannedActivity.public_id == exclude_activity_id
+                select(PlannedActivity)
+                .join(DailyPlan)
+                .where(
+                    PlannedActivity.public_id == exclude_activity_id,
+                    DailyPlan.plan_date == plan_date,
+                    scoped_date_filter(
+                        DailyPlan, self.workspace_id, DailyPlan.plan_date
+                    ),
                 )
             )
             if excluded is None or excluded.daily_plan.plan_date != plan_date:
@@ -265,7 +293,10 @@ class DailyPlanService:
         )
 
     def _plan(self, plan_date: date, *, for_update: bool = False) -> DailyPlan | None:
-        statement = self._plan_query().where(DailyPlan.plan_date == plan_date)
+        statement = self._plan_query().where(
+            DailyPlan.plan_date == plan_date,
+            scoped_date_filter(DailyPlan, self.workspace_id, DailyPlan.plan_date),
+        )
         if for_update:
             statement = statement.with_for_update()
         return self.session.scalar(statement)
@@ -430,6 +461,7 @@ class DailyPlanService:
             .join(DailyPlan)
             .where(
                 DailyPlan.plan_date == plan_date,
+                scoped_date_filter(DailyPlan, self.workspace_id, DailyPlan.plan_date),
                 PlannedActivity.activity_type == PlannedActivityType.TRAINING.value,
             )
             .group_by(PlannedActivityParticipant.dog_id)

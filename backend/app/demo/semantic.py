@@ -71,7 +71,9 @@ def semantic_snapshot(session: Session) -> dict[str, Any]:
     names = {dog.id: dog.name for dog in dogs}
     locations = session.scalars(select(KennelLocation)).all()
     location_codes = {location.id: location.code for location in locations}
-    sessions = session.scalars(select(WorkSession)).all()
+    sessions = session.scalars(
+        select(WorkSession).where(WorkSession.demo_workspace_id.is_(None))
+    ).all()
     session_refs = {
         work_session.id: work_session.source_reference for work_session in sessions
     }
@@ -222,7 +224,11 @@ def semantic_snapshot(session: Session) -> dict[str, Any]:
         "work_participations": sorted(
             (
                 _work_participation_row(participation, session_refs, names)
-                for participation in session.scalars(select(WorkParticipation))
+                for participation in session.scalars(
+                    select(WorkParticipation)
+                    .join(WorkSession)
+                    .where(WorkSession.demo_workspace_id.is_(None))
+                )
             ),
             key=lambda row: (row["session"], row["dog"]),
         ),

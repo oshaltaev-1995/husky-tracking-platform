@@ -1,6 +1,8 @@
 from app.models.domain import (
     DailyPlan,
     DemoDataset,
+    DemoWorkspace,
+    DemoWorkspaceDay,
     Dog,
     DogArchive,
     DogAvailabilityPeriod,
@@ -21,6 +23,8 @@ from app.models.domain import (
 
 __all__ = [
     "DemoDataset",
+    "DemoWorkspace",
+    "DemoWorkspaceDay",
     "DailyPlan",
     "Dog",
     "DogArchive",

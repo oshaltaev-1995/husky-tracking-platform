@@ -26,11 +26,13 @@ from app.services.kennel_map_read_service import KennelMapReadService
 class DashboardService:
     """Compose existing domain projections into one operational home payload."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+    ) -> None:
         self.clock = clock
-        self.analytics = AnalyticsService(session, clock)
-        self.plans = DailyPlanService(session, clock)
-        self.entries = DailyEntryService(session, clock)
+        self.analytics = AnalyticsService(session, clock, workspace_id)
+        self.plans = DailyPlanService(session, clock, workspace_id)
+        self.entries = DailyEntryService(session, clock, workspace_id)
         self.kennel = KennelMapReadService(session, clock)
 
     def read(self, selected_date: date) -> DashboardRead:

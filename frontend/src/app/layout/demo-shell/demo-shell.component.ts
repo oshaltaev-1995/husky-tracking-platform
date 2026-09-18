@@ -1,4 +1,4 @@
-import { AsyncPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, DatePipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
@@ -19,6 +19,7 @@ import {
 import { catchError, filter, map, of, shareReplay, startWith } from 'rxjs';
 
 import { HealthService } from '../../core/api/health.service';
+import { DemoSessionService } from '../../core/api/demo-session.service';
 
 type ConnectionState =
   | { kind: 'loading' }
@@ -38,13 +39,14 @@ interface NavigationSection {
 
 @Component({
   selector: 'ht-demo-shell',
-  imports: [AsyncPipe, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AsyncPipe, DatePipe, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './demo-shell.component.html',
   styleUrl: './demo-shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DemoShellComponent {
   private readonly health = inject(HealthService);
+  protected readonly demoSession = inject(DemoSessionService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
@@ -52,6 +54,9 @@ export class DemoShellComponent {
   private readonly mobileDrawer = viewChild<ElementRef<HTMLElement>>('mobileDrawer');
 
   protected readonly menuOpen = signal(false);
+  protected readonly resetConfirming = signal(false);
+  protected readonly resetting = signal(false);
+  protected readonly resetMessage = signal<string | null>(null);
   protected readonly layoutMode = signal<'standard' | 'wide'>('standard');
   protected readonly navigation: NavigationSection[] = [
     {
@@ -148,5 +153,29 @@ export class DemoShellComponent {
       event.preventDefault();
       first.focus();
     }
+  }
+
+  protected requestReset(): void {
+    this.resetMessage.set(null);
+    this.resetConfirming.set(true);
+  }
+
+  protected cancelReset(): void {
+    this.resetConfirming.set(false);
+  }
+
+  protected confirmReset(): void {
+    this.resetting.set(true);
+    this.demoSession.reset().subscribe({
+      next: () => {
+        this.resetMessage.set('Your demo changes were reset. Reloading the shared baseline…');
+        this.document.defaultView?.setTimeout(() => this.document.defaultView?.location.reload(), 500);
+      },
+      error: () => {
+        this.resetting.set(false);
+        this.resetConfirming.set(false);
+        this.resetMessage.set('Reset could not be completed. Please try again.');
+      },
+    });
   }
 }

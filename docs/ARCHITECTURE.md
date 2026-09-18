@@ -181,7 +181,7 @@ aspect ratio and is the P10 image integration seam.
 ### Public and demo route shells
 
 P11 separates marketing content from the operational product without duplicating
-either. Public routes are `/`, `/features`, `/about`, and `/contact`; the application
+either. Public routes are `/`, `/features`, `/about`, `/contact`, and `/privacy`; the application
 is canonical under `/demo/...`, with `/demo` redirecting to `/demo/dashboard`.
 Pre-P11 paths remain redirect-only aliases and preserve parameters and query state.
 Unknown routes render the Public Shell's explicit 404 page rather than entering the
@@ -192,7 +192,31 @@ Public route data supplies distinct titles and descriptions. `SeoService` update
 canonical, robots, Open Graph, and Twitter metadata on navigation using
 `https://huskytracking.com` as the intended base URL; P12 owns final host configuration.
 Static `robots.txt` indexes public pages while excluding `/demo`, and the sitemap lists
-only the four public routes. No tracking script or analytics cookie is included.
+the public routes. No tracking script or analytics cookie is included.
+
+### Anonymous demo workspace overlay
+
+P11.5 isolates mutable public-demo state without duplicating the 60-dog world. The
+backend issues a random opaque HttpOnly `ht_demo_session` cookie; PostgreSQL stores only
+its digest plus creation/expiry metadata. `DemoWorkspaceDay` is the date-level
+copy-on-write marker. Before the first plan, team, or actual mutation on a date, the
+service locks the workspace and clones that date's baseline mutable graph. From then on,
+all mutable reads use workspace rows for that date and hide baseline rows; untouched
+dates continue to resolve baseline data. Range analytics apply the same overlay and
+therefore never double-count baseline plus clones.
+
+`DailyPlan.demo_workspace_id` and `WorkSession.demo_workspace_id` own the cloned roots;
+existing cascades own activities, teams, slots, and participations. Workspace deletion
+cascades only those mutable graphs, never Dog or historical canonical data. The public
+reset removes one workspace's materialized rows. The guarded global reset clears every
+workspace before restoring the seed. `python -m app.demo.cleanup` removes expired
+workspaces; the 24-hour default is configurable.
+
+The Angular demo-route guard initializes the session before operational components load.
+The shell exposes expiry, a real-data warning, and an explicit scoped reset. Public
+routes and Contact/Privacy endpoints have no workspace dependency. See
+`PRIVACY_DATA_MAP.md` and `PRIVACY_SECURITY_REVIEW.md` for browser storage, logging,
+retention, and P12 boundaries.
 
 The public pages reuse the token system and synthetic dog assets but do not render the
 operational sidebar. Their content explicitly identifies the project as an independent
@@ -464,9 +488,9 @@ backup/restore plans. Images and secrets do not belong in Git or baked configura
   exposed;
 - reset endpoints disabled or strongly controlled in public production.
 
-The public demo may initially be read-only with reset state managed out of band. If
-anonymous edits are later allowed, sessions must be isolated or periodically reset so
-one visitor cannot affect another's experience indefinitely.
+The public demo allows anonymous edits only through the isolated, expiring workspace
+overlay described above. No workspace is associated with Contact data or an account.
+P12 schedules cleanup and validates the deployed cookie/origin/security controls.
 
 ## Testing strategy
 
