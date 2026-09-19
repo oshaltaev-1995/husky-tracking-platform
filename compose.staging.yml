@@ -1,6 +1,6 @@
 # Explicit loopback-only exception for local/VPS private smoke tests.
 # Do not include this overlay in the final public Caddy deployment.
 services:
-  frontend:
+  huskytracking-frontend:
     ports:
       - "127.0.0.1:8081:80"

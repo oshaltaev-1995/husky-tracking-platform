@@ -251,7 +251,8 @@ secrets.
 
 P12A adds `compose.production.yml` and a safe `.env.production.example`. P12B-2.5
 removes all host publications from final production Compose: `compose.ingress.yml`
-connects only the frontend to the dedicated Caddy-facing network, while
+connects only the uniquely named `huskytracking-frontend` service to the dedicated
+Caddy-facing network, while
 `compose.staging.yml` remains an explicit loopback-only test option. PostgreSQL and
 FastAPI stay private. Husky inner Nginx handles source-IP rate limits using a reviewed
 trusted proxy CIDR; Caddy remains the sole public listener.

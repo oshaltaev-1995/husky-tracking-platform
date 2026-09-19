@@ -484,8 +484,10 @@ Environments:
 Development uses three published services with bind mounts. Production images are
 multi-stage: Angular builds without source maps to static assets served by Nginx;
 FastAPI runs as a non-root user. `compose.production.yml` publishes no host ports;
-`compose.ingress.yml` places only frontend on external `huskytracking_proxy` with alias
-`huskytracking-frontend`. Backend/database remain on the Husky-private network with
+`compose.ingress.yml` places only the uniquely named `huskytracking-frontend` service
+on external `huskytracking_proxy`. The unique Compose service key prevents a Docker DNS
+collision with Kennel Operations' existing `frontend` upstream when Caddy joins both
+networks. Backend/database remain on the Husky-private network with
 health-gated startup. `compose.staging.yml` is a separate loopback-only 8081 exception.
 Nginx serves SPA deep links/media, proxies `/api`, overwrites backend forwarding
 headers, and sets CSP/security/cache/compression/body-size policy. Its transient

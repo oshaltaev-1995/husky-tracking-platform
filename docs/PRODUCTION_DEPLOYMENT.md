@@ -15,10 +15,12 @@ Internet → existing Caddy :80/:443 → huskytracking_proxy
                                                       └─ private PostgreSQL :5432
 ```
 
-`compose.production.yml` publishes **zero** host ports. `compose.ingress.yml` joins
-only the frontend to the external `huskytracking_proxy` network with alias
-`huskytracking-frontend`; backend and PostgreSQL stay on the separate project-private
-network. The staging-only `compose.staging.yml` publishes only
+`compose.production.yml` publishes **zero** host ports. Its production frontend
+service key is deliberately `huskytracking-frontend`, not `frontend`:
+the existing Kennel Operations Caddy already resolves `frontend` on its own network.
+`compose.ingress.yml` joins only this uniquely named service to the external
+`huskytracking_proxy` network. Backend and PostgreSQL stay on the separate
+project-private network. The staging-only `compose.staging.yml` publishes only
 `127.0.0.1:8081:80` and must not be included in the public invocation. The existing
 Kennel Operations network, volume, services, and Caddy configuration remain separate.
 
@@ -127,7 +129,7 @@ docker compose --project-name husky-tracking-production \
 docker compose --project-name husky-tracking-production \
   --env-file /etc/huskytracking/.env.production \
   -f compose.production.yml -f compose.ingress.yml \
-  -f /etc/huskytracking/compose.vps-runtime.yml up -d backend frontend
+  -f /etc/huskytracking/compose.vps-runtime.yml up -d backend huskytracking-frontend
 ```
 
 The inspection must report
@@ -149,6 +151,10 @@ This is a future live operation, **not** performed by P12B-2.5:
 
 1. Update `/opt/huskytracking` to the reviewed new Git commit; verify its SHA and
    preserve the private environment and separate PostgreSQL volume.
+   For the P12B-3R corrective release, rename the frontend key in both VPS-only
+   resource overlays to `huskytracking-frontend` before rendering Compose. Stop and
+   remove only the old Husky project `frontend` container before starting the renamed
+   staging service on 8081; never use `--remove-orphans` against an unreviewed project.
 2. Reinstall the version-controlled Husky maintenance units from
    `ops/production/systemd/`. Test cleanup and backup manually, verify checksum and
    backup, then resume timers. This removes the P12B-2 server-script drift.
@@ -156,8 +162,16 @@ This is a future live operation, **not** performed by P12B-2.5:
    override with **no published ports**; remove `127.0.0.1:8081` from the active
    Compose invocation. Render and inspect final Compose before starting containers.
 4. Create `huskytracking_proxy` with the reviewed `172.30.50.0/24` subnet. Join only
-   Husky frontend and existing Caddy, with frontend alias `huskytracking-frontend`.
-   Do not join Husky backend/database or Kennel Operations app services.
+   Husky's uniquely named `huskytracking-frontend` service and existing Caddy.
+   Before editing Caddy, confirm from inside that container that `frontend` resolves
+   **only** to the Kennel Operations frontend and `huskytracking-frontend` resolves
+   **only** to Husky. If either assertion fails, detach Caddy immediately and return
+   Husky to loopback staging. Do not join Husky backend/database or Kennel Operations
+   app services.
+   This check is mandatory: the first attempted attachment of the generic Husky
+   `frontend` service made the existing Caddy resolve its Kennel Operations upstream
+   to Husky and briefly returned 502. Detachment restored the old site without a
+   restart; a mere additional alias does not fix the generic service-name collision.
 5. Add a Caddy site for `huskytracking.com` routing to that alias, with whole-site
    Basic Auth and temporary global noindex. Validate Caddy config before a controlled
    reload; preserve the existing `app.kennelops.fi` site and health.

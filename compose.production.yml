@@ -85,7 +85,7 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  frontend:
+  huskytracking-frontend:
     build:
       context: ./frontend
       target: production

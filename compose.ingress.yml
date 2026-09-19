@@ -1,7 +1,9 @@
-# Final public mode: only the frontend joins the Caddy-facing external network.
+# Final public mode: only the uniquely named frontend joins Caddy's network.
+# Never use the generic service key `frontend`: Caddy already resolves that name
+# for Kennel Operations on its other network.
 # Create huskytracking_proxy with the reviewed subnet before using this overlay.
 services:
-  frontend:
+  huskytracking-frontend:
     environment:
       TRUSTED_PROXY_CIDR: ${TRUSTED_PROXY_CIDR:?Set the reviewed Caddy ingress CIDR}
     networks:

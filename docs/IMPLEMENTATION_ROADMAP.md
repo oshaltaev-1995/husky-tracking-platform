@@ -530,8 +530,10 @@ cleanup, and Kennel Operations HTTP 200 were verified. The server-installed clea
 script needed `--no-deps` to prevent recreating its own database; this is now the
 version-controlled maintenance contract to install at P12B-3.
 
-**Ingress preparation:** final Compose has no host ports, only frontend joins
-`huskytracking_proxy`; inner Nginx trusts one reviewed Caddy subnet and applies
+**Ingress preparation:** final Compose has no host ports, only the uniquely named
+`huskytracking-frontend` service joins `huskytracking_proxy`; this avoids a collision
+with Kennel Operations' `frontend` DNS name on the shared Caddy container. Inner Nginx
+trusts one reviewed Caddy subnet and applies
 targeted transient 429 rate limits. Staging retains an explicit loopback override.
 No Caddy, DNS, SMTP, TLS, or live VPS change occurs in P12B-2.5.
 
