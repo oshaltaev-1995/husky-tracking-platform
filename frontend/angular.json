@@ -31,6 +31,17 @@
           "configurations": {
             "production": {
               "sourceMap": false,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false,
+                  "removeSpecialComments": true
+                },
+                "fonts": {
+                  "inline": true
+                }
+              },
               "budgets": [
                 {
                   "type": "initial",

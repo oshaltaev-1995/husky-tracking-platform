@@ -4,7 +4,7 @@
 .profile-header { display: grid; grid-template-columns: minmax(12rem, .55fr) minmax(0, 1.45fr); gap: clamp(1.25rem, 4vw, 3rem); align-items: center; padding: clamp(.75rem, 2vw, 1.1rem); border: 1px solid var(--line); border-radius: calc(var(--radius-lg) + .2rem); background: var(--surface); box-shadow: var(--shadow-card); }
 .profile-header.archived { border-top: .35rem solid var(--archive); }
 .profile-identity { padding: .75rem .75rem .75rem 0; }
-.identity-flags { display: flex; gap: .45rem; margin-bottom: 1rem; }
+.identity-flags { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-bottom: 1rem; }
 .lifecycle-badge { padding: .35rem .55rem; border-radius: .35rem; color: white; background: var(--ink); font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
 .profile-header.archived .lifecycle-badge { background: var(--archive); }
 .profile-identity h1 { margin: .1rem 0 .4rem; font-size: clamp(2.5rem, 6vw, 4.75rem); font-weight: 760; letter-spacing: -.05em; line-height: .95; }

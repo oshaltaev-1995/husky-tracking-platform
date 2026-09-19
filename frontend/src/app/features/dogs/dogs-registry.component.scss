@@ -28,7 +28,7 @@
 .dog-card:hover { transform: translateY(-2px); border-color: var(--brand); box-shadow: var(--shadow-raised); }
 .dog-card:focus-visible { border-color: var(--brand); }
 .card-media { position: relative; padding: var(--space-2) var(--space-2) 0; }
-.card-media .status-badge { position: absolute; right: var(--space-4); bottom: var(--space-3); box-shadow: 0 0 0 2px var(--surface-card); }
+.card-media .status-badge { position: absolute; right: var(--space-4); bottom: var(--space-4); box-shadow: 0 .15rem .5rem rgba(17, 36, 33, .16); }
 .card-content { padding: var(--space-4); }
 .card-title { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); }
 .card-title h3 { margin: .1rem 0 0; font-size: 1.25rem; letter-spacing: -.025em; }
