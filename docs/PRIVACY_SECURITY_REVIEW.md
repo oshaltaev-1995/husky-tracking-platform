@@ -36,6 +36,25 @@ Cookie/Authorization headers, SMTP credentials, or database URLs. A short operat
 and security retention period is intended, but this repository does not configure the
 host log collector; P12B must set and verify the actual rotation/retention policy.
 
+## P12B-2.5 ingress boundary
+
+The confirmed public controller is Oleg Shaltaev in Finland; the privacy address is
+`privacy@huskytracking.com` and the VPS hosting region is Netherlands (EEA). The
+private Cloudflare Email Routing forwarding destination is never recorded. Contact
+remains disabled until outbound SMTP is configured/tested in P12B-3.
+
+The final Caddy-facing Docker network is dedicated to Husky frontend ingress. Only
+that reviewed subnet can supply `X-Forwarded-For` to inner Nginx. Nginx uses the
+resulting client IP for transient shared-memory Contact/demo/Team Builder/mutation
+limits; it does not key on session cookies or contact addresses. The backend remains
+private and receives overwritten forwarding headers. Cloudflare DNS ownership does
+not imply its proxy is enabled; if enabled later, the Caddy/Cloudflare trust chain
+needs a separate anti-spoof review. Whole-site Caddy Basic Auth and noindex are
+temporary pre-launch controls, not yet live. No rate-limiting state is persisted or
+shared with Kennel Operations. The Nginx access log records method/path/status without
+query strings; site error logging is critical-only because ordinary Nginx rate-limit
+and body-size diagnostics can echo full visitor-supplied request URIs.
+
 ## P12A security decision
 
 Production uses one HTTPS origin. The host-only `SameSite=Lax` cookie is reinforced by

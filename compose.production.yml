@@ -91,11 +91,13 @@ services:
       target: production
     environment:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
+      # A non-ingress staging request must never be able to supply its own client IP.
+      TRUSTED_PROXY_CIDR: ${TRUSTED_PROXY_CIDR:-127.0.0.1/32}
     depends_on:
       backend:
         condition: service_healthy
-    ports:
-      - "${PUBLIC_HTTP_PORT:-8080}:80"
+    expose:
+      - "80"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
       interval: 10s

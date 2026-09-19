@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily Husky Tracking PostgreSQL backup
+
+[Timer]
+OnCalendar=*-*-* 04:40:00 Europe/Helsinki
+Persistent=true
+RandomizedDelaySec=5m
+AccuracySec=1m
+Unit=huskytracking-backup.service
+
+[Install]
+WantedBy=timers.target

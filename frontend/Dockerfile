@@ -13,8 +13,10 @@ RUN npm run build
 
 FROM nginx:1.29-alpine AS production
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/trusted-proxy.conf /etc/nginx/trusted-proxy.conf
+COPY docker/30-trusted-proxy.sh /docker-entrypoint.d/30-trusted-proxy.sh
 COPY --from=build /app/dist/husky-tracking/browser /usr/share/nginx/html
 COPY runtime-config.template.js /etc/nginx/templates/runtime-config.template.js
 COPY docker/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
-RUN chmod 755 /docker-entrypoint.d/40-runtime-config.sh
+RUN chmod 755 /docker-entrypoint.d/30-trusted-proxy.sh /docker-entrypoint.d/40-runtime-config.sh
 EXPOSE 80

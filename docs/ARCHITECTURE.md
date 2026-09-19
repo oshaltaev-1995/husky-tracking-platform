@@ -483,11 +483,15 @@ Environments:
 
 Development uses three published services with bind mounts. Production images are
 multi-stage: Angular builds without source maps to static assets served by Nginx;
-FastAPI runs as a non-root user. `compose.production.yml` publishes only frontend HTTP;
-database and backend have private Compose-network exposure and health-gated startup.
-Nginx serves SPA deep links/media, proxies `/api`, overwrites forwarding headers, and
-sets CSP/security/cache/compression/body-size policy. TLS/HSTS and source-IP limits stay
-at the future public proxy because P12A does not own live infrastructure.
+FastAPI runs as a non-root user. `compose.production.yml` publishes no host ports;
+`compose.ingress.yml` places only frontend on external `huskytracking_proxy` with alias
+`huskytracking-frontend`. Backend/database remain on the Husky-private network with
+health-gated startup. `compose.staging.yml` is a separate loopback-only 8081 exception.
+Nginx serves SPA deep links/media, proxies `/api`, overwrites backend forwarding
+headers, and sets CSP/security/cache/compression/body-size policy. Its transient
+source-IP rate-limit zones trust forwarded client IPs only from the reviewed ingress
+CIDR; direct callers cannot supply a rate-limit identity. Caddy owns public TLS and
+future HSTS, without needing a rate-limit plugin.
 
 Alembic migration and the non-destructive `app.demo.initialize` command are explicit
 deployment jobs. Application startup never resets or reseeds. The full first-deploy,
@@ -507,7 +511,8 @@ PostgreSQL backup/restore remains independent of source/artifact reproducibility
   anti-sniffing, clickjacking, referrer, permissions, and no-store API policy;
 - sanitized errors and structured logs without notes/personal data;
 - dependency/image scanning and patch review in P12;
-- source-IP rate limiting at the P12B public proxy; no misleading per-process limiter;
+- transient source-IP rate limiting at Husky inner Nginx behind the trusted Caddy
+  network; no misleading per-process limiter;
 - reset endpoints disabled or strongly controlled in public production.
 
 The public demo allows anonymous edits only through the isolated, expiring workspace

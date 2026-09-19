@@ -1,0 +1,12 @@
+[Unit]
+Description=Hourly Husky Tracking demo workspace cleanup
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=10m
+AccuracySec=1m
+Unit=huskytracking-cleanup.service
+
+[Install]
+WantedBy=timers.target

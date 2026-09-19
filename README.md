@@ -249,8 +249,12 @@ secrets.
 
 ## Production preparation
 
-P12A adds `compose.production.yml` and a safe `.env.production.example`. Production
-publishes only the frontend/Nginx entrypoint; PostgreSQL and FastAPI remain private.
+P12A adds `compose.production.yml` and a safe `.env.production.example`. P12B-2.5
+removes all host publications from final production Compose: `compose.ingress.yml`
+connects only the frontend to the dedicated Caddy-facing network, while
+`compose.staging.yml` remains an explicit loopback-only test option. PostgreSQL and
+FastAPI stay private. Husky inner Nginx handles source-IP rate limits using a reviewed
+trusted proxy CIDR; Caddy remains the sole public listener.
 Migrations and first-time baseline initialization are explicit release operations—web
 workers never migrate, seed, or reset on startup. Production settings reject insecure
 public URLs, cookie/session configuration, privacy placeholders, local databases, and
@@ -258,8 +262,10 @@ incomplete/plaintext SMTP.
 
 See [`PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md) for first-deploy,
 redeploy, cleanup, backup/restore, rollback, trusted-proxy, rate-limit, and P12B go-live
-procedures. Do not use `.env.production.example` unchanged and never run the
-development reset against production.
+procedures. Repository-owned cleanup/backup units live under `ops/production/`.
+P12B-2 staging is live only on VPS loopback; ingress, DNS, TLS, and SMTP remain P12B-3.
+Do not use `.env.production.example` unchanged and never run the development reset
+against production.
 
 ## Canonical documentation
 

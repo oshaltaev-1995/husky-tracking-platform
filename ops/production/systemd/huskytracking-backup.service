@@ -1,0 +1,26 @@
+[Unit]
+Description=Husky Tracking production PostgreSQL backup
+Wants=docker.service
+After=docker.service
+ConditionPathExists=/etc/huskytracking/.env.production
+ConditionPathIsDirectory=/opt/huskytracking
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+WorkingDirectory=/opt/huskytracking
+ExecStart=/opt/huskytracking/ops/production/backup.sh
+Restart=no
+TimeoutStartSec=1h
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=huskytracking-backup

@@ -1,0 +1,16 @@
+# Final public mode: only the frontend joins the Caddy-facing external network.
+# Create huskytracking_proxy with the reviewed subnet before using this overlay.
+services:
+  frontend:
+    environment:
+      TRUSTED_PROXY_CIDR: ${TRUSTED_PROXY_CIDR:?Set the reviewed Caddy ingress CIDR}
+    networks:
+      default: {}
+      ingress:
+        aliases:
+          - huskytracking-frontend
+
+networks:
+  ingress:
+    external: true
+    name: huskytracking_proxy

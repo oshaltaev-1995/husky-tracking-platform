@@ -502,7 +502,7 @@ canonical-origin CORS and cookie-mutation Origin checks, HMAC session digests, s
 request IDs/log fields, no-store APIs, production-disabled interactive OpenAPI, and
 database-backed multi-worker correctness.
 
-**Delivery shape:** `compose.production.yml` publishes only frontend/Nginx; FastAPI and
+**Delivery shape at P12A:** `compose.production.yml` published only frontend/Nginx; FastAPI and
 PostgreSQL remain on the private network. Nginx owns same-origin `/api`, SPA/media
 serving, restrictive CSP/security headers, body bounds, compression, and separate
 immutable/static versus no-store cache policy. Production Angular source maps are off
@@ -519,14 +519,30 @@ workspace-reset semantics, and 60 portraits remain unchanged.
 
 ## P12B — Live infrastructure deployment
 
-**Status:** open. Execute `PRODUCTION_DEPLOYMENT.md` only after VPS/provider details and
-real secrets are available.
+**Status:** P12B-2 loopback-only staging completed; P12B-2.5 repository ingress and
+maintenance hardening prepared. Public ingress/P12B-3 remains open. Execute the
+remaining `PRODUCTION_DEPLOYMENT.md` live steps only after reviewing the new commit.
 
-**Remaining external work:** server/OS capacity preparation, private environment and
-database credentials, production SMTP/provider facts, DNS A/AAAA and optional `www`,
-certificate/renewal, HTTP→HTTPS and optional `www` redirects, post-acceptance HSTS,
-public proxy/firewall/rate limits, actual log rotation, cleanup/backup schedulers,
-monitoring, restore rehearsal, and real-domain security/performance/accessibility QA.
+**Staging evidence:** isolated PostgreSQL 18.6 and backend/frontend are healthy on the
+shared VPS with frontend bound only to `127.0.0.1:8081`; Alembic `5c82f32e5d8a`,
+canonical checksum, 60/60 media, two-workspace isolation/reset, Husky-only backup and
+cleanup, and Kennel Operations HTTP 200 were verified. The server-installed cleanup
+script needed `--no-deps` to prevent recreating its own database; this is now the
+version-controlled maintenance contract to install at P12B-3.
+
+**Ingress preparation:** final Compose has no host ports, only frontend joins
+`huskytracking_proxy`; inner Nginx trusts one reviewed Caddy subnet and applies
+targeted transient 429 rate limits. Staging retains an explicit loopback override.
+No Caddy, DNS, SMTP, TLS, or live VPS change occurs in P12B-2.5.
+
+**Remaining external work:** update the staged VPS checkout and reinstall maintenance
+units from this commit; replace the loopback override with a no-port runtime override;
+create/connect the dedicated proxy network; add protected Caddy ingress; configure
+DNS A/AAAA and optional `www`, certificate/renewal, HTTP→HTTPS and optional `www`
+redirects; configure/test SMTP; review firewall and external monitoring; and complete
+real-domain security/rate-limit/performance/accessibility QA. HSTS and Basic Auth
+removal wait for explicit HTTPS and launch acceptance. Existing Husky backup/cleanup
+schedulers and restore rehearsal were already exercised in staging.
 
 **Exclusions:** no unsupported scale infrastructure and no claim of a live public
 deployment until every go-live gate passes.
