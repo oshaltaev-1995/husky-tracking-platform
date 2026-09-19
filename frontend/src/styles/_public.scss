@@ -3,6 +3,12 @@
   color: var(--text-primary);
 }
 
+// Keep the portrait's intrinsic ratio when CSS narrows its HTML-sized image box.
+.public-page img[width][height] {
+  max-width: 100%;
+  height: auto;
+}
+
 .public-container {
   width: min(100% - 2 * var(--page-gutter), var(--public-max));
   margin-inline: auto;

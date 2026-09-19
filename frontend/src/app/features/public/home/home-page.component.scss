@@ -15,7 +15,7 @@
 .hero-metrics small { color: var(--text-muted); font-size: .57rem; font-weight: 750; }
 .hero-metrics strong { font-size: 1.2rem; }
 .hero-dog-card { display: grid; grid-template-columns: minmax(8.5rem, .72fr) 1fr; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-panel); }
-.hero-dog-card img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.hero-dog-card img { width: 100%; min-width: 0; aspect-ratio: 3 / 4; object-fit: cover; }
 .hero-dog-card div { display: flex; min-width: 0; flex-direction: column; justify-content: center; padding: var(--space-5); }
 .hero-dog-card p { margin: 0 0 var(--space-2); color: var(--brand); font-size: .58rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .hero-dog-card h2 { margin: 0; font-size: 1.7rem; letter-spacing: -.04em; }
@@ -42,7 +42,7 @@
 .principles-grid h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.5rem); letter-spacing: -.04em; }
 .principles-grid p:not(.public-kicker) { margin: var(--space-4) 0 0; color: var(--text-sidebar); line-height: 1.75; }
 .final-cta { display: grid; max-width: 60rem; grid-template-columns: 12rem minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: center; }
-.final-cta img { width: 100%; aspect-ratio: 3 / 4; border-radius: var(--radius-panel); object-fit: cover; box-shadow: var(--shadow-raised); }
+.final-cta img { width: 100%; min-width: 0; aspect-ratio: 3 / 4; border-radius: var(--radius-panel); object-fit: cover; box-shadow: var(--shadow-raised); }
 .final-cta h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -.05em; }
 .final-cta p:not(.public-kicker) { margin: var(--space-4) 0 0; color: var(--text-secondary); line-height: 1.7; }
 
