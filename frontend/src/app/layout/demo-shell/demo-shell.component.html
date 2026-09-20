@@ -64,7 +64,7 @@
             ariaCurrentWhenActive="page"
             [routerLinkActiveOptions]="{ exact: item.route === '/demo/archive' }"
           >
-            <span class="nav-mark" aria-hidden="true">{{ item.mark }}</span>
+            <span class="nav-mark" aria-hidden="true"><ht-nav-icon [name]="item.icon" /></span>
             <span>{{ item.label }}</span>
           </a>
         }
@@ -73,6 +73,7 @@
   </nav>
 
   <a class="project-link" routerLink="/about">About this project <span aria-hidden="true">↗</span></a>
+  <a class="exit-link" routerLink="/" aria-label="Exit demo and return to Husky Tracking website"><ht-nav-icon name="exit" /><span>Exit demo</span></a>
 
   <section class="workspace-controls" aria-label="Demo workspace">
     <strong>Private demo session</strong>

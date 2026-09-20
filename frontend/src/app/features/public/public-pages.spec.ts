@@ -24,11 +24,14 @@ describe('Public pages', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
-      'Kennel operations',
+      'Sled-dog operations',
     );
     expect(fixture.nativeElement.textContent).toContain('entirely fictional kennel data');
     expect(fixture.nativeElement.querySelector('a[href="/demo/dashboard"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('a[href="/features"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.feature-overview a').length).toBe(6);
+    expect(fixture.nativeElement.textContent).not.toContain('Historical Records');
+    expect(fixture.nativeElement.querySelector('.mini-brand img')?.getAttribute('src')).toBe('/favicon.png');
   });
 
   it('renders Features, About, and intentional Not Found content', async () => {
@@ -46,7 +49,7 @@ describe('Public pages', () => {
 
     expect(features.nativeElement.textContent).toContain('Team Builder');
     expect(features.nativeElement.querySelector('a[href="/demo/analytics"]')).not.toBeNull();
-    expect(about.nativeElement.textContent).toContain('portfolio demonstration');
+    expect(about.nativeElement.textContent).toContain('independently developed demonstration');
     expect(about.nativeElement.textContent).toContain('Synthetic by design');
     expect(notFound.nativeElement.textContent).toContain('Page not found');
     expect(notFound.nativeElement.querySelector('a[href="/"]')).not.toBeNull();
@@ -130,7 +133,7 @@ describe('Public pages', () => {
   it('renders plain-language privacy metadata from the public endpoint', async () => {
     await TestBed.configureTestingModule({
       imports: [PrivacyPageComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     const fixture = TestBed.createComponent(PrivacyPageComponent);
     fixture.detectChanges();
@@ -148,6 +151,10 @@ describe('Public pages', () => {
     expect(fixture.nativeElement.textContent).toContain('Anonymous demo workspace');
     expect(fixture.nativeElement.textContent).toContain('privacy@example.com');
     expect(fixture.nativeElement.textContent).toContain('24 hours');
+    for (const fragment of ['anonymous-demo', 'contact-form', 'technical-data', 'your-choices']) {
+      expect(fixture.nativeElement.querySelector(`.privacy-index a[href="/privacy#${fragment}"]`)).not.toBeNull();
+      expect(fixture.nativeElement.querySelector(`#${fragment}`)).not.toBeNull();
+    }
   });
 });
 
@@ -182,6 +189,8 @@ describe('Public and demo routing', () => {
       expect(router.url).toBe('/contact');
       await router.navigateByUrl('/privacy');
       expect(router.url).toBe('/privacy');
+      await router.navigateByUrl('/privacy#technical-data');
+      expect(router.url).toBe('/privacy#technical-data');
       await router.navigateByUrl('/demo');
       expect(router.url).toBe('/demo/dashboard');
     },

@@ -176,4 +176,30 @@ describe('DogProfileComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Euthanized');
     expect(fixture.nativeElement.textContent).toContain('Back to Archive');
   });
+
+  it('shows five recent work entries until the ledger is expanded', async () => {
+    const worked = structuredClone(bundle);
+    worked.work.summary.starts = 7;
+    worked.work.entries = Array.from({ length: 7 }, (_, index) => ({
+      date: `2026-03-${String(31 - index).padStart(2, '0')}`,
+      distance_km: 10,
+      activity_type: 'training',
+      label: `Run ${index + 1}`,
+      role: null,
+    }));
+    const fixture = await setup(() => of(worked));
+    query.next(convertToParamMap({ tab: 'work' }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.work-list article').length).toBe(5);
+    const toggle = fixture.nativeElement.querySelector('.work-disclosure') as HTMLButtonElement;
+    expect(toggle.textContent).toContain('Show all 7 records');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    toggle.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.work-list article').length).toBe(7);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    toggle.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.work-list article').length).toBe(5);
+  });
 });

@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
 
 import { DogProfile, DogWork } from '../../../core/api/dogs.models';
 
@@ -20,9 +20,9 @@ import { DogProfile, DogWork } from '../../../core/api/dogs.models';
       <section class="work-panel"><div class="section-heading"><div><p class="eyebrow">Weekly rhythm</p><h2>Distance by week</h2></div><span>Maximum {{ maxWeeklyKm() }} km</span></div><div class="week-chart" aria-label="Weekly work distance">
         @for (week of chronologicalWeeks(); track week.week_start) { <div class="week-bar"><div class="bar-track"><span [style.height.%]="week.total_km / maxWeeklyKm() * 100"></span></div><small>{{ week.week_start | date: 'MMM d' }}</small><strong>{{ week.total_km }} km</strong></div> }
       </div></section>
-      <section class="work-panel"><div class="section-heading"><div><p class="eyebrow">Ledger</p><h2>Work history</h2></div><span>{{ work().season_start | date: 'mediumDate' }} – {{ work().season_end | date: 'mediumDate' }}</span></div><div class="work-list">
-        @for (entry of work().entries; track entry.date + '-' + entry.label) { <article><time [attr.datetime]="entry.date"><strong>{{ entry.date | date: 'MMM d' }}</strong><small>{{ entry.date | date: 'yyyy' }}</small></time><div><strong>{{ entry.label || 'Sled training' }}</strong><small>{{ entry.activity_type.replace('_', ' ') | titlecase }}</small></div><span>{{ entry.role ? (entry.role | titlecase) : 'Participant' }}</span><b>{{ entry.distance_km }} km</b></article> }
-      </div></section>
+      <section class="work-panel"><div class="section-heading"><div><p class="eyebrow">Ledger</p><h2>Work history</h2></div><span>{{ work().season_start | date: 'mediumDate' }} – {{ work().season_end | date: 'mediumDate' }}</span></div><div id="work-history-list" class="work-list">
+        @for (entry of visibleEntries(); track $index) { <article><time [attr.datetime]="entry.date"><strong>{{ entry.date | date: 'MMM d' }}</strong><small>{{ entry.date | date: 'yyyy' }}</small></time><div><strong>{{ entry.label || 'Sled training' }}</strong><small>{{ entry.activity_type.replace('_', ' ') | titlecase }}</small></div><span>{{ entry.role ? (entry.role | titlecase) : 'Participant' }}</span><b>{{ entry.distance_km }} km</b></article> }
+      </div>@if (work().entries.length > 5) { <button class="work-disclosure" type="button" [attr.aria-expanded]="showAll()" aria-controls="work-history-list" (click)="showAll.set(!showAll())">{{ showAll() ? 'Show fewer' : 'Show all ' + work().entries.length + ' records' }}</button> }</section>
     } @else {
       <section class="zero-work"><div class="zero-mark" aria-hidden="true">0</div><div><p class="eyebrow">No starts recorded</p><h2>No regular sled work during this demo season.</h2><p>{{ zeroWorkExplanation() }}</p></div></section>
     }
@@ -33,6 +33,8 @@ import { DogProfile, DogWork } from '../../../core/api/dogs.models';
 export class WorkComponent {
   readonly dog = input.required<DogProfile>();
   readonly work = input.required<DogWork>();
+  protected readonly showAll = linkedSignal({ source: this.work, computation: () => false });
+  protected readonly visibleEntries = computed(() => this.showAll() ? this.work().entries : this.work().entries.slice(0, 5));
   protected readonly chronologicalWeeks = computed(() => [...this.work().weekly].reverse());
   protected readonly maxWeeklyKm = computed(() => Math.max(...this.work().weekly.map((week) => week.total_km), 1));
 

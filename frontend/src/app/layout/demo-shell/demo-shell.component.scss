@@ -19,6 +19,8 @@
 .nav-mark { display: grid; width: 1.65rem; aspect-ratio: 1; place-items: center; border: 1px solid rgba(255, 255, 255, .14); border-radius: .42rem; font-size: .64rem; font-weight: 900; }
 .project-link { display: flex; justify-content: space-between; gap: var(--space-2); margin: auto var(--space-2) var(--space-4); border-radius: var(--radius-control); padding: var(--space-3); color: var(--text-sidebar); font-size: .7rem; font-weight: 750; text-decoration: none; }
 .project-link:hover { color: var(--text-inverse); background: var(--surface-sidebar-hover); }
+.exit-link { display: flex; align-items: center; gap: var(--space-3); margin: 0 var(--space-2) var(--space-4); border-radius: var(--radius-control); padding: var(--space-3); color: var(--text-sidebar); font-size: .7rem; font-weight: 750; text-decoration: none; }
+.exit-link:hover { color: var(--text-inverse); background: var(--surface-sidebar-hover); }
 .workspace-controls { display: grid; gap: var(--space-2); margin: 0 var(--space-2) var(--space-4); border-top: 1px solid rgba(255, 255, 255, .12); padding-top: var(--space-4); }
 .workspace-controls strong { font-size: .7rem; }
 .workspace-controls p, .workspace-controls small, .session-notice { margin: 0; color: var(--text-sidebar-muted); font-size: .61rem; line-height: 1.45; }

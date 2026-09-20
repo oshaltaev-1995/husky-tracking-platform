@@ -23,6 +23,7 @@ describe('DemoShellComponent', () => {
             children: [{ path: 'archive', component: EmptyRouteComponent }],
           },
           { path: 'about', component: EmptyRouteComponent },
+          { path: '', component: EmptyRouteComponent },
         ]),
       ],
     }).compileComponents();
@@ -64,6 +65,9 @@ describe('DemoShellComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('removes only your plans');
     expect(fixture.nativeElement.querySelector('a[href="/about"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.desktop-sidebar .nav-mark svg').length).toBe(7);
+    expect(fixture.nativeElement.querySelectorAll('.desktop-sidebar .nav-mark').item(0).textContent.trim()).toBe('');
+    expect(fixture.nativeElement.querySelector('.desktop-sidebar .exit-link')?.getAttribute('aria-label')).toBe('Exit demo and return to Husky Tracking website');
   });
 
   it('opens, closes, and navigates from the mobile drawer', async () => {
@@ -82,6 +86,19 @@ describe('DemoShellComponent', () => {
     fixture.detectChanges();
 
     expect(router.url).toBe('/demo/archive');
+    expect(fixture.nativeElement.querySelector('.mobile-drawer')).toBeNull();
+  });
+
+  it('exits from the mobile drawer without resetting the demo workspace', async () => {
+    const { fixture, router } = await setup();
+    (fixture.nativeElement.querySelector('.menu-button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const exit = fixture.nativeElement.querySelector('.mobile-drawer .exit-link') as HTMLAnchorElement;
+    expect(exit).not.toBeNull();
+    exit.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(router.url).toBe('/');
     expect(fixture.nativeElement.querySelector('.mobile-drawer')).toBeNull();
   });
 });

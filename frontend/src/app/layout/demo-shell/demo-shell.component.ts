@@ -21,6 +21,7 @@ import { catchError, filter, map, of, shareReplay, startWith } from 'rxjs';
 import { HealthService } from '../../core/api/health.service';
 import { DemoSessionService } from '../../core/api/demo-session.service';
 import { BrandMarkComponent } from '../../shared/brand-mark/brand-mark.component';
+import { NavIconComponent, NavIconName } from '../../shared/nav-icon/nav-icon.component';
 
 type ConnectionState =
   | { kind: 'loading' }
@@ -30,7 +31,7 @@ type ConnectionState =
 interface NavigationItem {
   label: string;
   route: string;
-  mark: string;
+  icon: NavIconName;
 }
 
 interface NavigationSection {
@@ -40,7 +41,7 @@ interface NavigationSection {
 
 @Component({
   selector: 'ht-demo-shell',
-  imports: [AsyncPipe, BrandMarkComponent, DatePipe, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AsyncPipe, BrandMarkComponent, DatePipe, NavIconComponent, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './demo-shell.component.html',
   styleUrl: './demo-shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,29 +63,29 @@ export class DemoShellComponent {
   protected readonly navigation: NavigationSection[] = [
     {
       label: 'Overview',
-      items: [{ label: 'Dashboard', route: '/demo/dashboard', mark: 'H' }],
+      items: [{ label: 'Dashboard', route: '/demo/dashboard', icon: 'dashboard' }],
     },
     {
       label: 'Kennel',
       items: [
-        { label: 'Dogs', route: '/demo/dogs', mark: 'D' },
-        { label: 'Kennel Map', route: '/demo/kennel', mark: 'K' },
+        { label: 'Dogs', route: '/demo/dogs', icon: 'dogs' },
+        { label: 'Kennel Map', route: '/demo/kennel', icon: 'kennel' },
       ],
     },
     {
       label: 'Operations',
       items: [
-        { label: 'Daily Plan', route: '/demo/daily', mark: 'P' },
-        { label: 'Daily Entry', route: '/demo/daily-entry', mark: 'E' },
+        { label: 'Daily Plan', route: '/demo/daily', icon: 'daily' },
+        { label: 'Daily Entry', route: '/demo/daily-entry', icon: 'entry' },
       ],
     },
     {
       label: 'Insights',
-      items: [{ label: 'Analytics', route: '/demo/analytics', mark: 'I' }],
+      items: [{ label: 'Analytics', route: '/demo/analytics', icon: 'analytics' }],
     },
     {
       label: 'Records',
-      items: [{ label: 'Archive', route: '/demo/archive', mark: 'A' }],
+      items: [{ label: 'Archive', route: '/demo/archive', icon: 'archive' }],
     },
   ];
 

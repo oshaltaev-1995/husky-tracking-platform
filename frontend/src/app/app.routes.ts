@@ -151,7 +151,7 @@ export const routes: Routes = [
         title: 'About — Husky Tracking',
         data: {
           description:
-            'Learn how Husky Tracking became a full-stack portfolio demonstration built with deterministic synthetic data.',
+            'Learn how Husky Tracking became an independent full-stack product demonstration built with deterministic synthetic data.',
         },
       },
       {
