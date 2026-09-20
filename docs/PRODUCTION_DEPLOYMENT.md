@@ -54,8 +54,11 @@ openssl rand -base64 36  # database password; URL-encode it in DATABASE_URL
 The controller is Oleg Shaltaev (Finland), the confirmed public privacy address is
 `privacy@huskytracking.com`, and the hosting region is Netherlands (EEA). The private
 Cloudflare Email Routing destination is not a deployment/documentation value.
-`contact@huskytracking.com` also receives mail, but outbound Contact delivery stays
-`disabled` until P12B-3 configures and tests SMTP.
+`contact@huskytracking.com` also receives mail. Production Contact delivery is now
+enabled through Brevo SMTP with STARTTLS on port 2525; SMTP credentials and the private
+Contact recipient remain only in the server environment. The initial public form test
+was accepted by SMTP and received by the owner. Do not print or document the forwarding
+destination. The received test message passed SPF, domain-aligned DKIM, and DMARC.
 
 Production startup rejects HTTP/localhost public URLs, a weak session secret, insecure
 demo cookies, origin-check bypass, placeholder privacy values, local/test database
@@ -68,7 +71,9 @@ SMTP delivery is configured.
 SMTP mode needs sender, recipient, host, optional paired username/password, provider
 metadata, and either STARTTLS or implicit TLS. Runtime transport failure returns a safe
 Contact error without stopping the application; invalid startup configuration fails
-fast. Keep `CONTACT_DELIVERY_MODE=disabled` until delivery is ready.
+fast. Port 587 was unreachable from this VPS, so the validated production transport
+uses port 2525 with certificate-verified STARTTLS. Do not change this to plaintext to
+work around network failures.
 Keep `DEMO_SESSION_SECRET` stable across ordinary redeploys; rotating it deliberately
 invalidates all existing anonymous workspace cookies without exposing their values.
 

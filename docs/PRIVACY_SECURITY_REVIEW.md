@@ -40,8 +40,10 @@ host log collector; P12B must set and verify the actual rotation/retention polic
 
 The confirmed public controller is Oleg Shaltaev in Finland; the privacy address is
 `privacy@huskytracking.com` and the VPS hosting region is Netherlands (EEA). The
-private Cloudflare Email Routing forwarding destination is never recorded. Contact
-remains disabled until outbound SMTP is configured/tested in P12B-3.
+private Cloudflare Email Routing forwarding destination is never recorded. Outbound
+Contact now uses Brevo SMTP with certificate-verified STARTTLS on port 2525; the SMTP
+secret and private recipient remain server-only. Contact content is not stored in the
+application database or emitted in application logs.
 
 The final Caddy-facing Docker network is dedicated to Husky frontend ingress. Only
 that reviewed subnet can supply `X-Forwarded-For` to inner Nginx. Nginx uses the

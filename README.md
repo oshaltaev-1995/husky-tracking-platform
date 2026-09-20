@@ -134,15 +134,17 @@ The public route shell is distinct from the operational demo shell. Old links su
 preserving identity and query state. Both shells use the same Angular bundle and Nginx
 SPA fallback, so direct refreshes remain valid.
 
-The canonical production origin is `https://huskytracking.com`, but this repository
-does not claim that DNS or deployment is live. Runtime SEO configuration, `robots.txt`,
-and `sitemap.xml` use this production identity; local development uses its own origin.
+The public production origin is `https://huskytracking.com`. Runtime SEO configuration,
+`robots.txt`, and `sitemap.xml` use this identity; local development uses its own origin.
 
 `POST /api/v1/contact` never stores messages in PostgreSQL. Local development defaults
 to `CONTACT_DELIVERY_MODE=sink`, which accepts the flow and logs only field-length
 metadata. Use `disabled` to reject delivery safely, or configure `smtp` with
 `CONTACT_RECIPIENT_EMAIL`, `SMTP_HOST`, `SMTP_FROM`, and optional authentication/TLS
 variables from `.env.example`. Never commit recipient addresses or credentials.
+Production Contact delivery uses Brevo SMTP with STARTTLS on port 2525; the private
+recipient and SMTP credentials remain server-only configuration. A temporary transport
+failure returns a controlled error without taking the rest of the site offline.
 
 Entering `/demo` creates one strictly necessary, opaque HttpOnly session cookie. Mutable
 plans, teams, and actual-work edits are isolated for 24 hours by default; the demo shell
