@@ -57,7 +57,7 @@ describe('DemoShellComponent', () => {
     const marks = fixture.nativeElement.querySelectorAll('.brand ht-brand-mark img, .mobile-brand ht-brand-mark img') as NodeListOf<HTMLImageElement>;
     expect(marks.length).toBe(2);
     for (const mark of marks) {
-      expect(mark.getAttribute('src')).toBe('/favicon.png');
+      expect(mark.getAttribute('src')).toBe('/brand-mark.png');
       expect(mark.getAttribute('alt')).toBe('');
     }
     const reset = fixture.nativeElement.querySelector('.workspace-reset') as HTMLButtonElement;

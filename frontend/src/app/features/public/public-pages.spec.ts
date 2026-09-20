@@ -31,7 +31,7 @@ describe('Public pages', () => {
     expect(fixture.nativeElement.querySelector('a[href="/features"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelectorAll('.feature-overview a').length).toBe(6);
     expect(fixture.nativeElement.textContent).not.toContain('Historical Records');
-    expect(fixture.nativeElement.querySelector('.mini-brand img')?.getAttribute('src')).toBe('/favicon.png');
+    expect(fixture.nativeElement.querySelector('.mini-brand img')?.getAttribute('src')).toBe('/brand-mark.png');
   });
 
   it('renders Features, About, and intentional Not Found content', async () => {
@@ -149,6 +149,10 @@ describe('Public pages', () => {
     });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Anonymous demo workspace');
+    expect(fixture.nativeElement.textContent).toContain('Cloudflare Email Routing');
+    expect(fixture.nativeElement.textContent).toContain('delivered through Brevo');
+    expect(fixture.nativeElement.textContent).not.toContain('before public launch');
+    expect(fixture.nativeElement.textContent).not.toContain('deployment acceptance item');
     expect(fixture.nativeElement.textContent).toContain('privacy@example.com');
     expect(fixture.nativeElement.textContent).toContain('24 hours');
     for (const fragment of ['anonymous-demo', 'contact-form', 'technical-data', 'your-choices']) {
