@@ -33,8 +33,12 @@ administrator reset truncates all workspaces and reconstructs the canonical base
 Application logs include generated correlation IDs, method, path, status, and duration.
 They must not include query strings, contact message bodies, demo notes, session tokens,
 Cookie/Authorization headers, SMTP credentials, or database URLs. A short operational
-and security retention period is intended, but this repository does not configure the
-host log collector; P12B must set and verify the actual rotation/retention policy.
+and security logging footprint is intended. Husky containers rotate their Docker
+`json-file` logs at 10 MiB × 3 per container. Host-side maintenance/monitor logs use
+the shared systemd journal, which is size-bounded but does not promise a fixed
+deletion date. Privacy copy therefore uses retention criteria, not an unverified
+number of days. The Husky-only monitor stores incident codes/times without visitor
+identifiers; alert mail contains check labels only.
 
 ## P12B-2.5 ingress boundary
 

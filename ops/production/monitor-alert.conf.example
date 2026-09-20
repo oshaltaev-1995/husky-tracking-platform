@@ -1,0 +1,10 @@
+# Copy to /etc/huskytracking/monitor-alert.conf, root:root 0600.
+# The existing /etc/huskytracking/.env.production supplies SMTP and the private
+# Contact recipient. Do not duplicate credentials or addresses here.
+HT_MONITOR_DISK_WARN_GIB=15
+HT_MONITOR_DISK_CRIT_GIB=8
+HT_MONITOR_RAM_WARN_MIB=400
+HT_MONITOR_SWAP_WARN_MIB=512
+HT_MONITOR_SWAP_GROWTH_MIB=256
+HT_MONITOR_BACKUP_MAX_AGE_HOURS=30
+HT_MONITOR_REMINDER_HOURS=6

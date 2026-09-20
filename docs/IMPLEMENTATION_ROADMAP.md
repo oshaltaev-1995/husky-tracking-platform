@@ -519,9 +519,11 @@ workspace-reset semantics, and 60 portraits remain unchanged.
 
 ## P12B — Live infrastructure deployment
 
-**Status:** P12B-2 loopback-only staging completed; P12B-2.5 repository ingress and
-maintenance hardening prepared. Public ingress/P12B-3 remains open. Execute the
-remaining `PRODUCTION_DEPLOYMENT.md` live steps only after reviewing the new commit.
+**Status:** the application is publicly live at `https://huskytracking.com`.
+P12B-4B adds the final shared-host firewall, Husky-only internal monitoring and
+alerts, verified log/backup bounds, and a conservative one-day HSTS observation
+period. External UptimeRobot setup remains an owner-account action until verified.
+See `PRODUCTION_DEPLOYMENT.md` for the exact live controls and remaining gates.
 
 **Staging evidence:** isolated PostgreSQL 18.6 and backend/frontend are healthy on the
 shared VPS with frontend bound only to `127.0.0.1:8081`; Alembic `5c82f32e5d8a`,

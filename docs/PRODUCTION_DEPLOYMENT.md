@@ -234,6 +234,53 @@ No process-local FastAPI limiter is used.
 
 ## Cleanup, logs and monitoring
 
+### Public operations hardening (P12B-4B)
+
+The shared VPS uses the repository-owned `ops/production/firewall.sh` service for a
+reversible ingress allowlist on external interface `ens3`: established traffic,
+TCP 22/80/443, UDP 40970 (Amnezia), and ICMP. A separate `DOCKER-USER` chain
+checks Docker-forwarded external traffic after DNAT using original destination
+ports. Internal Docker bridges are not filtered by these ingress jumps. UFW is
+inactive; do not claim UFW alone protects Docker publications. Before changing
+this policy, confirm provider-console access, schedule a timed rollback, verify a
+second SSH connection and both production sites, then cancel rollback. The unit
+reapplies the named chains after Docker on reboot. It never flushes unrelated rules.
+
+`ops/production/monitor.py` is the Husky-only five-minute host monitor, installed
+as `huskytracking-monitor.service/.timer`. It checks public HTTPS, private backend
+readiness, three Husky container health/restarts, backup/cleanup/ingress timers and
+results, backup artifacts/age, disk, persistent low available RAM/swap, and host
+OOM counter. Thresholds are in root-only `/etc/huskytracking/monitor-alert.conf`
+(example in `ops/production/monitor-alert.conf.example`): disk <15 GiB warning or
+<8 GiB critical, RAM <400 MiB twice, swap >=512 MiB or growth >=256 MiB twice,
+backup age >30 hours. Incidents live only in
+`/var/lib/huskytracking-monitor/alert-state.json`. One alert is sent on failure,
+duplicates are suppressed, reminders are at least six hours apart, and one
+recovery is sent on resolution; failed sends retry. Delivery uses the existing
+Husky Brevo STARTTLS environment, not Kennel Operations credentials. `--rehearse`
+exercises these transitions without mail. `--test-alert` sends one labeled mail.
+No monitoring check creates a demo workspace.
+
+External monitoring belongs in UptimeRobot: create **Husky Tracking Production
+HTTPS** for `https://huskytracking.com/`, five-minute interval, DOWN and recovery
+notifications. It observes DNS/TLS/Caddy/frontend, while internal monitoring
+covers backend/database. Keep the existing Kennel Operations monitor unchanged.
+
+Husky containers use bounded Docker `json-file` logs (`max-size=10m`,
+`max-file=3` each). Husky maintenance and monitor units log to the shared
+systemd journal; host journald's size bound, not a guaranteed time-based
+deletion period, governs those entries. Do not state a fixed technical-log
+retention interval in the privacy notice. Review journal disk use and Docker log
+settings periodically; changing a global journal cap also affects Kennel
+Operations. The Husky backup script retains timestamp-named local backup
+directories for about 14 days under `/var/backups/huskytracking` only.
+
+Husky's public Caddy site uses an initial one-day HSTS header
+(`max-age=86400`), with neither `includeSubDomains` nor preload. Validate the
+entire Caddyfile before an in-place reload; verify the Kennel Operations site and
+Caddy container identity immediately afterward. Do not lengthen the policy
+without a separate acceptance decision.
+
 The repository-owned maintenance entrypoints are
 `ops/production/cleanup.sh` and `ops/production/backup.sh`, with dedicated systemd
 units/timers under `ops/production/systemd/`. They hard-code only the Husky project,

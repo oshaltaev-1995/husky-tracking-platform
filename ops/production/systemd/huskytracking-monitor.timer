@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Husky Tracking production every five minutes
+
+[Timer]
+OnBootSec=3m
+OnUnitActiveSec=5m
+AccuracySec=30s
+Unit=huskytracking-monitor.service
+
+[Install]
+WantedBy=timers.target

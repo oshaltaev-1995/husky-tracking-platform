@@ -1,0 +1,15 @@
+[Unit]
+Description=Husky Tracking production health and resource monitor
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+EnvironmentFile=/etc/huskytracking/.env.production
+EnvironmentFile=/etc/huskytracking/monitor-alert.conf
+WorkingDirectory=/opt/huskytracking
+ExecStart=/usr/bin/python3 /opt/huskytracking/ops/production/monitor.py
+TimeoutStartSec=120s

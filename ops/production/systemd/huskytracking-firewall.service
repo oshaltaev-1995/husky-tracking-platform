@@ -1,0 +1,14 @@
+[Unit]
+Description=Shared-host ingress allowlist for Husky Tracking deployment
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/huskytracking/ops/production/firewall.sh apply
+ExecStop=/opt/huskytracking/ops/production/firewall.sh rollback
+
+[Install]
+WantedBy=multi-user.target
