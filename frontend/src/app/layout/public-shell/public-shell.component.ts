@@ -12,9 +12,11 @@ import {
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 
+import { BrandMarkComponent } from '../../shared/brand-mark/brand-mark.component';
+
 @Component({
   selector: 'ht-public-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [BrandMarkComponent, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './public-shell.component.html',
   styleUrl: './public-shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

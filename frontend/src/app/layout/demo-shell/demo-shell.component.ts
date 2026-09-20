@@ -20,6 +20,7 @@ import { catchError, filter, map, of, shareReplay, startWith } from 'rxjs';
 
 import { HealthService } from '../../core/api/health.service';
 import { DemoSessionService } from '../../core/api/demo-session.service';
+import { BrandMarkComponent } from '../../shared/brand-mark/brand-mark.component';
 
 type ConnectionState =
   | { kind: 'loading' }
@@ -39,7 +40,7 @@ interface NavigationSection {
 
 @Component({
   selector: 'ht-demo-shell',
-  imports: [AsyncPipe, DatePipe, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AsyncPipe, BrandMarkComponent, DatePipe, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './demo-shell.component.html',
   styleUrl: './demo-shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

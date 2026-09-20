@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+  width: var(--brand-mark-size, 2.25rem);
+  aspect-ratio: 1;
+}
+
+:host(.on-dark) {
+  border-radius: .65rem;
+  padding: .16rem;
+  background: var(--surface-sidebar-mark);
+}
+
+img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

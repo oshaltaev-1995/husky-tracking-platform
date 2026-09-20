@@ -31,6 +31,12 @@ describe('PublicShellComponent', () => {
     expect(fixture.nativeElement.querySelector('a[href="/features"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('a[href="/demo/dashboard"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.desktop-sidebar')).toBeNull();
+    const marks = fixture.nativeElement.querySelectorAll('.public-brand ht-brand-mark img') as NodeListOf<HTMLImageElement>;
+    expect(marks.length).toBe(2);
+    for (const mark of marks) {
+      expect(mark.getAttribute('src')).toBe('/favicon.png');
+      expect(mark.getAttribute('alt')).toBe('');
+    }
   });
 
   it('supports accessible mobile open, Escape close, and navigation close', async () => {
