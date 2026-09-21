@@ -24,6 +24,7 @@ import {
   WeeklyAnalytics,
 } from '../../core/api/analytics.models';
 import { AnalyticsService } from '../../core/api/analytics.service';
+import { CountLabelPipe } from '../../shared/count-label/count-label.pipe';
 
 const SEASON_START = '2025-12-01';
 const SEASON_END = '2026-03-31';
@@ -46,7 +47,7 @@ interface QuickRange {
 
 @Component({
   selector: 'ht-analytics-page',
-  imports: [AsyncPipe, DatePipe, DecimalPipe, FormsModule, RouterLink, TitleCasePipe],
+  imports: [AsyncPipe, CountLabelPipe, DatePipe, DecimalPipe, FormsModule, RouterLink, TitleCasePipe],
   templateUrl: './analytics-page.component.html',
   styleUrl: './analytics-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

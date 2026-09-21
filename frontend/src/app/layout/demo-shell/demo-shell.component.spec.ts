@@ -22,6 +22,8 @@ describe('DemoShellComponent', () => {
             component: DemoShellComponent,
             children: [
               { path: 'dashboard', component: EmptyRouteComponent },
+              { path: 'dogs', component: EmptyRouteComponent },
+              { path: 'dogs/:dogId', component: EmptyRouteComponent },
               { path: 'archive', component: EmptyRouteComponent },
             ],
           },
@@ -106,6 +108,20 @@ describe('DemoShellComponent', () => {
 
     expect(router.url).toBe('/demo/archive');
     expect(fixture.nativeElement.querySelector('.mobile-drawer')).toBeNull();
+  });
+
+  it('keeps the originating registry active while viewing a dog profile', async () => {
+    const { fixture, router } = await setup();
+    await router.navigateByUrl('/demo/dogs/dog-id');
+    fixture.detectChanges();
+    const desktop = fixture.nativeElement.querySelector('.desktop-sidebar') as HTMLElement;
+    expect(desktop.querySelector('a[href="/demo/dogs"]')?.getAttribute('aria-current')).toBe('page');
+    expect(desktop.querySelector('a[href="/demo/archive"]')?.getAttribute('aria-current')).toBeNull();
+
+    await router.navigateByUrl('/demo/dogs/dog-id?from=archive');
+    fixture.detectChanges();
+    expect(desktop.querySelector('a[href="/demo/archive"]')?.getAttribute('aria-current')).toBe('page');
+    expect(desktop.querySelector('a[href="/demo/dogs"]')?.getAttribute('aria-current')).toBeNull();
   });
 
   it('exits from the mobile drawer without resetting the demo workspace', async () => {

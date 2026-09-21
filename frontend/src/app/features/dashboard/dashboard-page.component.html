@@ -166,7 +166,7 @@
                 <span class="trend-value">{{ week.dog_km }} km</span>
                 <div class="bar-track"><span [style.height.%]="trendHeight(week, state.data)"></span></div>
                 <strong>{{ (week.period_start + 'T12:00:00Z') | date: 'd MMM':'UTC' }}</strong>
-                <small>{{ week.dog_starts }} starts · {{ week.dogs_worked }} dogs</small>
+                <small>{{ week.dog_starts | countLabel:'start' }} · {{ week.dogs_worked | countLabel:'dog' }}</small>
               </div>
             }
           </div>

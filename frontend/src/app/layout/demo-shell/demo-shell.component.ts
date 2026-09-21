@@ -13,7 +13,6 @@ import {
   NavigationEnd,
   Router,
   RouterLink,
-  RouterLinkActive,
   RouterOutlet,
 } from '@angular/router';
 import { catchError, filter, map, of, shareReplay, startWith } from 'rxjs';
@@ -41,7 +40,7 @@ interface NavigationSection {
 
 @Component({
   selector: 'ht-demo-shell',
-  imports: [AsyncPipe, BrandMarkComponent, DatePipe, NavIconComponent, NgTemplateOutlet, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AsyncPipe, BrandMarkComponent, DatePipe, NavIconComponent, NgTemplateOutlet, RouterLink, RouterOutlet],
   templateUrl: './demo-shell.component.html',
   styleUrl: './demo-shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,6 +60,7 @@ export class DemoShellComponent {
   protected readonly resetting = signal(false);
   protected readonly resetMessage = signal<string | null>(null);
   protected readonly layoutMode = signal<'standard' | 'wide'>('standard');
+  protected readonly currentUrl = signal(this.router.url);
 
   protected skipLinkHref(): string {
     return `${this.router.url.split('#')[0]}#main-content`;
@@ -119,12 +119,23 @@ export class DemoShellComponent {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
+        this.currentUrl.set(this.router.url);
         let route = this.router.routerState.snapshot.root;
         while (route.firstChild) route = route.firstChild;
         this.layoutMode.set(route.data['layout'] === 'wide' ? 'wide' : 'standard');
         this.closeMenu(false);
       });
     this.destroyRef.onDestroy(() => this.document.body.classList.remove('mobile-nav-open'));
+  }
+
+  protected isNavigationActive(item: NavigationItem): boolean {
+    const url = this.router.parseUrl(this.currentUrl());
+    const path = url.root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+    const dogProfile = path.startsWith('demo/dogs/');
+    const archiveProfile = dogProfile && url.queryParams['from'] === 'archive';
+    if (item.route === '/demo/archive') return path === 'demo/archive' || archiveProfile;
+    if (item.route === '/demo/dogs') return (path === 'demo/dogs' || dogProfile) && !archiveProfile;
+    return path === item.route.slice(1) || path.startsWith(`${item.route.slice(1)}/`);
   }
 
   protected openMenu(): void {

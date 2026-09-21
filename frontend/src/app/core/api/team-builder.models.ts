@@ -1,3 +1,5 @@
+import { WorkingRole } from './dogs.models';
+
 export interface TeamBuilderActivity {
   id: string;
   date: string;
@@ -22,7 +24,7 @@ export interface TeamBuilderCandidate {
   housing_code: string | null;
   dog_class: string | null;
   availability: string | null;
-  capabilities: string[];
+  capabilities: WorkingRole[];
   eligible: boolean;
   reasons: string[];
   workload: WorkloadMetrics;

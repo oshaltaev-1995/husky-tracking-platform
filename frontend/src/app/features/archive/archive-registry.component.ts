@@ -14,10 +14,11 @@ import {
 
 import { ArchiveQuery, DogsService } from '../../core/api/dogs.service';
 import { DogMediaComponent } from '../../shared/dog-media/dog-media.component';
+import { CountLabelPipe } from '../../shared/count-label/count-label.pipe';
 
 @Component({
   selector: 'ht-archive-registry',
-  imports: [AsyncPipe, DatePipe, DogMediaComponent, FormsModule, RouterLink, TitleCasePipe],
+  imports: [AsyncPipe, CountLabelPipe, DatePipe, DogMediaComponent, FormsModule, RouterLink, TitleCasePipe],
   templateUrl: './archive-registry.component.html',
   styleUrl: './archive-registry.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

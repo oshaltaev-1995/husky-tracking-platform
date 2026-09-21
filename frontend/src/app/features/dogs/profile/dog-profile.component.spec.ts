@@ -141,6 +141,8 @@ describe('DogProfileComponent', () => {
     const portrait = fixture.nativeElement.querySelector('.profile-media img') as HTMLImageElement;
     expect(portrait.getAttribute('alt')).toBe('Portrait of Aurora');
     expect(portrait.getAttribute('loading')).toBe('eager');
+    expect(fixture.nativeElement.textContent).toContain('Team');
+    expect(fixture.nativeElement.textContent).not.toContain('Work rolesteam');
 
     query.next(convertToParamMap({ tab: 'pedigree' }));
     fixture.detectChanges();
@@ -171,10 +173,29 @@ describe('DogProfileComponent', () => {
       reason: 'euthanized',
       note: 'Humane fictional end-of-life record.',
     };
+    query.next(convertToParamMap({ from: 'archive' }));
     const fixture = await setup(() => of(archived));
     expect(fixture.nativeElement.textContent).toContain('Archived');
     expect(fixture.nativeElement.textContent).toContain('Euthanized');
     expect(fixture.nativeElement.textContent).toContain('Back to Archive');
+    const workTab = Array.from(
+      fixture.nativeElement.querySelectorAll('.profile-tabs a') as NodeListOf<HTMLAnchorElement>,
+    ).find((link) => link.textContent.trim() === 'Work')!;
+    expect(workTab.getAttribute('href')).toContain('from=archive');
+  });
+
+  it('returns a directly opened archived profile to Dogs without an archive origin', async () => {
+    const archived = structuredClone(bundle);
+    archived.profile.state.lifecycle = 'archived';
+    archived.profile.state.availability = null;
+    archived.profile.archive = {
+      archive_date: '2025-12-15',
+      reason: 'deceased',
+      note: null,
+    };
+    const fixture = await setup(() => of(archived));
+    expect(fixture.nativeElement.textContent).toContain('Back to Dogs');
+    expect(fixture.nativeElement.textContent).not.toContain('Back to Archive');
   });
 
   it('shows five recent work entries until the ledger is expanded', async () => {

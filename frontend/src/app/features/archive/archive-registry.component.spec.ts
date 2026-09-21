@@ -42,9 +42,12 @@ describe('ArchiveRegistryComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Died naturally');
+    expect(fixture.nativeElement.textContent).toContain('1 record');
+    expect(fixture.nativeElement.textContent).not.toContain('1 records');
     expect(fixture.nativeElement.textContent).toContain('6 offspring');
     const link = fixture.nativeElement.querySelector('.archive-row') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toContain('b265ec9a-985f-5533-9142-7ba9d59f899f');
+    expect(link.getAttribute('href')).toContain('from=archive');
     const portrait = fixture.nativeElement.querySelector('.archive-media img') as HTMLImageElement;
     expect(portrait.getAttribute('alt')).toBe('Portrait of Django');
     http.verify();

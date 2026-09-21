@@ -11,7 +11,7 @@ from app.db.session import SessionLocal, engine
 from app.demo.service import reset_demo_world
 from app.main import app
 from app.models import Dog, WorkParticipation, WorkSession
-from app.services.analytics_service import AnalyticsService
+from app.services.analytics_service import AnalyticsService, DogAnalysis, DogMetrics
 
 FULL_RANGE = {"from": "2025-12-01", "to": "2026-03-31"}
 
@@ -69,6 +69,32 @@ def add_actual(
                     assigned_role=role,
                 )
             )
+
+
+def test_attention_reason_uses_singular_eligible_day_copy() -> None:
+    analysis = DogAnalysis(
+        dog=Dog(),
+        dog_class="standard",
+        lifecycle="active",
+        availability="available",
+        housing_code="A1-01",
+        housing_zone="A",
+        metrics=DogMetrics(dog_km=5),
+        presence_days=1,
+        eligible_days=1,
+        worked_days=0,
+        longest_work_streak=0,
+        eligible_rest_streak=1,
+        workload_rate=0,
+        attention_eligible=True,
+    )
+
+    reason = AnalyticsService._reason(analysis, "underused", 10)
+
+    assert reason == (
+        "5 km across 1 eligible day · 1 eligible day since work "
+        "· below standard peer pace"
+    )
 
 
 def test_full_season_metric_semantics_and_distance_breakdown(

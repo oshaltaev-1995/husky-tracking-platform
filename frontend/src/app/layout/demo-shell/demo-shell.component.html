@@ -60,9 +60,8 @@
         @for (item of section.items; track item.route) {
           <a
             [routerLink]="item.route"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            [routerLinkActiveOptions]="{ exact: item.route === '/demo/archive' }"
+            [class.active]="isNavigationActive(item)"
+            [attr.aria-current]="isNavigationActive(item) ? 'page' : null"
           >
             <span class="nav-mark" aria-hidden="true"><ht-nav-icon [name]="item.icon" /></span>
             <span>{{ item.label }}</span>

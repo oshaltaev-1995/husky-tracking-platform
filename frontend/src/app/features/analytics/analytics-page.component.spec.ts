@@ -252,6 +252,35 @@ describe('AnalyticsPageComponent', () => {
     ).not.toBeNull();
   });
 
+  it('uses singular copy for one start, worked day, and eligible day', async () => {
+    const singularOverview = structuredClone(overview);
+    singularOverview.distance_breakdown[0].dog_starts = 1;
+    singularOverview.role_breakdown[0].dog_starts = 1;
+    const singularDogs = structuredClone(dogs);
+    singularDogs.result_count = 1;
+    singularDogs.items = [
+      {
+        ...singularDogs.items[0],
+        dog_starts: 1,
+        starts_5km: 1,
+        starts_10km: 0,
+        worked_days: 1,
+        eligible_days: 1,
+      },
+    ];
+    const { fixture, http } = await setup();
+    flushWorkload(http, singularOverview, singularDogs);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('1 start');
+    expect(text).toContain('1 worked day');
+    expect(text).toContain('1 eligible day');
+    expect(text).not.toContain('1 worked days');
+    expect(text).not.toContain('1 eligible days');
+  });
+
   it('restores a custom range and changes weekly metric without refetching', async () => {
     const { fixture, router, http } = await setup(
       '/analytics?from=2026-01-01&to=2026-01-31',

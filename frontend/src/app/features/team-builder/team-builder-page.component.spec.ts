@@ -187,6 +187,61 @@ describe('TeamBuilderPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Edit saved lineup');
   });
 
+  it('clears stale pressed slot state after an invalid placement and successful save', async () => {
+    const teamOnly: TeamBuilderCandidate = {
+      ...candidates[0],
+      id: 'dog-9',
+      name: 'Niko',
+      capabilities: ['team'],
+    };
+    const extendedContext: TeamBuilderContext = {
+      ...context(),
+      activity: { ...context().activity, participant_count: 9 },
+      candidates: [...candidates, teamOnly],
+      capability_summary: { lead: 8, team: 9, wheel: 8 },
+    };
+    const { fixture, http } = await setup();
+    http
+      .expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id/team-builder')
+      .flush(extendedContext);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.configuration .primary') as HTMLButtonElement).click();
+    http
+      .expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id/teams/generate')
+      .flush({
+        activity: extendedContext.activity,
+        persisted: false,
+        teams: [team],
+        unassigned: [{ dog_id: teamOnly.id, dog_name: teamOnly.name, reason: 'Not needed' }],
+      });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const leadSlot = fixture.nativeElement.querySelector('.slot-select') as HTMLButtonElement;
+    leadSlot.click();
+    fixture.detectChanges();
+    expect(leadSlot.getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('.unassigned-list small').textContent).toContain('Team');
+    (fixture.nativeElement.querySelector('.unassigned-list button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.message.error').textContent).toContain(
+      'not Lead capable',
+    );
+
+    (fixture.nativeElement.querySelector('.lineup-actions .primary') as HTMLButtonElement).click();
+    http
+      .expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id/teams')
+      .flush({ ...extendedContext, activity: { ...extendedContext.activity, plan_revision: 2 }, saved_teams: [{ ...team, id: 'team-id' }] });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const savedSlots = fixture.nativeElement.querySelectorAll('.slot-select') as NodeListOf<HTMLButtonElement>;
+    expect(Array.from(savedSlots).every((button) => button.disabled)).toBe(true);
+    expect(Array.from(savedSlots).every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
+  });
+
   it('shows solver shortage detail without destroying the current view', async () => {
     const { fixture, http } = await setup();
     http

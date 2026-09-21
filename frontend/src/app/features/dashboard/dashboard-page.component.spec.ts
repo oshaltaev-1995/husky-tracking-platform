@@ -131,6 +131,19 @@ describe('DashboardPageComponent', () => {
     http.verify();
   });
 
+  it('uses singular copy in the recent workload trend', async () => {
+    const { fixture, http } = await setup();
+    const singular = structuredClone(dashboard);
+    singular.recent_weekly[0].dog_starts = 1;
+    singular.recent_weekly[0].dogs_worked = 1;
+    http.expectOne((candidate) => candidate.url === '/api/v1/dashboard').flush(singular);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('1 start · 1 dog');
+    expect(fixture.nativeElement.textContent).not.toContain('1 starts');
+    http.verify();
+  });
+
   it('shows persisted plan and team state without rendering a second editor', async () => {
     const { fixture, http } = await setup();
     const planned = structuredClone(dashboard);

@@ -11,6 +11,9 @@ import {
   UnassignedDog,
 } from '../../core/api/team-builder.models';
 import { TeamBuilderService } from '../../core/api/team-builder.service';
+import { WorkingRole } from '../../core/api/dogs.models';
+import { CountLabelPipe } from '../../shared/count-label/count-label.pipe';
+import { workingRoleLabel, workingRoleList } from '../../shared/working-role-label';
 
 interface DraftSlot extends Omit<TeamSlot, 'dog_id' | 'dog_name'> {
   dog_id: string | null;
@@ -28,7 +31,7 @@ interface SlotAddress {
 
 @Component({
   selector: 'ht-team-builder-page',
-  imports: [FormsModule, RouterLink],
+  imports: [CountLabelPipe, FormsModule, RouterLink],
   templateUrl: './team-builder-page.component.html',
   styleUrl: './team-builder-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -246,8 +249,16 @@ export class TeamBuilderPageComponent {
     return this.context()?.candidates.find((dog) => dog.id === dogId);
   }
 
-  protected roleLabel(role: string): string {
-    return role.replace(/^./, (character) => character.toUpperCase());
+  protected roleLabel(role: WorkingRole): string {
+    return workingRoleLabel(role);
+  }
+
+  protected sideLabel(side: string): string {
+    return side.replace(/^./, (character) => character.toUpperCase());
+  }
+
+  protected roleList(roles: WorkingRole[]): string {
+    return workingRoleList(roles);
   }
 
   protected softWarnings(): string[] {
@@ -309,6 +320,7 @@ export class TeamBuilderPageComponent {
     this.context.set(context);
     this.teams.set(this.toDraft(context.saved_teams));
     this.unassigned.set(this.unassignedFor(context.saved_teams));
+    this.selectedSlot.set(null);
   }
 
   private toDraft(teams: PlannedTeam[]): DraftTeam[] {

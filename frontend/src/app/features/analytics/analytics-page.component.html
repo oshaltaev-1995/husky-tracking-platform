@@ -149,12 +149,12 @@
           <div class="panel-heading"><div><p class="eyebrow">Starts and roles</p><h2 id="breakdown-heading">Work mix</h2></div></div>
           <div class="distance-list">
             @for (distance of state.data.overview.distance_breakdown; track distance.distance_km) {
-              <div><span><strong>{{ distance.distance_km }} km</strong><small>{{ distance.dog_starts }} starts</small></span><b>{{ distance.dog_km | number }} dog-km</b></div>
+              <div><span><strong>{{ distance.distance_km }} km</strong><small>{{ distance.dog_starts | countLabel:'start' }}</small></span><b>{{ distance.dog_km | number }} dog-km</b></div>
             }
           </div>
           <div class="role-list" aria-label="Actual role breakdown">
             @for (role of state.data.overview.role_breakdown; track role.role) {
-              <div><span>{{ role.role === 'unpositioned' ? 'Not recorded' : (role.role | titlecase) }}</span><strong>{{ role.dog_starts }} starts</strong></div>
+              <div><span>{{ role.role === 'unpositioned' ? 'Not recorded' : (role.role | titlecase) }}</span><strong>{{ role.dog_starts | countLabel:'start' }}</strong></div>
             }
           </div>
           <p>Roles come from actual participation only; capability and planned positions are never inferred.</p>
@@ -185,7 +185,7 @@
       </section>
 
       <section class="panel dog-workload" aria-labelledby="dog-workload-heading">
-        <div class="section-heading"><div><p class="eyebrow">{{ state.data.dogs.result_count }} relevant dogs</p><h2 id="dog-workload-heading">Workload by dog</h2></div><p>Class, availability, and housing are resolved at {{ state.data.dogs.context_date | date: 'mediumDate' }}.</p></div>
+        <div class="section-heading"><div><p class="eyebrow">{{ state.data.dogs.result_count | countLabel:'relevant dog' }}</p><h2 id="dog-workload-heading">Workload by dog</h2></div><p>Class, availability, and housing are resolved at {{ state.data.dogs.context_date | date: 'mediumDate' }}.</p></div>
         <form class="dog-filters" (ngSubmit)="applyDogFilters()">
           <label class="search-field">Search dog<input type="search" name="search" [(ngModel)]="search" placeholder="Name" /></label>
           <label>Class<select name="dogClass" [(ngModel)]="dogClass"><option value="">All classes</option><option value="puppy">Puppy</option><option value="junior">Junior</option><option value="training">Training</option><option value="standard">Standard</option></select></label>
@@ -203,7 +203,7 @@
               <article class="dog-row" role="row">
                 <div class="dog-identity" role="cell"><a [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ tab: 'work' }">{{ dog.name }}</a><small>{{ dog.sex | titlecase }} · {{ dog.housing_code || 'No housing' }}</small></div>
                 <div role="cell"><strong>{{ dog.dog_class ? (dog.dog_class | titlecase) : 'Historical' }}</strong><small>{{ dog.availability ? (dog.availability | titlecase) : (dog.lifecycle | titlecase) }}</small></div>
-                <div class="km-cell" role="cell"><strong>{{ dog.dog_km }} km</strong><span class="workload-track"><i [style.width.%]="workloadBar(dog, state.data.dogs.items)"></i></span><small>{{ dog.worked_days }} worked / {{ dog.eligible_days }} eligible days</small></div>
+                <div class="km-cell" role="cell"><strong>{{ dog.dog_km }} km</strong><span class="workload-track"><i [style.width.%]="workloadBar(dog, state.data.dogs.items)"></i></span><small>{{ dog.worked_days | countLabel:'worked day' }} / {{ dog.eligible_days | countLabel:'eligible day' }}</small></div>
                 <div role="cell"><strong>{{ dog.dog_starts }}</strong><small>{{ dog.starts_5km }} × 5 · {{ dog.starts_10km }} × 10</small></div>
                 <div role="cell"><strong>{{ dog.recent_14d_km }} km / 14d</strong><small>Longest streak {{ dog.longest_work_streak }}d</small></div>
                 <div role="cell"><span class="workload-status" [attr.data-status]="dog.workload_status">{{ statusLabel(dog.workload_status) }}</span><small>{{ dog.last_work_date ? ('Last ' + (dog.last_work_date | date: 'MMM d')) : 'No starts' }}</small></div>

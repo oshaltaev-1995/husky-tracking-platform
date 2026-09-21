@@ -469,12 +469,14 @@ class AnalyticsService:
     def _reason(item: DogAnalysis, status: str, peer: float) -> str | None:
         if status == "underused":
             rest = (
-                f" · {item.eligible_rest_streak} eligible days since work"
+                f" · {item.eligible_rest_streak} eligible "
+                f"{'day' if item.eligible_rest_streak == 1 else 'days'} since work"
                 if item.eligible_rest_streak
                 else ""
             )
             return (
-                f"{item.metrics.dog_km} km across {item.eligible_days} eligible days"
+                f"{item.metrics.dog_km} km across {item.eligible_days} eligible "
+                f"{'day' if item.eligible_days == 1 else 'days'}"
                 f"{rest} · below {item.dog_class} peer pace"
             )
         if status == "higher":

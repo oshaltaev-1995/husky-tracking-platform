@@ -22,11 +22,11 @@
         @if (filters.search || filters.reason || filters.sort !== 'name') { <button class="button quiet" type="button" (click)="resetFilters()">Clear</button> }
       </form>
 
-      <div class="results-heading" aria-live="polite"><h2>{{ state.data.result_count }} records</h2><span>As of {{ state.data.reference_date }}</span></div>
+      <div class="results-heading" aria-live="polite"><h2>{{ state.data.result_count | countLabel:'record' }}</h2><span>As of {{ state.data.reference_date }}</span></div>
       @if (state.data.items.length) {
         <div class="archive-list">
           @for (dog of state.data.items; track dog.id) {
-            <a class="archive-row" [routerLink]="['/demo/dogs', dog.id]" [attr.aria-label]="'Open archived profile for ' + dog.name">
+            <a class="archive-row" [routerLink]="['/demo/dogs', dog.id]" [queryParams]="{ from: 'archive' }" [attr.aria-label]="'Open archived profile for ' + dog.name">
               <div class="archive-media"><ht-dog-media [name]="dog.name" [photoKey]="dog.photo_key" size="compact" /></div>
               <div class="archive-identity"><p class="kicker">{{ dog.litter_code ? dog.litter_code + '-litter' : 'Foundation dog' }}</p><h3>{{ dog.name }}</h3><p>{{ dog.sex | titlecase }} · Born {{ dog.birth_date | date: 'mediumDate' }}</p></div>
               <div class="archive-fact"><span>Archived</span><strong>{{ dog.archive.archive_date | date: 'mediumDate' }}</strong></div>

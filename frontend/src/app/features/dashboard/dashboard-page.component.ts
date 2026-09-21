@@ -6,12 +6,13 @@ import { BehaviorSubject, catchError, map, of, shareReplay, startWith, switchMap
 import { DashboardResponse } from '../../core/api/dashboard.models';
 import { DashboardService } from '../../core/api/dashboard.service';
 import { WeeklyAnalytics } from '../../core/api/analytics.models';
+import { CountLabelPipe } from '../../shared/count-label/count-label.pipe';
 
 const DASHBOARD_DATE = '2026-03-31';
 
 @Component({
   selector: 'ht-dashboard-page',
-  imports: [AsyncPipe, DatePipe, KeyValuePipe, RouterLink, TitleCasePipe],
+  imports: [AsyncPipe, CountLabelPipe, DatePipe, KeyValuePipe, RouterLink, TitleCasePipe],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

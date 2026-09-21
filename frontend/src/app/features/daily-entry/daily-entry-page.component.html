@@ -92,7 +92,7 @@
           <header><div><strong>{{ group.code }}</strong><span>{{ group.display_name }}</span></div><small>{{ group.dogs.length }} {{ group.dogs.length === 1 ? 'resident' : 'residents' }}</small></header>
           <div class="resident-list">
             @for (dog of group.dogs; track dog.id) {
-              <a [id]="'daily-dog-' + dog.id" [routerLink]="['/demo/dogs', dog.id]" [class.highlighted]="highlightedDogId() === dog.id" [attr.aria-label]="dog.name + ', ' + dog.starts + ' starts, ' + dog.actual_km + ' kilometres'">
+              <a [id]="'daily-dog-' + dog.id" [routerLink]="['/demo/dogs', dog.id]" [class.highlighted]="highlightedDogId() === dog.id" [attr.aria-label]="dog.name + ', ' + countLabel(dog.starts, 'start') + ', ' + dog.actual_km + ' kilometres'">
                 <span><strong>{{ dog.name }}</strong><small>{{ activityLabel(dog.dog_class || '') }} · {{ activityLabel(dog.availability || '') }}</small></span>
                 <span class="dog-work"><strong>{{ dog.actual_km }} km</strong><small>{{ dog.starts }} {{ dog.starts === 1 ? 'start' : 'starts' }}</small></span>
               </a>

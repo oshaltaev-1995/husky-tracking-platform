@@ -179,6 +179,9 @@ describe('DailyEntryPageComponent', () => {
     expect(fixture.nativeElement.querySelector('#daily-dog-aurora-id').textContent).toContain(
       '0 km',
     );
+    expect(
+      fixture.nativeElement.querySelector('#daily-dog-atlas-id').getAttribute('aria-label'),
+    ).toContain('1 start');
     expect(fixture.nativeElement.textContent).toContain('No sled kilometres');
   });
 

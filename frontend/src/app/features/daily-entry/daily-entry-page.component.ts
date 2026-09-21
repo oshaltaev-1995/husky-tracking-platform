@@ -12,6 +12,7 @@ import {
   PlannedActivityActual,
 } from '../../core/api/daily-entry.models';
 import { DailyEntryService } from '../../core/api/daily-entry.service';
+import { countLabel } from '../../shared/count-label/count-label.pipe';
 import { ActualSessionEditorComponent } from './actual-session-editor.component';
 
 const DEFAULT_DATE = '2026-03-31';
@@ -44,6 +45,7 @@ export class DailyEntryPageComponent {
   protected readonly savingEditor = signal(false);
   protected readonly editorError = signal('');
   protected readonly highlightedDogId = signal<string | null>(null);
+  protected readonly countLabel = countLabel;
 
   constructor() {
     this.route.queryParamMap.subscribe((params) => {

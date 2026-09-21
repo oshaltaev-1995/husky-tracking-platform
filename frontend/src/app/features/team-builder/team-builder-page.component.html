@@ -17,7 +17,7 @@
     <div>
       <p class="eyebrow">{{ builder.activity.date }} · {{ builder.activity.distance_km }} km Training</p>
       <h2 id="activity-title">{{ builder.activity.title }}</h2>
-      <p>{{ builder.activity.participant_count }} selected dogs · revision {{ builder.activity.plan_revision }}</p>
+      <p>{{ builder.activity.participant_count | countLabel:'selected dog' }} · revision {{ builder.activity.plan_revision }}</p>
     </div>
     <div class="context-facts" aria-label="Training activity context">
       <span><strong>{{ builder.activity.distance_km }} km</strong><small>Planned distance</small></span>
@@ -36,7 +36,7 @@
     @if (eligibleCandidates().length < builder.supported_team_sizes[0]) {
       <section class="empty-builder" role="status">
         <h2>Not enough eligible dogs for a harness lineup</h2>
-        <p>{{ eligibleCandidates().length }} of {{ builder.activity.participant_count }} selected dogs are eligible on this date. Team Builder needs at least {{ builder.supported_team_sizes[0] }} eligible dogs. Smaller Training sessions can still be recorded without teams.</p>
+        <p>{{ eligibleCandidates().length }} of {{ builder.activity.participant_count | countLabel:'selected dog' }} {{ eligibleCandidates().length === 1 ? 'is' : 'are' }} eligible on this date. Team Builder needs at least {{ builder.supported_team_sizes[0] }} eligible dogs. Smaller Training sessions can still be recorded without teams.</p>
         <a class="button primary" routerLink="/demo/daily" [queryParams]="{ date }">Edit the dog pool in Daily Plan</a>
       </section>
     }
@@ -68,7 +68,7 @@
           <span><strong>{{ builder.capability_summary.wheel }}</strong> Wheel capable <small>{{ requiredRoleCount() }} needed</small></span>
         </div>
         @if (teamCount * teamSize > eligibleCandidates().length) {
-          <p class="inline-warning" role="status">Requested slots exceed the {{ eligibleCandidates().length }} eligible selected dogs.</p>
+          <p class="inline-warning" role="status">Requested slots exceed the {{ eligibleCandidates().length | countLabel:'eligible selected dog' }}.</p>
         }
         @if (confirmingRebuild()) {
           <div class="confirmation" role="alert">
@@ -118,7 +118,7 @@
                     <div class="pair-slots">
                       @for (slot of pairSlots(team, pairIndex); track slot.position_order) {
                         <div class="dog-slot" [class.selected]="isSelected(teamIndex, slot.position_order - 1)" [class.empty]="!slot.dog_id">
-                          <span class="side-label">{{ roleLabel(slot.side) }}</span>
+                          <span class="side-label">{{ sideLabel(slot.side) }}</span>
                           @if (slot.dog_id) {
                             <button type="button" class="slot-select" [disabled]="!editing()" [attr.aria-pressed]="isSelected(teamIndex, slot.position_order - 1)" (click)="selectSlot(teamIndex, slot.position_order - 1)">
                               <strong>{{ slot.dog_name }}</strong>
@@ -155,7 +155,7 @@
           @for (dog of unassigned(); track dog.dog_id) {
             <article>
               <div><a [routerLink]="['/demo/dogs', dog.dog_id]">{{ dog.dog_name }}</a><span>{{ dog.reason }}</span></div>
-              @if (candidate(dog.dog_id); as details) { <small>{{ details.capabilities.join(' · ') }} · 7d {{ details.workload.km_7d }} km · 14d {{ details.workload.km_14d }} km</small> }
+              @if (candidate(dog.dog_id); as details) { <small>{{ roleList(details.capabilities) }} · 7d {{ details.workload.km_7d }} km · 14d {{ details.workload.km_14d }} km</small> }
               @if (editing()) { <button class="button quiet" type="button" (click)="placeUnassigned(dog)">Place in selected slot</button> }
             </article>
           }

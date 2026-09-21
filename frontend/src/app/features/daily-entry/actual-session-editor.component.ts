@@ -23,10 +23,11 @@ import {
   ActualSessionWrite,
 } from '../../core/api/daily-entry.models';
 import { DailyEntryService } from '../../core/api/daily-entry.service';
+import { CountLabelPipe } from '../../shared/count-label/count-label.pipe';
 
 @Component({
   selector: 'ht-actual-session-editor',
-  imports: [FormsModule],
+  imports: [CountLabelPipe, FormsModule],
   templateUrl: './actual-session-editor.component.html',
   styleUrl: './actual-session-editor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

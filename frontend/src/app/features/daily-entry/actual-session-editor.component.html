@@ -22,7 +22,7 @@
 
     <section class="actual-participants" aria-labelledby="actual-participants-title">
       <header>
-        <div><h3 id="actual-participants-title">Actual participants</h3><p>{{ participants.length }} starts · effective state on {{ entryDate }}</p></div>
+        <div><h3 id="actual-participants-title">Actual participants</h3><p>{{ participants.length | countLabel:'start' }} · effective state on {{ entryDate }}</p></div>
         @if (positioned().length) { <button class="button quiet" type="button" (click)="clearGeometry()">Clear harness positions</button> }
       </header>
 
