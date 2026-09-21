@@ -68,6 +68,7 @@ function entry(overrides: Partial<DailyEntry> = {}): DailyEntry {
         start_time: '09:00:00',
         distance_km: 10,
         participant_count: 2,
+        recording_participant_names: ['Atlas', 'Aurora'],
         team_count: 1,
         arranged_dog_count: 2,
         actual_status: 'modified',
@@ -81,6 +82,7 @@ function entry(overrides: Partial<DailyEntry> = {}): DailyEntry {
         start_time: null,
         distance_km: null,
         participant_count: 3,
+        recording_participant_names: ['Atlas', 'Aurora', 'Daisy'],
         team_count: 0,
         arranged_dog_count: 0,
         actual_status: 'context_only',
@@ -215,7 +217,7 @@ describe('DailyEntryPageComponent', () => {
     expect(router.url).toContain('date=2026-03-30');
   });
 
-  it('records a planned activity and supports not-run state', async () => {
+  it('reviews planned actual work before recording and offers persisted undo', async () => {
     const notRecorded = entry({
       sessions: [],
       planned_activities: [
@@ -235,15 +237,132 @@ describe('DailyEntryPageComponent', () => {
     const record = Array.from(
       fixture.nativeElement.querySelectorAll('.plan-actions button') as NodeListOf<HTMLButtonElement>,
     ).find((button) => button.textContent.includes('Record actual'))!;
+    record.focus();
     record.click();
-    const request = http.expectOne(
-      '/api/v1/daily-entry/2026-03-31/planned-activities/activity-id/confirm',
-    );
-    expect(request.request.method).toBe('POST');
-    request.flush(entry());
+    fixture.detectChanges();
+    const confirmUrl =
+      '/api/v1/daily-entry/2026-03-31/planned-activities/activity-id/confirm';
+    http.expectNone(confirmUrl);
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.textContent).toContain('Record completed work?');
+    expect(dialog.textContent).toContain('Tuesday, 31 March 2026');
+    expect(dialog.textContent).toContain('Training · Forest Loop');
+    expect(dialog.textContent).toContain('10 km');
+    expect(dialog.textContent).toContain('Atlas, Aurora');
+    expect(dialog.textContent).toContain('1 saved team · 2 arranged');
+
+    const confirm = Array.from(
+      dialog.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent.includes('Confirm and record'))!;
+    confirm.click();
+    fixture.detectChanges();
+    confirm.click();
+    const requests = http.match(confirmUrl);
+    expect(requests.length).toBe(1);
+    expect(requests[0].request.method).toBe('POST');
+    expect(confirm.disabled).toBe(true);
+    requests[0].flush(entry());
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Planned training recorded');
+    expect(fixture.nativeElement.textContent).toContain('Actual work recorded');
+    expect(fixture.nativeElement.textContent).toContain('Undo recording');
+
+    (fixture.nativeElement.querySelector('#daily-entry-feedback button') as HTMLButtonElement).click();
+    const undo = http.expectOne(
+      '/api/v1/daily-entry/2026-03-31/sessions/session-id?expected_revision=1',
+    );
+    expect(undo.request.method).toBe('DELETE');
+    undo.flush(notRecorded);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Recording undone');
+    expect(fixture.nativeElement.textContent).toContain('Not recorded');
+  });
+
+  it('cancels planned recording without a write and restores trigger focus', async () => {
+    const notRecorded = entry({
+      sessions: [],
+      planned_activities: [
+        {
+          ...entry().planned_activities[0],
+          actual_status: 'not_recorded',
+          actual_session_id: null,
+          deviations: [],
+        },
+      ],
+    });
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-entry/2026-03-31').flush(notRecorded);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const record = fixture.nativeElement.querySelector(
+      '.plan-actions .primary',
+    ) as HTMLButtonElement;
+    record.focus();
+    record.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    http.expectNone(
+      '/api/v1/daily-entry/2026-03-31/planned-activities/activity-id/confirm',
+    );
+    const cancel = Array.from(
+      fixture.nativeElement.querySelectorAll('[role="dialog"] button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent.includes('Cancel'))!;
+    expect(document.activeElement).toBe(cancel);
+    cancel.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(record);
+
+    record.click();
+    fixture.detectChanges();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    http.expectNone(
+      '/api/v1/daily-entry/2026-03-31/planned-activities/activity-id/confirm',
+    );
+  });
+
+  it('keeps the review open with a retryable error when recording fails', async () => {
+    const notRecorded = entry({
+      sessions: [],
+      planned_activities: [
+        {
+          ...entry().planned_activities[0],
+          actual_status: 'not_recorded',
+          actual_session_id: null,
+          deviations: [],
+        },
+      ],
+    });
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-entry/2026-03-31').flush(notRecorded);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.plan-actions .primary') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const confirm = Array.from(
+      fixture.nativeElement.querySelectorAll('[role="dialog"] button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent.includes('Confirm and record'))!;
+    confirm.click();
+    http
+      .expectOne('/api/v1/daily-entry/2026-03-31/planned-activities/activity-id/confirm')
+      .flush(
+        { detail: { code: 'dog_not_eligible', message: 'Atlas is no longer eligible.' } },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
+      'no longer eligible',
+    );
+    expect(confirm.disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('Actual work recorded');
   });
 
   it('adds a manual session with daily-km context and ineligibility reason', async () => {
@@ -311,12 +430,38 @@ describe('DailyEntryPageComponent', () => {
     fixture.detectChanges();
     (fixture.nativeElement.querySelector('.session-actions .danger-text') as HTMLButtonElement).click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Delete actual?');
+    expect(fixture.nativeElement.textContent).toContain('Revert recorded work?');
+    expect(fixture.nativeElement.textContent).toContain('plan will return to Not recorded');
     (fixture.nativeElement.querySelector('.delete-confirm .danger') as HTMLButtonElement).click();
     const deletion = http.expectOne(
       '/api/v1/daily-entry/2026-03-31/sessions/session-id?expected_revision=1',
     );
     expect(deletion.request.method).toBe('DELETE');
     deletion.flush(entry({ sessions: [] }));
+  });
+
+  it('keeps actual work visible and correction retryable when reversal fails', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-entry/2026-03-31').flush(entry());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.session-actions .danger-text') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.delete-confirm .danger') as HTMLButtonElement).click();
+    http
+      .expectOne('/api/v1/daily-entry/2026-03-31/sessions/session-id?expected_revision=1')
+      .flush(
+        { detail: { code: 'actual_changed', message: 'This actual session changed.' } },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.session-card').textContent).toContain(
+      'Forest Loop',
+    );
+    expect(fixture.nativeElement.querySelector('.message.error').textContent).toContain(
+      'session changed',
+    );
+    expect(fixture.nativeElement.querySelector('.delete-confirm .danger').disabled).toBe(false);
   });
 });

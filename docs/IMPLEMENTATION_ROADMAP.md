@@ -567,6 +567,21 @@ the checked-in example and operations runbook do not themselves modify the share
 proxy. No product workflow, domain data, migration, image, or live infrastructure is
 changed by this package.
 
+### Post-launch Package D — safe actual-work confirmation and correction
+
+**Status:** completed locally; not pushed or deployed.
+
+Planned Training confirmation now opens a concise, focus-managed review of date,
+distance, exact recording participants, and lineup context before any write. Successful
+confirmation provides immediate Undo, and linked sessions retain an explicit Revert
+actual action after reload. Both correction paths delete the revision-checked canonical
+`WorkSession`, preserve the plan and lineup, return the plan to `not_recorded`, and let
+Dog Profile, Dashboard, and Analytics recalculate from `WorkParticipation` truth.
+
+No migration or parallel correction ledger is introduced. One active actual per planned
+activity remains enforced by the existing service idempotency and database unique
+constraint; manual actual entry remains an intentional editable form submission.
+
 ## Completion discipline
 
 Each package updates this roadmap only when evidence changes scope. It must include a

@@ -13,6 +13,7 @@ import {
 } from '../../core/api/daily-entry.models';
 import { DailyEntryService } from '../../core/api/daily-entry.service';
 import { countLabel } from '../../shared/count-label/count-label.pipe';
+import { ActualPlanReviewComponent } from './actual-plan-review.component';
 import { ActualSessionEditorComponent } from './actual-session-editor.component';
 
 const DEFAULT_DATE = '2026-03-31';
@@ -21,7 +22,7 @@ const SEASON_END = '2026-03-31';
 
 @Component({
   selector: 'ht-daily-entry-page',
-  imports: [ActualSessionEditorComponent, DatePipe, FormsModule, RouterLink],
+  imports: [ActualPlanReviewComponent, ActualSessionEditorComponent, DatePipe, FormsModule, RouterLink],
   templateUrl: './daily-entry-page.component.html',
   styleUrl: './daily-entry-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,7 +40,12 @@ export class DailyEntryPageComponent {
   protected readonly pageError = signal('');
   protected readonly successMessage = signal('');
   protected readonly busyActivityId = signal<string | null>(null);
+  protected readonly reviewActivity = signal<PlannedActivityActual | null>(null);
+  protected readonly reviewError = signal('');
+  protected readonly recentlyRecordedSession = signal<ActualSession | null>(null);
+  protected readonly undoingSessionId = signal<string | null>(null);
   protected readonly pendingDeleteId = signal<string | null>(null);
+  protected readonly deletingSessionId = signal<string | null>(null);
   protected readonly editorOpen = signal(false);
   protected readonly editingSession = signal<ActualSession | null>(null);
   protected readonly savingEditor = signal(false);
@@ -121,18 +127,66 @@ export class DailyEntryPageComponent {
     });
   }
 
-  protected confirmPlan(activity: PlannedActivityActual): void {
+  protected openPlanReview(activity: PlannedActivityActual): void {
+    if (this.busyActivityId() !== null) return;
+    this.successMessage.set('');
+    this.pageError.set('');
+    this.reviewError.set('');
+    this.reviewActivity.set(activity);
+  }
+
+  protected closePlanReview(): void {
+    if (this.busyActivityId() !== null) return;
+    this.reviewActivity.set(null);
+    this.reviewError.set('');
+  }
+
+  protected confirmPlan(): void {
+    const activity = this.reviewActivity();
+    if (activity === null || this.busyActivityId() !== null) return;
     this.busyActivityId.set(activity.id);
     this.pageError.set('');
+    this.reviewError.set('');
     this.entries.confirmPlan(this.selectedDate, activity.id).subscribe({
       next: (entry) => {
+        const recorded = entry.sessions.find(
+          (session) => session.planned_activity_id === activity.id,
+        );
         this.acceptEntry(entry);
         this.busyActivityId.set(null);
-        this.successMessage.set('Planned training recorded as actual work.');
+        this.reviewActivity.set(null);
+        this.recentlyRecordedSession.set(recorded ?? null);
+        this.successMessage.set(
+          'Actual work recorded. Workload, profiles, Dashboard and Analytics now include this session.',
+        );
+        this.focusFeedback();
       },
       error: (error: HttpErrorResponse) => {
         this.busyActivityId.set(null);
-        this.pageError.set(this.errorMessage(error));
+        this.reviewError.set(this.errorMessage(error));
+      },
+    });
+  }
+
+  protected undoRecentRecording(): void {
+    const recent = this.recentlyRecordedSession();
+    if (recent === null || this.undoingSessionId() !== null) return;
+    this.undoingSessionId.set(recent.id);
+    this.pageError.set('');
+    this.entries.deleteSession(this.selectedDate, recent.id, recent.revision).subscribe({
+      next: (entry) => {
+        this.acceptEntry(entry);
+        this.undoingSessionId.set(null);
+        this.successMessage.set(
+          'Recording undone. The plan is ready to record again and workload totals were updated.',
+        );
+        this.focusFeedback();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.undoingSessionId.set(null);
+        this.pageError.set(
+          `${this.errorMessage(error)} Actual work remains recorded; retry Undo or use Revert actual.`,
+        );
       },
     });
   }
@@ -179,17 +233,40 @@ export class DailyEntryPageComponent {
   }
 
   protected deleteSession(session: ActualSession): void {
+    if (this.deletingSessionId() !== null) return;
+    this.deletingSessionId.set(session.id);
+    this.pageError.set('');
     this.entries.deleteSession(this.selectedDate, session.id, session.revision).subscribe({
       next: (entry) => {
         this.acceptEntry(entry);
+        this.deletingSessionId.set(null);
         this.pendingDeleteId.set(null);
-        this.successMessage.set('Actual session removed; planning records were preserved.');
+        this.successMessage.set(
+          session.planned_activity_id
+            ? 'Actual work reverted. The plan is ready to record again and workload totals were updated.'
+            : 'Actual session removed; planning records were preserved.',
+        );
+        this.focusFeedback();
       },
       error: (error: HttpErrorResponse) => {
-        this.pendingDeleteId.set(null);
+        this.deletingSessionId.set(null);
         this.pageError.set(this.errorMessage(error));
       },
     });
+  }
+
+  protected removalActionLabel(session: ActualSession): string {
+    return session.planned_activity_id ? 'Revert actual' : 'Delete';
+  }
+
+  protected removalPrompt(session: ActualSession): string {
+    return session.planned_activity_id ? 'Revert recorded work?' : 'Delete actual session?';
+  }
+
+  protected removalDescription(session: ActualSession): string {
+    return session.planned_activity_id
+      ? 'The plan will return to Not recorded and workload totals will recalculate.'
+      : 'This removes the session and recalculates workload totals.';
   }
 
   protected findDog(): void {
@@ -252,7 +329,12 @@ export class DailyEntryPageComponent {
     this.loading.set(true);
     this.pageError.set('');
     this.successMessage.set('');
+    this.reviewActivity.set(null);
+    this.reviewError.set('');
+    this.recentlyRecordedSession.set(null);
+    this.undoingSessionId.set(null);
     this.pendingDeleteId.set(null);
+    this.deletingSessionId.set(null);
     this.highlightedDogId.set(null);
     this.entries.getEntry(date).subscribe({
       next: (entry) => {
@@ -269,6 +351,14 @@ export class DailyEntryPageComponent {
   private acceptEntry(entry: DailyEntry): void {
     this.entry.set(entry);
     this.successMessage.set('');
+    this.recentlyRecordedSession.set(null);
+  }
+
+  private focusFeedback(): void {
+    this.document.defaultView?.setTimeout(
+      () => this.document.getElementById('daily-entry-feedback')?.focus(),
+      0,
+    );
   }
 
   private validDate(value: string | null): value is string {

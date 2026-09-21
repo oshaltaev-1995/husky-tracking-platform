@@ -1,0 +1,26 @@
+@use '../../../styles/mixins' as mixins;
+
+:host { position: fixed; z-index: 85; inset: 0; }
+.dialog-backdrop { position: absolute; inset: 0; width: 100%; border: 0; background: rgba(13, 29, 27, .54); }
+.review-dialog { position: absolute; top: 50%; left: 50%; display: flex; width: min(36rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow: hidden; transform: translate(-50%, -50%); flex-direction: column; border: 1px solid var(--border-strong); border-radius: var(--radius-panel); background: var(--surface-elevated); box-shadow: var(--shadow-raised); }
+.review-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--border); }
+.review-dialog h2 { margin: .15rem 0 0; font-size: 1.35rem; }
+.close-button { min-height: 2.25rem; border: 1px solid var(--border); border-radius: var(--radius-control); padding: .35rem .7rem; color: var(--text-secondary); background: var(--surface-card); font-size: .75rem; font-weight: 800; }
+.review-body { min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-6); }
+.consequence { margin: 0 0 var(--space-4); border-left: .2rem solid var(--brand); padding: .6rem .8rem; color: var(--text-secondary); background: var(--surface-brand-soft); font-size: .78rem; line-height: 1.5; }
+.review-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--border); }
+.review-facts div { min-width: 0; padding: var(--space-3); background: var(--surface-card); }
+.review-facts dt { color: var(--text-muted); font-size: .62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.review-facts dd { margin: .2rem 0 0; overflow-wrap: anywhere; color: var(--text-primary); font-size: .78rem; font-weight: 800; }
+.dog-review { margin-top: var(--space-4); }
+.dog-review h3 { margin: 0 0 var(--space-1); font-size: .82rem; }
+.dog-review p { margin: 0; color: var(--text-secondary); font-size: .75rem; line-height: 1.55; }
+.form-error { margin: var(--space-4) 0 0; border-radius: var(--radius-control); padding: .6rem .75rem; color: var(--danger); background: var(--danger-soft); font-size: .78rem; }
+.review-dialog > footer { display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); }
+
+@include mixins.phone {
+  .review-dialog { width: calc(100% - 1rem); max-height: calc(100dvh - 1rem); }
+  .review-dialog > header, .review-body, .review-dialog > footer { padding-inline: var(--space-4); }
+  .review-facts { grid-template-columns: 1fr; }
+  .review-dialog > footer .button { flex: 1; }
+}

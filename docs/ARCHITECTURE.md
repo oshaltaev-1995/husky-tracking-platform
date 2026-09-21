@@ -345,6 +345,15 @@ The nullable unique plan link makes repeated confirmation idempotent. Manual cre
 revision-checked edit, and explicit delete all return a fully rehydrated day. Actual
 edits never mutate planned pools or saved teams, and plan deletion only nulls provenance.
 
+Confirm-from-plan is deliberately two-step in the UI. A focus-managed review presents
+the date, activity, distance, exact dogs that will be copied, and saved-lineup context;
+no request is made until confirmation. Successful recording exposes immediate Undo,
+while every reopened linked session exposes Revert actual. Both use the existing
+revision-checked deletion boundary, so the plan returns to `not_recorded` and Dog Work,
+Dashboard, and Analytics recalculate from the canonical ledger rather than client state.
+Pending guards prevent duplicate UI submission; the service and database unique plan
+link remain the authoritative duplicate protection.
+
 The focus-managed actual editor supports unpositioned participant selection, positioned
 replacement, compatible cross-position swaps, removal, and clearing all harness
 geometry without drag-only interaction. Dated housing/class/availability and current

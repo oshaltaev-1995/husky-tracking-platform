@@ -45,8 +45,9 @@ implementation, not a migration or copy of either reference project.
   optimistic revisions, and the shared 30 km per-dog/day training guardrail
 - deterministic Team Builder previews and saved Lead/Team/Wheel harness lineups with
   workload context, pair constraints, manual refinement, and explicit rebuild safety
-- canonical Daily Entry over the existing actual ledger, including plan confirmation,
-  manual sessions, reopened correction, plan deviation, dated housing, and dog finding
+- canonical Daily Entry over the existing actual ledger, including reviewed plan
+  confirmation, immediate Undo and persisted correction, manual sessions, plan
+  deviation, dated housing, and dog finding
 - effective-dated Population analytics plus actual-ledger Workload analytics with
   canonical KPIs, weekly trends, role/distance mix, class-aware attention signals,
   streaks, and Dog Profile drill-down

@@ -212,6 +212,14 @@ The nullable unique link makes confirm-from-plan idempotent at service and datab
 levels. Deleting or editing a plan never deletes or rewrites the more authoritative
 actual session. Baseline and manual sessions need no plan link.
 
+Plan completion is derived rather than stored: a linked `WorkSession` makes the
+Training activity recorded, and deleting that session returns it to `not_recorded`.
+The review UI performs no write until explicit confirmation. Immediate Undo and the
+persisted Revert action both delete the revision-checked canonical session, whose
+owned participations cascade; the Daily Plan, participant pool, and saved lineup remain
+intact and can be recorded again. The unique plan link and service-level retry check
+allow at most one active actual session per planned activity.
+
 ### `work_participations`
 
 - session-owned cascade for correction/deletion and restrictive Dog foreign key;

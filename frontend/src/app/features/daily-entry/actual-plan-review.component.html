@@ -1,0 +1,34 @@
+<button class="dialog-backdrop" type="button" aria-label="Cancel recording actual work" [disabled]="saving" (click)="close()"></button>
+<section class="review-dialog" role="dialog" aria-modal="true" aria-labelledby="actual-review-title" aria-describedby="actual-review-consequence">
+  <header>
+    <div>
+      <p class="eyebrow">Review actual work</p>
+      <h2 id="actual-review-title">Record completed work?</h2>
+    </div>
+    <button class="close-button" type="button" aria-label="Close actual-work review" [disabled]="saving" (click)="close()">Close</button>
+  </header>
+
+  <div class="review-body">
+    <p id="actual-review-consequence" class="consequence">This creates an actual-work session and immediately updates dog workloads, profiles, Dashboard and Analytics.</p>
+    <dl class="review-facts">
+      <div><dt>Date</dt><dd>{{ (entryDate + 'T12:00:00Z') | date: 'EEEE, d MMMM y':'UTC' }}</dd></div>
+      <div><dt>Activity</dt><dd>Training · {{ activity.title }}</dd></div>
+      <div><dt>Distance</dt><dd>{{ activity.distance_km }} km</dd></div>
+      <div><dt>Dogs to record</dt><dd>{{ activity.recording_participant_names.length | countLabel:'dog' }}</dd></div>
+      @if (activity.start_time) { <div><dt>Start time</dt><dd>{{ activity.start_time.slice(0, 5) }}</dd></div> }
+      <div><dt>Lineup</dt><dd>{{ teamSummary() }}</dd></div>
+    </dl>
+
+    <section class="dog-review" aria-labelledby="actual-review-dogs">
+      <h3 id="actual-review-dogs">Dogs included</h3>
+      <p>{{ activity.recording_participant_names.join(', ') }}</p>
+    </section>
+
+    @if (serverError) { <p class="form-error" role="alert">{{ serverError }}</p> }
+  </div>
+
+  <footer>
+    <button #cancelButton class="button quiet" type="button" [disabled]="saving" (click)="close()">Cancel</button>
+    <button class="button primary" type="button" [disabled]="saving" (click)="confirm()">{{ saving ? 'Recording actual…' : 'Confirm and record' }}</button>
+  </footer>
+</section>

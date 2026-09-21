@@ -57,6 +57,7 @@ export interface PlannedActivityActual {
   start_time: string | null;
   distance_km: number | null;
   participant_count: number;
+  recording_participant_names: string[];
   team_count: number;
   arranged_dog_count: number;
   actual_status: 'not_recorded' | 'matches_plan' | 'modified' | 'not_run' | 'context_only';

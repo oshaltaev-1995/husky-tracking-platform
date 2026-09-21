@@ -119,6 +119,7 @@ class PlannedActivityActualRead(BaseModel):
     start_time: time | None
     distance_km: int | None
     participant_count: int
+    recording_participant_names: list[str]
     team_count: int
     arranged_dog_count: int
     actual_status: str

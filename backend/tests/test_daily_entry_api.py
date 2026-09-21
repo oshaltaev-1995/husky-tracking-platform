@@ -196,6 +196,12 @@ def test_plan_confirmation_copies_saved_lineup_and_is_idempotent(
     assert first.status_code == second.status_code == 200
     actual = first.json()["sessions"][0]
     assert actual == second.json()["sessions"][0]
+    assert first.json()["planned_activities"][0]["recording_participant_names"] == [
+        "Atlas",
+        "Daisy",
+        "Freya",
+        "Kenzo",
+    ]
     assert actual["source"] == "planned"
     assert actual["plan_status"] == "matches_plan"
     assert actual["team_count"] == 1
@@ -206,6 +212,81 @@ def test_plan_confirmation_copies_saved_lineup_and_is_idempotent(
     }
     with SessionLocal() as session:
         assert session.scalar(select(func.count()).select_from(WorkSession)) == 141
+
+
+def test_planned_actual_reversal_restores_every_ledger_projection_and_recordability(
+    client: TestClient,
+) -> None:
+    plan = create_training(client, ["Atlas", "Aurora"])
+    activity_id = plan["activities"][0]["id"]  # type: ignore[index]
+    date_params = {"from": "2026-03-29", "to": "2026-03-29"}
+    atlas_id = dog_ids("Atlas")[0]
+    analytics_before = client.get(
+        "/api/v1/analytics/overview", params=date_params
+    ).json()
+    profile_before = client.get(f"/api/v1/dogs/{atlas_id}/work").json()
+    dashboard_before = client.get(
+        "/api/v1/dashboard", params={"date": "2026-03-29"}
+    ).json()["actual"]
+    assert analytics_before["summary"]["sessions"] == 0
+    assert dashboard_before == {
+        "sessions": 0,
+        "dogs_worked": 0,
+        "dog_starts": 0,
+        "dog_km": 0,
+    }
+
+    confirm_url = (
+        f"/api/v1/daily-entry/2026-03-29/planned-activities/{activity_id}/confirm"
+    )
+    confirmed = client.post(confirm_url)
+    assert confirmed.status_code == 200, confirmed.text
+    actual = confirmed.json()["sessions"][0]
+    assert confirmed.json()["summary"] == {
+        "actual_sessions": 1,
+        "dogs_worked": 2,
+        "dog_starts": 2,
+        "total_dog_km": 20,
+    }
+    analytics_recorded = client.get(
+        "/api/v1/analytics/overview", params=date_params
+    ).json()["summary"]
+    assert analytics_recorded["sessions"] == 1
+    assert analytics_recorded["dogs_worked"] == 2
+    assert analytics_recorded["dog_starts"] == 2
+    assert analytics_recorded["dog_km"] == 20
+    assert client.get("/api/v1/dashboard", params={"date": "2026-03-29"}).json()[
+        "actual"
+    ] == {
+        "sessions": 1,
+        "dogs_worked": 2,
+        "dog_starts": 2,
+        "dog_km": 20,
+    }
+    assert client.get(f"/api/v1/dogs/{atlas_id}/work").json() != profile_before
+
+    reversed_actual = client.delete(
+        f"/api/v1/daily-entry/2026-03-29/sessions/{actual['id']}",
+        params={"expected_revision": actual["revision"]},
+    )
+    assert reversed_actual.status_code == 200, reversed_actual.text
+    assert reversed_actual.json()["sessions"] == []
+    assert reversed_actual.json()["planned_activities"][0]["actual_status"] == (
+        "not_recorded"
+    )
+    assert (
+        client.get("/api/v1/analytics/overview", params=date_params).json()
+        == analytics_before
+    )
+    assert client.get(f"/api/v1/dogs/{atlas_id}/work").json() == profile_before
+    assert (
+        client.get("/api/v1/dashboard", params={"date": "2026-03-29"}).json()["actual"]
+        == dashboard_before
+    )
+
+    recorded_again = client.post(confirm_url)
+    assert recorded_again.status_code == 200, recorded_again.text
+    assert len(recorded_again.json()["sessions"]) == 1
 
 
 def test_confirmation_without_team_uses_pool_and_non_training_is_rejected(

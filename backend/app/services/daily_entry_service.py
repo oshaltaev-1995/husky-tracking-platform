@@ -609,6 +609,12 @@ class DailyEntryService:
         result: list[PlannedActivityActualRead] = []
         for activity in sorted(plan.activities, key=lambda item: item.sequence):
             actual = sessions_by_plan.get(activity.id)
+            recording_participant_names = sorted(
+                (slot.dog.name for team in activity.teams for slot in team.slots)
+                if activity.teams
+                else (participant.dog.name for participant in activity.participants),
+                key=str.casefold,
+            )
             deviations: list[str]
             if activity.activity_type != PlannedActivityType.TRAINING.value:
                 status, deviations = "context_only", []
@@ -626,6 +632,7 @@ class DailyEntryService:
                     start_time=activity.start_time,
                     distance_km=activity.distance_km,
                     participant_count=len(activity.participants),
+                    recording_participant_names=recording_participant_names,
                     team_count=len(activity.teams),
                     arranged_dog_count=sum(len(team.slots) for team in activity.teams),
                     actual_status=status,

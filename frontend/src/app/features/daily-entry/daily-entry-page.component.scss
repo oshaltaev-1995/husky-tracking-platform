@@ -7,6 +7,8 @@
 .day-button:disabled { color: var(--disabled); background: var(--disabled-soft); cursor: not-allowed; }
 .message { margin: 0 0 var(--space-4); border-radius: var(--radius-control); padding: .65rem .8rem; font-size: .78rem; font-weight: 700; }
 .message.success { color: var(--success); background: var(--success-soft); }
+.message.success { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.message.success .button { flex: 0 0 auto; border-color: color-mix(in srgb, var(--success) 30%, transparent); color: var(--success); background: var(--surface-card); }
 .message.error { color: var(--danger); background: var(--danger-soft); }
 .entry-summary { display: grid; grid-template-columns: minmax(15rem, 1.35fr) minmax(28rem, 2fr); align-items: center; gap: var(--space-6); margin-bottom: var(--space-6); border-block: 1px solid var(--border); padding: var(--space-4) 0; }
 .day-identity h2 { margin: .15rem 0; font-size: 1.15rem; }
@@ -44,7 +46,9 @@
 .source-badge[data-source='manual'] { color: var(--text-secondary); background: var(--surface-soft); }
 .session-actions { display: flex; align-items: center; gap: var(--space-1); }
 .danger-text { color: var(--danger) !important; }
-.delete-confirm { display: flex; align-items: center; gap: var(--space-2); border-radius: var(--radius-control); padding: .35rem; background: var(--danger-soft); font-size: .68rem; }
+.delete-confirm { display: flex; max-width: 28rem; align-items: center; gap: var(--space-2); border-radius: var(--radius-control); padding: .35rem; background: var(--danger-soft); font-size: .68rem; }
+.delete-confirm > span { display: flex; min-width: 10rem; flex: 1; flex-direction: column; }
+.delete-confirm small { color: var(--text-secondary); font-size: .62rem; font-weight: 600; line-height: 1.35; }
 .delete-confirm button { border: 0; color: var(--text-secondary); background: transparent; font-weight: 800; }
 .delete-confirm .danger { color: var(--danger); }
 .session-plan-state { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); color: var(--text-muted); background: var(--surface-soft); font-size: .66rem; }
@@ -94,6 +98,9 @@
   .plan-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; }
   .session-card > header { flex-direction: column; }
   .session-actions { width: 100%; flex-wrap: wrap; }
+  .delete-confirm { width: 100%; align-items: stretch; flex-wrap: wrap; }
+  .delete-confirm > span { width: 100%; flex-basis: 100%; }
+  .message.success { align-items: stretch; flex-direction: column; }
   .session-plan-state { align-items: flex-start; flex-direction: column; }
   .find-dog { width: 100%; }
   .find-dog label { min-width: 0; flex: 1; }

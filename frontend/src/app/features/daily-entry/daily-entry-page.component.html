@@ -11,7 +11,14 @@
   </div>
 </header>
 
-@if (successMessage()) { <p class="message success" role="status">{{ successMessage() }}</p> }
+@if (successMessage()) {
+  <div id="daily-entry-feedback" class="message success" tabindex="-1">
+    <span role="status">{{ successMessage() }}</span>
+    @if (recentlyRecordedSession(); as recent) {
+      <button class="button quiet" type="button" [disabled]="undoingSessionId() === recent.id" (click)="undoRecentRecording()">{{ undoingSessionId() === recent.id ? 'Undoing…' : 'Undo recording' }}</button>
+    }
+  </div>
+}
 @if (pageError()) { <p class="message error" role="alert">{{ pageError() }}</p> }
 
 @if (loading()) {
@@ -41,7 +48,7 @@
               @else if (activity.actual_session_id && linkedSession(activity); as actual) { <button class="button secondary" type="button" (click)="openEdit(actual)">View / edit actual</button> }
               @else if (activity.actual_status === 'not_run') { <button class="button quiet" type="button" [disabled]="busyActivityId() === activity.id" (click)="restorePlan(activity)">Restore to not recorded</button> }
               @else {
-                <button class="button primary" type="button" [disabled]="busyActivityId() === activity.id" (click)="confirmPlan(activity)">{{ busyActivityId() === activity.id ? 'Recording…' : 'Record actual' }}</button>
+                <button class="button primary" type="button" [disabled]="busyActivityId() === activity.id" (click)="openPlanReview(activity)">Record actual</button>
                 <button class="button quiet" type="button" [disabled]="busyActivityId() === activity.id" (click)="markNotRun(activity)">Mark not run</button>
               }
             </div>
@@ -64,8 +71,12 @@
               <div class="session-actions">
                 <button class="button secondary" type="button" (click)="openEdit(session)">Edit actual</button>
                 @if (pendingDeleteId() === session.id) {
-                  <div class="delete-confirm" role="group" aria-label="Confirm actual session deletion"><span>Delete actual?</span><button type="button" (click)="cancelDelete()">Cancel</button><button class="danger" type="button" (click)="deleteSession(session)">Delete</button></div>
-                } @else { <button class="button quiet danger-text" type="button" (click)="askDelete(session.id)">Delete</button> }
+                  <div class="delete-confirm" role="group" [attr.aria-label]="'Confirm ' + removalActionLabel(session).toLowerCase()">
+                    <span><strong>{{ removalPrompt(session) }}</strong><small>{{ removalDescription(session) }}</small></span>
+                    <button type="button" [disabled]="deletingSessionId() === session.id" (click)="cancelDelete()">Cancel</button>
+                    <button class="danger" type="button" [disabled]="deletingSessionId() === session.id" (click)="deleteSession(session)">{{ deletingSessionId() === session.id ? 'Saving…' : removalActionLabel(session) }}</button>
+                  </div>
+                } @else { <button class="button quiet danger-text" type="button" (click)="askDelete(session.id)">{{ removalActionLabel(session) }}</button> }
               </div>
             </header>
             @if (session.plan_status) { <div class="session-plan-state"><span class="actual-state" [attr.data-state]="session.plan_status">{{ statusLabel(session.plan_status) }}</span>@if (session.planned_activity_title) { <span>{{ session.planned_activity_title }}</span> }@if (session.deviations.length) { <strong>{{ session.deviations.join(' · ') }}</strong> }</div> }
@@ -108,4 +119,8 @@
 
 @if (editorOpen()) {
   <ht-actual-session-editor [entryDate]="selectedDate" [session]="editingSession()" [saving]="savingEditor()" [serverError]="editorError()" (saved)="saveSession($event)" (closed)="closeEditor()" />
+}
+
+@if (reviewActivity(); as activity) {
+  <ht-actual-plan-review [entryDate]="selectedDate" [activity]="activity" [saving]="busyActivityId() === activity.id" [serverError]="reviewError()" (confirmed)="confirmPlan()" (closed)="closePlanReview()" />
 }
