@@ -33,44 +33,52 @@
       <a class="button primary" routerLink="/demo/daily" [queryParams]="{ date }">Return to Daily Plan</a>
     </section>
   } @else {
-    <section class="configuration surface" aria-labelledby="configuration-title">
-      <div class="configuration-copy">
-        <p class="eyebrow">Configuration</p>
-        <h2 id="configuration-title">Arrange the harness</h2>
-        <p>Recommended: {{ builder.recommended_team_count }} × {{ builder.recommended_team_size }}. Generation is deterministic and remains a preview until saved.</p>
-      </div>
-      <div class="configuration-controls">
-        <label class="form-field">
-          <span>Number of teams</span>
-          <input type="number" min="1" max="6" [(ngModel)]="teamCount" />
-        </label>
-        <label class="form-field">
-          <span>Dogs per team</span>
-          <select [(ngModel)]="teamSize">
-            @for (size of builder.supported_team_sizes; track size) { <option [ngValue]="size">{{ size }}</option> }
-          </select>
-        </label>
-        <button class="button primary" type="button" [disabled]="busy() || eligibleCandidates().length < 4" (click)="generate()">
-          {{ busy() ? 'Generating…' : builder.saved_teams.length ? 'Rebuild teams' : 'Generate teams' }}
-        </button>
-      </div>
-      <div class="capability-summary" aria-label="Selected pool capability summary">
-        <span><strong>{{ builder.capability_summary.lead }}</strong> Lead capable <small>{{ requiredRoleCount() }} needed</small></span>
-        <span><strong>{{ builder.capability_summary.team }}</strong> Team capable</span>
-        <span><strong>{{ builder.capability_summary.wheel }}</strong> Wheel capable <small>{{ requiredRoleCount() }} needed</small></span>
-      </div>
-      @if (teamCount * teamSize > eligibleCandidates().length) {
-        <p class="inline-warning" role="status">Requested slots exceed the {{ eligibleCandidates().length }} eligible selected dogs.</p>
-      }
-      @if (confirmingRebuild()) {
-        <div class="confirmation" role="alert">
-          <span><strong>Replace the current arrangement?</strong> The saved lineup remains unchanged until you save the new preview.</span>
-          <button class="button quiet" type="button" (click)="confirmingRebuild.set(false)">Cancel</button>
-          <button class="button secondary" type="button" (click)="generate()">Generate replacement</button>
+    @if (eligibleCandidates().length < builder.supported_team_sizes[0]) {
+      <section class="empty-builder" role="status">
+        <h2>Not enough eligible dogs for a harness lineup</h2>
+        <p>{{ eligibleCandidates().length }} of {{ builder.activity.participant_count }} selected dogs are eligible on this date. Team Builder needs at least {{ builder.supported_team_sizes[0] }} eligible dogs. Smaller Training sessions can still be recorded without teams.</p>
+        <a class="button primary" routerLink="/demo/daily" [queryParams]="{ date }">Edit the dog pool in Daily Plan</a>
+      </section>
+    }
+    @if (eligibleCandidates().length >= builder.supported_team_sizes[0]) {
+      <section class="configuration surface" aria-labelledby="configuration-title">
+        <div class="configuration-copy">
+          <p class="eyebrow">Configuration</p>
+          <h2 id="configuration-title">Arrange the harness</h2>
+          <p>Recommended: {{ builder.recommended_team_count }} × {{ builder.recommended_team_size }}. Generation is deterministic and remains a preview until saved.</p>
         </div>
-      }
-    </section>
-
+        <div class="configuration-controls">
+          <label class="form-field">
+            <span>Number of teams</span>
+            <input type="number" min="1" max="6" [(ngModel)]="teamCount" />
+          </label>
+          <label class="form-field">
+            <span>Dogs per team</span>
+            <select [(ngModel)]="teamSize">
+              @for (size of builder.supported_team_sizes; track size) { <option [ngValue]="size">{{ size }}</option> }
+            </select>
+          </label>
+          <button class="button primary" type="button" [disabled]="busy()" (click)="generate()">
+            {{ busy() ? 'Generating…' : builder.saved_teams.length ? 'Rebuild teams' : 'Generate teams' }}
+          </button>
+        </div>
+        <div class="capability-summary" aria-label="Selected pool capability summary">
+          <span><strong>{{ builder.capability_summary.lead }}</strong> Lead capable <small>{{ requiredRoleCount() }} needed</small></span>
+          <span><strong>{{ builder.capability_summary.team }}</strong> Team capable</span>
+          <span><strong>{{ builder.capability_summary.wheel }}</strong> Wheel capable <small>{{ requiredRoleCount() }} needed</small></span>
+        </div>
+        @if (teamCount * teamSize > eligibleCandidates().length) {
+          <p class="inline-warning" role="status">Requested slots exceed the {{ eligibleCandidates().length }} eligible selected dogs.</p>
+        }
+        @if (confirmingRebuild()) {
+          <div class="confirmation" role="alert">
+            <span><strong>Replace the current arrangement?</strong> The saved lineup remains unchanged until you save the new preview.</span>
+            <button class="button quiet" type="button" (click)="confirmingRebuild.set(false)">Cancel</button>
+            <button class="button secondary" type="button" (click)="generate()">Generate replacement</button>
+          </div>
+        }
+      </section>
+    }
     @if (builder.saved_teams.length && !editing()) {
       <section class="saved-summary surface" aria-labelledby="saved-title">
         <div><p class="eyebrow">Saved planned truth</p><h2 id="saved-title">{{ builder.saved_teams.length }} {{ builder.saved_teams.length === 1 ? 'team' : 'teams' }} arranged</h2></div>

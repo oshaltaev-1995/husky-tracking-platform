@@ -54,12 +54,22 @@ export class DemoShellComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
   private readonly mobileDrawer = viewChild<ElementRef<HTMLElement>>('mobileDrawer');
+  private readonly mainContent = viewChild<ElementRef<HTMLElement>>('mainContent');
 
   protected readonly menuOpen = signal(false);
   protected readonly resetConfirming = signal(false);
   protected readonly resetting = signal(false);
   protected readonly resetMessage = signal<string | null>(null);
   protected readonly layoutMode = signal<'standard' | 'wide'>('standard');
+
+  protected skipLinkHref(): string {
+    return `${this.router.url.split('#')[0]}#main-content`;
+  }
+
+  protected skipToContent(event: MouseEvent): void {
+    event.preventDefault();
+    this.mainContent()?.nativeElement.focus();
+  }
   protected readonly navigation: NavigationSection[] = [
     {
       label: 'Overview',

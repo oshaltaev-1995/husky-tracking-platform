@@ -293,6 +293,11 @@ P5 retains the selected participant pool as the builder boundary. P6 adds a func
 changing participant ownership. Distance or pool edits that affect saved teams return a
 stable conflict until the UI obtains explicit confirmation; the backend then applies
 the edit and lineup deletion in one revision-checked transaction.
+One-to-three-dog Training plans remain valid and can be recorded as unpositioned actual
+work in Daily Entry. Daily Plan exposes Team Builder only when the selected pool meets
+the minimum from `SUPPORTED_TEAM_SIZES`; the API projects that minimum so the UI does
+not maintain a competing constant. A direct builder link with too few currently
+eligible dogs explains the shortage and returns to Daily Plan.
 
 ### Team Builder
 

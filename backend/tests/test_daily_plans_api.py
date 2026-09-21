@@ -92,6 +92,7 @@ def test_empty_day_is_lazy_and_date_bounds_are_enforced(client: TestClient) -> N
         "season_start": "2025-12-01",
         "season_end": "2026-03-31",
         "reference_date": "2026-03-31",
+        "minimum_team_size": 4,
         "exists": False,
         "id": None,
         "revision": None,

@@ -49,6 +49,14 @@ const taro: KennelMapResident = {
   photo_key: null,
 };
 
+const nova: KennelMapResident = {
+  ...maple,
+  id: 'nova-id',
+  name: 'Nova',
+  availability: 'available',
+  housing_code: 'B1-05',
+};
+
 function location(
   code: string,
   type: 'adult_enclosure' | 'puppy_area',
@@ -239,6 +247,107 @@ describe('KennelMapPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.search-announcement').textContent).toContain(
       'A1-01',
     );
+  });
+
+  it('waits for Find before showing a negative result and invalidates stale results on input', async () => {
+    const { fixture, http } = await setup('/kennel?date=2026-01-01');
+    http.expectOne('/api/v1/kennel-map?date=2026-01-01').flush({
+      ...snapshot,
+      selected_date: '2026-01-01',
+      locations: snapshot.locations.map((item) =>
+        item.code === 'B1-05' ? { ...item, residents: [nova] } : item,
+      ),
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const search = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    const form = fixture.nativeElement.querySelector('.dog-finder') as HTMLFormElement;
+    const type = (value: string) => {
+      search.value = value;
+      search.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+    const find = async () => {
+      form.dispatchEvent(new Event('submit'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+    };
+
+    type('Nov');
+    expect(fixture.nativeElement.querySelector('.search-announcement')).toBeNull();
+    await find();
+    expect(fixture.nativeElement.querySelector('.search-announcement').textContent).toContain('Nova is in B1-05');
+    await find();
+    expect(fixture.nativeElement.querySelector('.resident-dog.highlighted').textContent).toContain('Nova');
+
+    type('Unknown');
+    expect(fixture.nativeElement.querySelector('.search-announcement')).toBeNull();
+    await find();
+    expect(fixture.nativeElement.querySelector('.search-announcement.not-found').textContent)
+      .toContain('Unknown');
+    type('Nova');
+    expect(fixture.nativeElement.querySelector('.search-announcement')).toBeNull();
+    await find();
+    expect(fixture.nativeElement.querySelector('.search-announcement').textContent).toContain('B1-05');
+    type('');
+    await find();
+    expect(fixture.nativeElement.querySelector('.search-announcement')).toBeNull();
+  });
+
+  it('invalidates search on date change and resolves only the new effective residents', async () => {
+    const { fixture, http } = await setup('/kennel?date=2026-01-01');
+    http.expectOne('/api/v1/kennel-map?date=2026-01-01').flush({
+      ...snapshot,
+      selected_date: '2026-01-01',
+      locations: snapshot.locations.map((item) =>
+        item.code === 'B1-05' ? { ...item, residents: [nova] } : item,
+      ),
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const search = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    search.value = 'Nova';
+    search.dispatchEvent(new Event('input'));
+    (fixture.nativeElement.querySelector('.dog-finder') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-announcement').textContent).toContain('B1-05');
+
+    const date = fixture.nativeElement.querySelector('input[type="date"]') as HTMLInputElement;
+    date.value = '2026-03-31';
+    date.dispatchEvent(new Event('input'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-announcement')).toBeNull();
+    http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush({
+      ...snapshot,
+      locations: snapshot.locations.map((item) =>
+        item.code === 'B2-01' ? { ...item, residents: [{ ...nova, housing_code: 'B2-01' }] } : item,
+      ),
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.dog-finder') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-announcement').textContent).toContain('B2-01');
+
+    date.value = '2026-02-01';
+    date.dispatchEvent(new Event('input'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    http.expectOne('/api/v1/kennel-map?date=2026-02-01').flush({
+      ...snapshot,
+      selected_date: '2026-02-01',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-announcement')).toBeNull();
+    (fixture.nativeElement.querySelector('.dog-finder') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-announcement.not-found').textContent)
+      .toContain('Nova');
   });
 
   it('shows unavailable states with text and handles an API error', async () => {

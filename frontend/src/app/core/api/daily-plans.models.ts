@@ -30,6 +30,7 @@ export interface DailyPlan {
   season_start: string;
   season_end: string;
   reference_date: string;
+  minimum_team_size: number;
   exists: boolean;
   id: string | null;
   revision: number | null;

@@ -43,6 +43,7 @@
             list="resident-dogs"
             placeholder="Find a dog…"
             [(ngModel)]="searchTerm"
+            (ngModelChange)="invalidateSearch()"
           />
           <datalist id="resident-dogs">
             @for (dog of residents(state.data); track dog.id) { <option [value]="dog.name"></option> }
@@ -84,7 +85,7 @@
           <span><strong>{{ match.dog.name }}</strong> is in {{ match.location.code }}.</span>
           <span>Its enclosure is highlighted below.</span>
         </div>
-      } @else if (searchTerm.trim()) {
+      } @else if (searchNotFound) {
         <div class="search-announcement not-found" aria-live="polite">
           No resident dog matches “{{ searchTerm }}” on this date.
         </div>

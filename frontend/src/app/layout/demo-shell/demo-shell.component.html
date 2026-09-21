@@ -1,4 +1,4 @@
-<a class="skip-link" href="#main-content">Skip to content</a>
+<a class="skip-link" [href]="skipLinkHref()" (click)="skipToContent($event)">Skip to content</a>
 
 <div class="app-shell">
   <aside class="sidebar desktop-sidebar" aria-label="Application sidebar">
@@ -24,7 +24,7 @@
       </button>
     </header>
 
-    <main id="main-content" class="app-main">
+    <main #mainContent id="main-content" class="app-main" tabindex="-1">
       <div [class.content-standard]="layoutMode() === 'standard'" [class.content-wide]="layoutMode() === 'wide'">
         <router-outlet />
       </div>

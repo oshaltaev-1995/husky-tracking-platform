@@ -62,6 +62,7 @@ export class KennelMapPageComponent {
   protected activeLayer: KennelMapLayer = 'default';
   protected searchTerm = '';
   protected highlightedDogId: string | null = null;
+  protected searchNotFound = false;
   protected readonly layers: { value: KennelMapLayer; label: string }[] = [
     { value: 'default', label: 'Default' },
     { value: 'gender', label: 'Gender' },
@@ -95,7 +96,7 @@ export class KennelMapPageComponent {
       this.activeLayer = nextLayer;
       if (this.selectedDate !== nextDate || this.requestedDate.value !== nextDate) {
         this.selectedDate = nextDate;
-        this.highlightedDogId = null;
+        this.invalidateSearch();
         this.requestedDate.next(nextDate);
       }
       if (shouldNormalize) {
@@ -110,6 +111,7 @@ export class KennelMapPageComponent {
 
   protected changeDate(value: string): void {
     this.selectedDate = value;
+    this.invalidateSearch();
     const date = this.validDate(value) ? value : DEFAULT_DATE;
     this.updateUrl(date, this.activeLayer);
   }
@@ -120,7 +122,13 @@ export class KennelMapPageComponent {
   }
 
   protected retry(): void {
+    this.invalidateSearch();
     this.requestedDate.next(this.selectedDate);
+  }
+
+  protected invalidateSearch(): void {
+    this.highlightedDogId = null;
+    this.searchNotFound = false;
   }
 
   protected blocks(snapshot: KennelMapSnapshot): KennelBlockView[] {
@@ -151,7 +159,7 @@ export class KennelMapPageComponent {
   protected findDog(snapshot: KennelMapSnapshot): void {
     const query = this.searchTerm.trim().toLocaleLowerCase();
     if (!query) {
-      this.highlightedDogId = null;
+      this.invalidateSearch();
       return;
     }
     const residents = this.residents(snapshot);
@@ -160,6 +168,7 @@ export class KennelMapPageComponent {
       residents.find((resident) => resident.name.toLocaleLowerCase().startsWith(query)) ??
       residents.find((resident) => resident.name.toLocaleLowerCase().includes(query));
     this.highlightedDogId = dog?.id ?? null;
+    this.searchNotFound = !dog;
     if (dog) {
       this.searchTerm = dog.name;
       window.setTimeout(() => {
@@ -172,7 +181,7 @@ export class KennelMapPageComponent {
 
   protected clearSearch(): void {
     this.searchTerm = '';
-    this.highlightedDogId = null;
+    this.invalidateSearch();
   }
 
   protected highlightedDog(snapshot: KennelMapSnapshot): HighlightedDog | null {

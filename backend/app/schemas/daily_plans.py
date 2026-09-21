@@ -40,6 +40,7 @@ class DailyPlanRead(BaseModel):
     season_start: date
     season_end: date
     reference_date: date
+    minimum_team_size: int
     exists: bool
     id: UUID | None
     revision: int | None

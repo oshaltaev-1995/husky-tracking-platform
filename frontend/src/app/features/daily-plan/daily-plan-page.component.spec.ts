@@ -37,6 +37,7 @@ function plan(activities: PlannedActivity[] = [], revision: number | null = null
     season_start: '2025-12-01',
     season_end: '2026-03-31',
     reference_date: '2026-03-31',
+    minimum_team_size: 4,
     exists: activities.length > 0,
     id: activities.length ? 'plan-id' : null,
     revision,
@@ -158,6 +159,43 @@ describe('DailyPlanPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Atlas');
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
+
+  it('keeps a small Training plan valid without offering an impossible Build teams action', async () => {
+    const small = { ...activity, participants: [atlas, { ...atlas, id: 'daisy-id', name: 'Daisy' }] };
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan([small], 1));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const handoff = fixture.nativeElement.querySelector('.team-handoff') as HTMLElement;
+    expect(handoff.textContent).toContain('at least 4 selected dogs');
+    expect(handoff.querySelector('a')).toBeNull();
+    (handoff.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    http.expectOne('/api/v1/daily-plans/2026-03-31/eligible-dogs?activity_type=training&distance_km=10&exclude_activity_id=activity-id')
+      .flush({ ...eligibility, distance_km: 10 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  for (const size of [4, 16]) {
+    it(`offers Build teams for a ${size}-dog pool`, async () => {
+      const participants = Array.from({ length: size }, (_, index) => ({
+        ...atlas,
+        id: `dog-${index}`,
+        name: `Dog ${index}`,
+      }));
+      const { fixture, http } = await setup();
+      http.expectOne('/api/v1/daily-plans/2026-03-31').flush(
+        plan([{ ...activity, participants }], 1),
+      );
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect((fixture.nativeElement.querySelector('.team-handoff a') as HTMLAnchorElement).textContent)
+        .toContain('Build teams');
+    });
+  }
 
   it('changes date with previous-day navigation and reloads the plan', async () => {
     const { fixture, router, http } = await setup();
@@ -298,5 +336,8 @@ describe('DailyPlanPageComponent', () => {
     );
     expect(cleared.request.body.clear_saved_teams).toBe(true);
     cleared.flush(plan([{ ...activity, team_count: 0, arranged_dog_count: 0 }], 4));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.team-handoff a')).toBeNull();
   });
 });

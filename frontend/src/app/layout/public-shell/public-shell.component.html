@@ -1,4 +1,4 @@
-<a class="public-skip-link" href="#public-content">Skip to content</a>
+<a class="public-skip-link" [href]="skipLinkHref()" (click)="skipToContent($event)">Skip to content</a>
 
 <header class="public-header">
   <div class="public-nav-wrap">
@@ -46,7 +46,7 @@
   </nav>
 }
 
-<main id="public-content" class="public-main">
+<main #mainContent id="public-content" class="public-main" tabindex="-1">
   <router-outlet />
 </main>
 

@@ -8,6 +8,34 @@ import { PublicShellComponent } from './public-shell.component';
 class PublicPageComponent {}
 
 describe('PublicShellComponent', () => {
+  it('keeps skip-link activation on every public route and focuses the current main region', async () => {
+    await TestBed.configureTestingModule({
+      imports: [PublicShellComponent],
+      providers: [provideRouter([{
+        path: '',
+        component: PublicShellComponent,
+        children: ['', 'about', 'features', 'contact', 'privacy'].map((path) => ({
+          path,
+          component: PublicPageComponent,
+        })),
+      }])],
+    }).compileComponents();
+    const router = TestBed.inject(Router);
+    const fixture = TestBed.createComponent(PublicShellComponent);
+    for (const route of ['/', '/about', '/features', '/contact', '/privacy']) {
+      await router.navigateByUrl(route);
+      fixture.detectChanges();
+      const skip = fixture.nativeElement.querySelector('.public-skip-link') as HTMLAnchorElement;
+      const main = fixture.nativeElement.querySelector('#public-content') as HTMLElement;
+      expect(skip.getAttribute('href')).toBe(`${route}#public-content`);
+      skip.focus();
+      expect(document.activeElement).toBe(skip);
+      skip.click();
+      expect(router.url).toBe(route);
+      expect(document.activeElement).toBe(main);
+    }
+  });
+
   it('renders public navigation without the operational sidebar', async () => {
     await TestBed.configureTestingModule({
       imports: [PublicShellComponent],

@@ -7,6 +7,7 @@ from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.demo_clock import DemoClock
+from app.domain.team_builder import SUPPORTED_TEAM_SIZES
 from app.domain.workload import (
     MAX_DAILY_DOG_DISTANCE_KM,
     WorkloadRuleViolation,
@@ -377,6 +378,7 @@ class DailyPlanService:
             season_start=self.clock.season_start,
             season_end=self.clock.season_end,
             reference_date=self.clock.reference_date,
+            minimum_team_size=min(SUPPORTED_TEAM_SIZES),
             exists=plan is not None,
             id=plan.public_id if plan else None,
             revision=plan.revision if plan else None,

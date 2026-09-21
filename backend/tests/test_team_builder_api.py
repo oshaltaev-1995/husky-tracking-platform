@@ -192,6 +192,23 @@ def test_structured_role_and_pool_shortages(client: TestClient) -> None:
     assert pool.json()["detail"]["code"] == "insufficient_pool"
 
 
+def test_small_training_remains_valid_without_a_harness_lineup(
+    client: TestClient,
+) -> None:
+    plan = create_training(client, MULTI_ROLE[:2])
+    assert plan["minimum_team_size"] == 4
+    activity = plan["activities"][0]
+    context = client.get(
+        f"/api/v1/daily-plans/2026-03-31/activities/{activity['id']}/team-builder"
+    )
+    assert context.status_code == 200
+    assert context.json()["supported_team_sizes"][0] == plan["minimum_team_size"]
+    assert context.json()["activity"]["participant_count"] == 2
+    result = generate(client, plan, team_count=1, team_size=4)
+    assert result.status_code == 422
+    assert result.json()["detail"]["code"] == "insufficient_pool"
+
+
 def test_save_round_trip_revision_summary_and_replace_protection(
     client: TestClient,
 ) -> None:
@@ -348,7 +365,7 @@ def test_activity_change_requires_explicit_transactional_lineup_clear(
         "title": "Short Loop",
         "distance_km": 5,
         "notes": None,
-        "participant_ids": dog_ids(*POOL_16[:7]),
+        "participant_ids": dog_ids(*POOL_16[:2]),
         "expected_revision": saved["activity"]["plan_revision"],
     }
     blocked = client.patch(url, json=update)
@@ -358,6 +375,7 @@ def test_activity_change_requires_explicit_transactional_lineup_clear(
     cleared = client.patch(url, json=update)
     assert cleared.status_code == 200
     assert cleared.json()["activities"][0]["team_count"] == 0
+    assert len(cleared.json()["activities"][0]["participants"]) == 2
     with SessionLocal() as session:
         assert session.scalar(select(func.count()).select_from(PlannedTeam)) == 0
 

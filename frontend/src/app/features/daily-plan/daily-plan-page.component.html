@@ -70,13 +70,16 @@
             @if (activity.notes) { <p class="activity-note">{{ activity.notes }}</p> }
             @if (activity.activity_type === 'training') {
               <div class="team-handoff">
-                <span>
-                  @if (activity.team_count) { {{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} dogs arranged }
-                  @else { Selected dog pool · Teams not arranged }
-                </span>
-                <a class="button secondary" [routerLink]="['/demo/daily', selectedDate, 'activities', activity.id, 'teams']">
-                  {{ activity.team_count ? 'View teams' : 'Build teams' }}
-                </a>
+                @if (activity.team_count) {
+                  <span>{{ activity.team_count }} {{ activity.team_count === 1 ? 'team' : 'teams' }} · {{ activity.arranged_dog_count }} dogs arranged</span>
+                  <a class="button secondary" [routerLink]="['/demo/daily', selectedDate, 'activities', activity.id, 'teams']">View teams</a>
+                } @else if (activity.participants.length >= currentPlan.minimum_team_size) {
+                  <span>Selected dog pool · Teams not arranged</span>
+                  <a class="button secondary" [routerLink]="['/demo/daily', selectedDate, 'activities', activity.id, 'teams']">Build teams</a>
+                } @else {
+                  <span>Smaller Training sessions can be recorded without teams. A harness lineup needs at least {{ currentPlan.minimum_team_size }} selected dogs.</span>
+                  <button class="button secondary" type="button" (click)="openEdit(activity)">Edit dog pool</button>
+                }
               </div>
             }
           </div>

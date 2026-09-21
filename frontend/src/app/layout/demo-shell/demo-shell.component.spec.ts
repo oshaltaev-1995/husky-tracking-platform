@@ -20,7 +20,10 @@ describe('DemoShellComponent', () => {
           {
             path: 'demo',
             component: DemoShellComponent,
-            children: [{ path: 'archive', component: EmptyRouteComponent }],
+            children: [
+              { path: 'dashboard', component: EmptyRouteComponent },
+              { path: 'archive', component: EmptyRouteComponent },
+            ],
           },
           { path: 'about', component: EmptyRouteComponent },
           { path: '', component: EmptyRouteComponent },
@@ -68,6 +71,22 @@ describe('DemoShellComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.desktop-sidebar .nav-mark svg').length).toBe(7);
     expect(fixture.nativeElement.querySelectorAll('.desktop-sidebar .nav-mark').item(0).textContent.trim()).toBe('');
     expect(fixture.nativeElement.querySelector('.desktop-sidebar .exit-link')?.getAttribute('aria-label')).toBe('Exit demo and return to Husky Tracking website');
+  });
+
+  it('keeps skip-link activation on dashboard and a deeper demo route', async () => {
+    const { fixture, router } = await setup();
+    for (const route of ['/demo/dashboard', '/demo/archive']) {
+      await router.navigateByUrl(route);
+      fixture.detectChanges();
+      const skip = fixture.nativeElement.querySelector('.skip-link') as HTMLAnchorElement;
+      const main = fixture.nativeElement.querySelector('#main-content') as HTMLElement;
+      expect(skip.getAttribute('href')).toBe(`${route}#main-content`);
+      skip.focus();
+      expect(document.activeElement).toBe(skip);
+      skip.click();
+      expect(router.url).toBe(route);
+      expect(document.activeElement).toBe(main);
+    }
   });
 
   it('opens, closes, and navigates from the mobile drawer', async () => {

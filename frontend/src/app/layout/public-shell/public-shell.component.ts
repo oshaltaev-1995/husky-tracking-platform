@@ -27,9 +27,19 @@ export class PublicShellComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
   private readonly mobileMenu = viewChild<ElementRef<HTMLElement>>('mobileMenu');
+  private readonly mainContent = viewChild<ElementRef<HTMLElement>>('mainContent');
 
   protected readonly menuOpen = signal(false);
   protected readonly year = new Date().getUTCFullYear();
+
+  protected skipLinkHref(): string {
+    return `${this.router.url.split('#')[0]}#public-content`;
+  }
+
+  protected skipToContent(event: MouseEvent): void {
+    event.preventDefault();
+    this.mainContent()?.nativeElement.focus();
+  }
 
   constructor() {
     this.router.events

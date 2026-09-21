@@ -106,6 +106,47 @@ async function setup() {
 describe('TeamBuilderPageComponent', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
+  it('explains a two-dog deep link without offering generation', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id/team-builder')
+      .flush({
+        ...context(),
+        activity: { ...context().activity, participant_count: 2 },
+        candidates: candidates.slice(0, 2),
+      });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('needs at least 4 eligible dogs');
+    expect(fixture.nativeElement.textContent).toContain('recorded without teams');
+    expect(fixture.nativeElement.querySelector('.configuration')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.empty-builder a').getAttribute('href'))
+      .toContain('/demo/daily');
+  });
+
+  it('explains a four-dog pool with only two currently eligible dogs', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id/team-builder')
+      .flush({
+        ...context(),
+        activity: { ...context().activity, participant_count: 4 },
+        candidates: [
+          ...candidates.slice(0, 2),
+          ...candidates.slice(2, 4).map((dog) => ({
+            ...dog,
+            eligible: false,
+            reasons: ['Injured'],
+          })),
+        ],
+      });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('2 of 4 selected dogs are eligible');
+    expect(fixture.nativeElement.textContent).toContain('Injured');
+    expect(fixture.nativeElement.querySelector('.configuration')).toBeNull();
+  });
+
   it('generates, renders, manually swaps, and saves an explainable harness', async () => {
     const { fixture, http } = await setup();
     http
