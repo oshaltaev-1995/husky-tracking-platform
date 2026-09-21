@@ -223,4 +223,32 @@ def test_inner_nginx_limits_only_targeted_api_operations() -> None:
     assert "client_max_body_size 256k;" in config
     assert "set_real_ip_from 0.0.0.0/0" not in config
     assert "location /api/ {" in config
-    assert "location / {\n        try_files" in config
+
+
+def test_nginx_distinguishes_known_spa_routes_from_unknown_paths() -> None:
+    config = (REPOSITORY / "frontend/nginx.conf").read_text()
+    assert "location = / {" in config
+    assert "^/(features|about|contact|privacy)/?$" in config
+    assert "^/demo(?:/dashboard|/dogs(?:/[^/]+)?" in config
+    assert "daily(?:/[^/]+/activities/[^/]+/teams)?" in config
+    assert "error_page 404 =404 /index.html;" in config
+    assert "try_files $uri $uri/ =404;" in config
+
+
+def test_development_proxy_preserves_the_browser_host_for_backend_validation() -> None:
+    proxy = json.loads((REPOSITORY / "frontend/proxy.conf.json").read_text())
+    assert proxy["/api"] == {
+        "target": "http://backend:8000",
+        "secure": False,
+        "changeOrigin": False,
+    }
+
+
+def test_caddy_hsts_contract_is_single_origin_only_and_not_duplicated() -> None:
+    caddy = (REPOSITORY / "ops/production/caddy-huskytracking.conf.example").read_text()
+    nginx = (REPOSITORY / "frontend/nginx.conf").read_text()
+    assert caddy.count("Strict-Transport-Security") == 1
+    assert 'Strict-Transport-Security "max-age=31536000"' in caddy
+    assert "includeSubDomains" not in caddy
+    assert "preload" not in caddy
+    assert "Strict-Transport-Security" not in nginx

@@ -186,8 +186,12 @@ either. Public routes are `/`, `/features`, `/about`, `/contact`, and `/privacy`
 is canonical under `/demo/...`, with `/demo` redirecting to `/demo/dashboard`.
 Pre-P11 paths remain redirect-only aliases and preserve parameters and query state.
 Unknown routes render the Public Shell's explicit 404 page rather than entering the
-demo. Nginx keeps a single SPA fallback, so public and demo deep-link refreshes resolve
-through the same production bundle.
+demo. Production Nginx recognizes the finite public, canonical demo, and legacy-alias
+route shapes. Known deep-link refreshes receive `index.html` with `200`; an unknown
+non-file path receives the same bundle with `404`, allowing Angular to retain the
+branded, noindex Not Found view without a soft-404 response. This route contract must
+stay aligned with `app.routes.ts`; record existence within parameterized routes remains
+an API/application concern.
 
 Public route data supplies distinct titles and descriptions. `SeoService` updates
 canonical, robots, Open Graph, and Twitter metadata on navigation using

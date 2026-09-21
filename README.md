@@ -127,12 +127,19 @@ Then open:
 Stop the stack with `docker compose down`. The PostgreSQL volume persists until it is
 explicitly removed.
 
+The bundled Angular development proxy connects to the backend through Docker DNS at
+`backend:8000` while preserving the browser's `Host` header. This keeps FastAPI's
+trusted-host validation active: requests made through `http://localhost:4300/api/...`
+work without admitting arbitrary hosts or requiring a separate local proxy.
+
 ## Public site and contact delivery
 
 The public route shell is distinct from the operational demo shell. Old links such as
 `/dogs/...` and `/kennel?...` redirect to the canonical `/demo/...` routes while
 preserving identity and query state. Both shells use the same Angular bundle and Nginx
-SPA fallback, so direct refreshes remain valid.
+route contract, so direct refreshes on known routes remain valid. In the production
+image, an unknown route still receives the branded Angular Not Found view, but the
+initial HTTP response is correctly `404` rather than a soft `200`.
 
 The public production origin is `https://huskytracking.com`. Runtime SEO configuration,
 `robots.txt`, and `sitemap.xml` use this identity; local development uses its own origin.

@@ -551,6 +551,22 @@ schedulers and restore rehearsal were already exercised in staging.
 **Exclusions:** no unsupported scale infrastructure and no claim of a live public
 deployment until every go-live gate passes.
 
+### Post-launch Package C — routing and deployment hardening
+
+**Status:** repository changes completed; live deployment intentionally separate.
+
+The production frontend now keeps direct refreshes for the finite Angular public/demo
+route contract at `200`, while unknown non-file paths serve the branded, noindex Angular
+Not Found view with an HTTP `404`. The Docker development proxy retains Docker DNS for
+its upstream connection but preserves the browser `Host`, so FastAPI trusted-host
+validation no longer rejects normal `localhost:4300` API requests and is not weakened.
+
+The intended Caddy HSTS policy advances from the completed one-day observation value to
+`max-age=31536000`, apex-only and without preload. Caddy remains the only HSTS owner;
+the checked-in example and operations runbook do not themselves modify the shared live
+proxy. No product workflow, domain data, migration, image, or live infrastructure is
+changed by this package.
+
 ## Completion discipline
 
 Each package updates this roadmap only when evidence changes scope. It must include a

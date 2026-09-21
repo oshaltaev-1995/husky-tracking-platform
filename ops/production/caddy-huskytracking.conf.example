@@ -1,0 +1,8 @@
+# Reconcile this site block into the host-owned Caddyfile after validating the
+# complete shared configuration. It is not a standalone Caddyfile and must not
+# replace the existing Kennel Operations site.
+huskytracking.com {
+	header Strict-Transport-Security "max-age=31536000"
+	encode zstd gzip
+	reverse_proxy huskytracking-frontend:80
+}

@@ -211,7 +211,9 @@ gzip, cache policy, and Husky-specific source-IP rate limits. Hashed build files
 versioned dog portraits are immutable; HTML/runtime config and API responses are not
 shared-cacheable. Existing Caddy 2.8.4 has no rate-limit module; do not install a plugin
 or a second public listener. Caddy owns TLS, HTTP→HTTPS, optional `www` redirect, and
-eventual HSTS. During private pre-launch, protect the **entire** site including `/api`
+HSTS. Production Nginx returns the Angular bundle with `200` only for known route
+shapes; unknown paths keep the branded client-side Not Found view while returning
+`404`. During private pre-launch, protect the **entire** site including `/api`
 with Caddy `basic_auth` and temporary global
 `X-Robots-Tag: noindex, nofollow, noarchive`. Do not add a second application auth
 layer or commit preview credentials. Do not alter the app's long-term SEO metadata for
@@ -275,11 +277,16 @@ settings periodically; changing a global journal cap also affects Kennel
 Operations. The Husky backup script retains timestamp-named local backup
 directories for about 14 days under `/var/backups/huskytracking` only.
 
-Husky's public Caddy site uses an initial one-day HSTS header
-(`max-age=86400`), with neither `includeSubDomains` nor preload. Validate the
-entire Caddyfile before an in-place reload; verify the Kennel Operations site and
-Caddy container identity immediately afterward. Do not lengthen the policy
-without a separate acceptance decision.
+The shared host Caddyfile is the sole authoritative HSTS layer. After the successful
+one-day observation period, the accepted repository policy is one year
+(`max-age=31536000`), as shown in
+`ops/production/caddy-huskytracking.conf.example`. `includeSubDomains` remains omitted
+because HTTPS-only coverage has not been established for every present or future
+subdomain; preload remains omitted because it is a separate external operational
+commitment. The inner Husky Nginx must not add a second HSTS header. Applying this
+repository policy requires a separately authorized shared-Caddy change: validate the
+entire Caddyfile before an in-place reload, then verify both public applications and
+confirm that exactly one HSTS header is present.
 
 The repository-owned maintenance entrypoints are
 `ops/production/cleanup.sh` and `ops/production/backup.sh`, with dedicated systemd
