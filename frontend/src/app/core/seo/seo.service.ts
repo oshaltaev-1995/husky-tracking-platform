@@ -6,9 +6,11 @@ import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 const DEFAULT_DESCRIPTION =
-  'Explore Husky Tracking, an independent demonstration of modern sled-dog kennel operations software.';
+  'A full-stack web application for planning kennel operations, managing dog teams, tracking workload and analysing operational data.';
 const DEFAULT_SOCIAL_IMAGE =
-  '/media/dogs/9422673b-331b-5e72-a700-5fff0574a209.webp?v=dog-media-v1';
+  '/assets/husky-tracking-social-preview-v1.jpg';
+const SOCIAL_IMAGE_ALT =
+  'Husky Tracking interface showing a fictional sled dog and operational kennel snapshot';
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
@@ -50,12 +52,19 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:title', content: title });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:type', content: 'website' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'Husky Tracking' });
     this.meta.updateTag({ property: 'og:url', content: canonicalUrl });
     this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:image:secure_url', content: imageUrl });
+    this.meta.updateTag({ property: 'og:image:type', content: 'image/jpeg' });
+    this.meta.updateTag({ property: 'og:image:width', content: '1200' });
+    this.meta.updateTag({ property: 'og:image:height', content: '630' });
+    this.meta.updateTag({ property: 'og:image:alt', content: SOCIAL_IMAGE_ALT });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: title });
     this.meta.updateTag({ name: 'twitter:description', content: description });
     this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
+    this.meta.updateTag({ name: 'twitter:image:alt', content: SOCIAL_IMAGE_ALT });
     this.updateCanonical(canonicalUrl);
     this.updateStructuredData(publicSiteUrl);
   }

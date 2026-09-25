@@ -127,7 +127,7 @@ export const routes: Routes = [
         title: 'Husky Tracking — Sled-dog kennel operations demo',
         data: {
           description:
-            'Explore a modern sled-dog kennel operations platform through a safe, fictional interactive demo.',
+            'A full-stack web application for planning kennel operations, managing dog teams, tracking workload and analysing operational data.',
         },
       },
       {
