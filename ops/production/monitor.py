@@ -147,8 +147,51 @@ def oom_kills() -> int:
     raise ValueError("OOM counter unavailable")
 
 
-def collect_failures(state: dict, now: datetime) -> dict[str, str]:
+def assess_memory(
+    state: dict,
+    *,
+    available_mib: float,
+    used_swap_mib: float,
+    ram_warn_mib: int,
+    swap_warn_mib: int,
+    swap_growth_mib: int,
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Classify host memory without treating cold resident swap as pressure."""
     failures: dict[str, str] = {}
+    warnings: dict[str, str] = {}
+
+    low_ram = available_mib < ram_warn_mib
+    state["low_ram_streak"] = state.get("low_ram_streak", 0) + 1 if low_ram else 0
+    if state["low_ram_streak"] >= 2:
+        failures["ram_low"] = "Available host RAM has remained low"
+
+    previous_swap = state.get("swap_used_mib", used_swap_mib)
+    state["swap_used_mib"] = used_swap_mib
+    if used_swap_mib >= swap_warn_mib:
+        warnings["swap_resident_high"] = (
+            f"Host resident swap is {used_swap_mib:.0f} MiB"
+        )
+    if used_swap_mib - previous_swap >= swap_growth_mib:
+        failures["swap_growth"] = "Host swap use grew rapidly since the previous check"
+
+    return failures, warnings
+
+
+def assess_oom(state: dict, current_oom: int) -> dict[str, str]:
+    failures: dict[str, str] = {}
+    previous_oom = state.get("oom_kills")
+    if previous_oom is not None and current_oom > previous_oom:
+        failures["host_oom"] = "Host OOM-kill counter increased"
+    state["oom_kills"] = current_oom
+    return failures
+
+
+def collect_failures(
+    state: dict, now: datetime, warnings: dict[str, str] | None = None
+) -> dict[str, str]:
+    failures: dict[str, str] = {}
+    if warnings is None:
+        warnings = {}
     safe_check(
         failures, "public_https", "Public HTTPS homepage is unavailable", require_https
     )
@@ -201,32 +244,22 @@ def collect_failures(state: dict, now: datetime) -> dict[str, str]:
     try:
         memory = meminfo()
         available_mib = memory["MemAvailable"] / (1024**2)
-        low_ram = available_mib < setting_int("HT_MONITOR_RAM_WARN_MIB", 400)
-        state["low_ram_streak"] = state.get("low_ram_streak", 0) + 1 if low_ram else 0
-        if state["low_ram_streak"] >= 2:
-            failures["ram_low"] = "Available host RAM has remained low"
-
         used_swap_mib = (memory["SwapTotal"] - memory["SwapFree"]) / (1024**2)
-        previous_swap = state.get("swap_used_mib", used_swap_mib)
-        state["swap_used_mib"] = used_swap_mib
-        heavy_swap = used_swap_mib >= setting_int("HT_MONITOR_SWAP_WARN_MIB", 512)
-        growing_swap = used_swap_mib - previous_swap >= setting_int(
-            "HT_MONITOR_SWAP_GROWTH_MIB", 256
+        memory_failures, memory_warnings = assess_memory(
+            state,
+            available_mib=available_mib,
+            used_swap_mib=used_swap_mib,
+            ram_warn_mib=setting_int("HT_MONITOR_RAM_WARN_MIB", 400),
+            swap_warn_mib=setting_int("HT_MONITOR_SWAP_WARN_MIB", 768),
+            swap_growth_mib=setting_int("HT_MONITOR_SWAP_GROWTH_MIB", 256),
         )
-        state["swap_streak"] = (
-            state.get("swap_streak", 0) + 1 if heavy_swap or growing_swap else 0
-        )
-        if state["swap_streak"] >= 2:
-            failures["swap_high"] = "Host swap use is high or growing rapidly"
+        failures.update(memory_failures)
+        warnings.update(memory_warnings)
     except (OSError, ValueError):
         failures["memory_unknown"] = "Host memory information is unavailable"
 
     try:
-        current_oom = oom_kills()
-        previous_oom = state.get("oom_kills")
-        if previous_oom is not None and current_oom > previous_oom:
-            failures["host_oom"] = "Host OOM-kill counter increased"
-        state["oom_kills"] = current_oom
+        failures.update(assess_oom(state, oom_kills()))
     except (OSError, ValueError):
         failures["oom_unknown"] = "Host OOM counter is unavailable"
 
@@ -382,7 +415,8 @@ def main() -> int:
         fcntl.flock(lock, fcntl.LOCK_EX)
         state = load_state()
         now = datetime.now(UTC)
-        failures = collect_failures(state, now)
+        warnings: dict[str, str] = {}
+        failures = collect_failures(state, now, warnings)
         events = plan_alert_events(
             state, failures, now, setting_int("HT_MONITOR_REMINDER_HOURS", 6)
         )
@@ -405,8 +439,11 @@ def main() -> int:
                     file=sys.stderr,
                 )
         save_state(state)
+        warning_codes = ",".join(sorted(warnings)) or "none"
         print(
-            f"Husky monitor: {len(failures)} failing checks; {len(events)} alert events considered."
+            f"Husky monitor: {len(failures)} failing checks; "
+            f"{len(warnings)} non-fatal warnings ({warning_codes}); "
+            f"{len(events)} alert events considered."
         )
         return 2 if delivery_failed else 1 if failures else 0
 

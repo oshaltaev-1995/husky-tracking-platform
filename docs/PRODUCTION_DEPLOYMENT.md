@@ -251,11 +251,15 @@ reapplies the named chains after Docker on reboot. It never flushes unrelated ru
 `ops/production/monitor.py` is the Husky-only five-minute host monitor, installed
 as `huskytracking-monitor.service/.timer`. It checks public HTTPS, private backend
 readiness, three Husky container health/restarts, backup/cleanup/ingress timers and
-results, backup artifacts/age, disk, persistent low available RAM/swap, and host
+results, backup artifacts/age, disk, persistent low available RAM, swap, and host
 OOM counter. Thresholds are in root-only `/etc/huskytracking/monitor-alert.conf`
 (example in `ops/production/monitor-alert.conf.example`): disk <15 GiB warning or
-<8 GiB critical, RAM <400 MiB twice, swap >=512 MiB or growth >=256 MiB twice,
-backup age >30 hours. Incidents live only in
+<8 GiB critical, RAM <400 MiB twice, non-fatal resident-swap telemetry at >=768 MiB,
+actionable swap growth >=256 MiB between checks, and backup age >30 hours. Static
+swap occupancy is not current memory pressure: it is logged as degraded telemetry,
+does not create an incident or reminder, and leaves the oneshot successful. Rapid
+growth, persistent low available RAM, or an increased OOM counter remains a failing
+incident with a non-zero exit. Incidents live only in
 `/var/lib/huskytracking-monitor/alert-state.json`. One alert is sent on failure,
 duplicates are suppressed, reminders are at least six hours apart, and one
 recovery is sent on resolution; failed sends retry. Delivery uses the existing

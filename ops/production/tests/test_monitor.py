@@ -72,3 +72,78 @@ def test_recovery_retries_after_mail_failure() -> None:
     assert (
         monitor.plan_alert_events(state, {}, NOW + timedelta(minutes=10), 6) == recovery
     )
+
+
+def test_safe_residual_swap_is_healthy() -> None:
+    state = {"swap_used_mib": 700.0}
+    failures, warnings = monitor.assess_memory(
+        state,
+        available_mib=1900,
+        used_swap_mib=700,
+        ram_warn_mib=400,
+        swap_warn_mib=768,
+        swap_growth_mib=256,
+    )
+    assert failures == {}
+    assert warnings == {}
+
+
+def test_high_stable_swap_is_non_fatal_telemetry() -> None:
+    state = {"swap_used_mib": 850.0}
+    failures, warnings = monitor.assess_memory(
+        state,
+        available_mib=1900,
+        used_swap_mib=850,
+        ram_warn_mib=400,
+        swap_warn_mib=768,
+        swap_growth_mib=256,
+    )
+    assert failures == {}
+    assert set(warnings) == {"swap_resident_high"}
+
+
+def test_rapid_swap_growth_is_actionable() -> None:
+    state = {"swap_used_mib": 700.0}
+    failures, _ = monitor.assess_memory(
+        state,
+        available_mib=1900,
+        used_swap_mib=1000,
+        ram_warn_mib=400,
+        swap_warn_mib=768,
+        swap_growth_mib=256,
+    )
+    assert set(failures) == {"swap_growth"}
+
+
+def test_persistent_low_ram_is_actionable_even_with_stable_swap() -> None:
+    state = {"swap_used_mib": 850.0, "low_ram_streak": 1}
+    failures, _ = monitor.assess_memory(
+        state,
+        available_mib=300,
+        used_swap_mib=850,
+        ram_warn_mib=400,
+        swap_warn_mib=768,
+        swap_growth_mib=256,
+    )
+    assert set(failures) == {"ram_low"}
+
+
+def test_oom_increment_is_actionable() -> None:
+    state = {"oom_kills": 0}
+    assert set(monitor.assess_oom(state, 1)) == {"host_oom"}
+
+
+def test_non_memory_failures_still_alert_and_recover() -> None:
+    state: dict = {}
+    failures = {
+        "service_backup": "Backup timer or last service run failed",
+        "disk_critical": "Host disk space is critically low",
+        "public_https": "Public HTTPS homepage is unavailable",
+    }
+    alerts = monitor.plan_alert_events(state, failures, NOW, 6)
+    assert len(alerts) == 3
+    assert {event[0] for event in alerts} == {"ALERT"}
+    monitor.mark_alerts_sent(state, alerts, NOW)
+    recovery = monitor.plan_alert_events(state, {}, NOW + timedelta(minutes=5), 6)
+    assert len(recovery) == 3
+    assert {event[0] for event in recovery} == {"RECOVERY"}
