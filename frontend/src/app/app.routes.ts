@@ -124,10 +124,10 @@ export const routes: Routes = [
           import('./features/public/home/home-page.component').then(
             (component) => component.HomePageComponent,
           ),
-        title: 'Husky Tracking — Sled-dog kennel operations demo',
+        title: 'Husky Tracking — Sled-dog kennel operations platform',
         data: {
           description:
-            'A full-stack web application for planning kennel operations, managing dog teams, tracking workload and analysing operational data.',
+            'Explore Husky Tracking, an operations platform preview for professional sled-dog kennels and safari teams, covering planning, teams, actual work and workload.',
         },
       },
       {
@@ -136,10 +136,10 @@ export const routes: Routes = [
           import('./features/public/features/features-page.component').then(
             (component) => component.FeaturesPageComponent,
           ),
-        title: 'Features — Husky Tracking',
+        title: 'Sled-dog kennel operations features — Husky Tracking',
         data: {
           description:
-            'Explore dog profiles, historical housing, daily planning, team building, actual work and workload analytics.',
+            'Explore daily planning, deterministic Team Builder, actual work, workload analytics, housing and dog records for professional sled-dog operations.',
         },
       },
       {
@@ -148,10 +148,10 @@ export const routes: Routes = [
           import('./features/public/about/about-page.component').then(
             (component) => component.AboutPageComponent,
           ),
-        title: 'About — Husky Tracking',
+        title: 'About Husky Tracking — Domain experience and engineering',
         data: {
           description:
-            'Learn how Husky Tracking became an independent full-stack product demonstration built with deterministic synthetic data.',
+            'Learn how hands-on sled-dog operations experience and full-stack engineering shaped the focused Husky Tracking platform preview.',
         },
       },
       {
@@ -160,10 +160,10 @@ export const routes: Routes = [
           import('./features/public/contact/contact-page.component').then(
             (component) => component.ContactPageComponent,
           ),
-        title: 'Contact — Husky Tracking',
+        title: 'Contact Husky Tracking — Kennel and product conversations',
         data: {
           description:
-            'Contact the Husky Tracking project about its product design and software implementation.',
+            'Discuss sled-dog kennel or safari workflows, product feedback, a possible future pilot, or software development with Husky Tracking.',
         },
       },
       {

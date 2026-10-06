@@ -24,8 +24,13 @@ describe('Public pages', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
-      'Sled-dog operations',
+      'Plan teams. Record actual work. Understand workload.',
     );
+    expect(fixture.nativeElement.textContent).toContain(
+      'Operations software for professional sled-dog kennels',
+    );
+    expect(fixture.nativeElement.querySelectorAll('.operations-contexts article').length).toBe(3);
+    expect(fixture.nativeElement.textContent).toContain('Focused on kennel operations');
     expect(fixture.nativeElement.textContent).toContain('entirely fictional kennel data');
     expect(fixture.nativeElement.querySelector('a[href="/demo/dashboard"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('a[href="/features"]')).not.toBeNull();
@@ -48,11 +53,39 @@ describe('Public pages', () => {
     notFound.detectChanges();
 
     expect(features.nativeElement.textContent).toContain('Team Builder');
+    const featureKickers = Array.from(
+      features.nativeElement.querySelectorAll('.feature-copy .public-kicker'),
+    ).map((element) => (element as HTMLElement).textContent?.trim());
+    expect(featureKickers).toEqual([
+      'Daily operations',
+      'Team Builder',
+      'Actual Work · Daily Entry',
+      'Workload Analytics',
+      'Kennel Map · housing context',
+      'Dog records, pedigree and history',
+    ]);
     expect(features.nativeElement.querySelector('a[href="/demo/analytics"]')).not.toBeNull();
-    expect(about.nativeElement.textContent).toContain('independently developed demonstration');
+    expect(about.nativeElement.textContent).toContain('worked with sled dogs since 2019');
+    expect(about.nativeElement.textContent).toContain('around 250 dogs');
     expect(about.nativeElement.textContent).toContain('Synthetic by design');
     expect(notFound.nativeElement.textContent).toContain('Page not found');
     expect(notFound.nativeElement.querySelector('a[href="/"]')).not.toBeNull();
+  });
+
+  it('invites operational enquiries without commercial sales claims', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ContactPageComponent],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ContactPageComponent);
+    fixture.detectChanges();
+
+    const copy = fixture.nativeElement.textContent as string;
+    expect(copy).toContain('sled-dog kennel or safari business');
+    expect(copy).toContain('possible future pilot');
+    expect(copy).toContain('rather than a commercial service');
+    expect(copy).not.toContain('Pricing');
+    expect(copy).not.toContain('Start trial');
   });
 
   it('validates Contact and keeps text on delivery failure', async () => {

@@ -1,39 +1,18 @@
 <article class="public-page features-page">
   <header class="public-page-hero">
-    <div class="public-container"><p class="public-kicker">Product features</p><h1 class="public-page-title">A connected view of kennel operations.</h1><p class="public-lead">Husky Tracking combines a date-aware domain model with focused operational workflows. Every feature below is available in the interactive fictional demo.</p><div class="public-actions"><a class="button primary" routerLink="/demo/dashboard">Try the demo</a></div></div>
+    <div class="public-container"><p class="public-kicker">Operational platform features</p><h1 class="public-page-title">A connected workflow for professional kennel operations.</h1><p class="public-lead">Husky Tracking connects planning, team composition, actual work, workload and kennel context. Every workflow below is available in the interactive fictional demo.</p><div class="public-actions"><a class="button primary" routerLink="/demo/dashboard">Try interactive demo</a></div></div>
   </header>
 
   <section class="public-section soft">
     <div class="public-container feature-story">
-      <div class="feature-copy"><p class="public-kicker">Dogs and pedigree</p><h2>One record, connected across generations.</h2><p>Profiles combine identity, synthetic portrait, litter, parents, grandparents, siblings and offspring with work and effective-dated history. Archived relatives remain part of the family network.</p><a routerLink="/demo/dogs">Browse fictional dogs <span aria-hidden="true">→</span></a></div>
-      <div class="feature-preview profile-preview">
-        <img src="/media/dogs/6415eb4a-17f2-5878-b2cc-d04803f30245.webp?v=dog-media-v1" width="1086" height="1448" alt="Portrait of Nova, a fictional sled dog" />
-        <div><small>Dog profile</small><h3>Nova</h3><p>Training · Available</p><ul><li>Overview</li><li>Pedigree</li><li>Work</li><li>History</li></ul></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="public-section">
-    <div class="public-container feature-story reverse">
-      <div class="feature-copy"><p class="public-kicker">Ground-based Kennel Map</p><h2>Housing that reads like a physical place.</h2><p>Continuous enclosure rows show every resident on a selected date. Gender, neutered, class and unavailable layers change meaning without moving the kennel geometry.</p><a routerLink="/demo/kennel">Open Kennel Map <span aria-hidden="true">→</span></a></div>
-      <div class="feature-preview map-preview" aria-label="Kennel Map interface preview">
-        <header><strong>Zone A</strong><span>20 residents</span></header>
-        @for (row of ['A1', 'A2']; track row) { <div class="map-row"><b>{{ row }}</b>@for (cell of [1, 2, 3, 4, 5]; track cell) { <span><small>{{ row }}-0{{ cell }}</small><i></i><i></i></span> }</div> }
-        <div class="map-aisle">Central aisle</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="public-section soft">
-    <div class="public-container feature-story">
-      <div class="feature-copy"><p class="public-kicker">Daily operations</p><h2>Plan clearly, then record what happened.</h2><p>Daily Plan keeps training, walks, exercise and rest separate from actual work. Daily Entry confirms, adjusts or records sessions against the canonical work ledger.</p><div class="feature-links"><a routerLink="/demo/daily">Open Daily Plan</a><a routerLink="/demo/daily-entry">Open Daily Entry</a></div></div>
+      <div class="feature-copy"><p class="public-kicker">Daily operations</p><h2>Plan the working day with current kennel context.</h2><p>Daily Plan keeps training, walks, exercise and rest separate from actual work. Selected dogs are checked against date-effective availability, class, housing and workload rules.</p><a routerLink="/demo/daily">Open Daily Plan <span aria-hidden="true">→</span></a></div>
       <div class="feature-preview plan-preview"><div class="preview-date"><span>31</span><small>MAR<br />2026</small></div><div class="activity-preview"><small>08:30 · TRAINING</small><strong>Forest Loop</strong><p>10 km · 16 selected dogs</p><span>2 teams arranged</span></div><div class="activity-preview muted"><small>13:00 · OPEN-SPACE WALK</small><strong>Puppy social walk</strong><p>5 selected dogs</p></div></div>
     </div>
   </section>
 
   <section class="public-section dark">
     <div class="public-container feature-story reverse">
-      <div class="feature-copy"><p class="public-kicker">Team Builder</p><h2>Deterministic, role-aware and explainable.</h2><p>Lead, Team and Wheel capabilities are hard constraints. Workload, preferred partners and co-residence guide a repeatable suggestion while the user retains manual control.</p><a routerLink="/demo/daily">Start from a Training activity <span aria-hidden="true">→</span></a></div>
+      <div class="feature-copy"><p class="public-kicker">Team Builder</p><h2>Deterministic, role-aware, workload-aware and explainable.</h2><p>Lead, Team and Wheel capabilities are hard constraints. Workload, preferred partners and co-residence guide a repeatable rules-based suggestion while the user retains manual control.</p><a routerLink="/demo/daily">Start from a Training activity <span aria-hidden="true">→</span></a></div>
       <div class="feature-preview team-preview" aria-label="Sled team lineup preview">
         <p>Direction of travel <span aria-hidden="true">↑</span></p>
         @for (pair of [['LEAD', 'Aurora', 'Atlas'], ['TEAM 1', 'Cedar', 'Clover'], ['TEAM 2', 'Dune', 'Delta'], ['WHEEL', 'Harbor', 'Hazel']]; track pair[0]) { <div><small>{{ pair[0] }}</small><span>{{ pair[1] }}</span><span>{{ pair[2] }}</span></div> }
@@ -44,17 +23,38 @@
 
   <section class="public-section">
     <div class="public-container feature-story">
-      <div class="feature-copy"><p class="public-kicker">Analytics</p><h2>Population and workload, using precise language.</h2><p>Population snapshots resolve state on a selected date. Workload analytics derive sessions, dog starts, dog-km, weekly trends and class-aware attention signals from actual work only.</p><a routerLink="/demo/analytics">Explore Analytics <span aria-hidden="true">→</span></a></div>
-      <div class="feature-preview analytics-preview"><div class="analytics-kpis"><span><small>Sessions</small><strong>140</strong></span><span><small>Dog starts</small><strong>1,120</strong></span><span><small>Dogs worked</small><strong>36</strong></span></div><div class="analytics-bars" aria-label="Weekly workload trend preview">@for (height of [35, 56, 48, 72, 64, 88, 70, 93]; track $index) { <i [style.height.%]="height"></i> }</div></div>
+      <div class="feature-copy"><p class="public-kicker">Actual Work · Daily Entry</p><h2>Record what happened without rewriting the plan.</h2><p>Daily Entry confirms, adjusts or records completed sessions against the canonical actual-work ledger. Plans remain distinct, and a deliberate review and correction path protects workload truth.</p><a routerLink="/demo/daily-entry">Open Daily Entry <span aria-hidden="true">→</span></a></div>
+      <div class="feature-preview history-preview actual-preview"><span><small>31 MAR · 08:42</small><strong>Forest Loop · 10 km · 16 dog starts</strong></span><span><small>28 MAR · 09:05</small><strong>River Trail · 5 km · 8 dog starts</strong></span><span><small>26 MAR · 08:30</small><strong>Forest Loop · 10 km · 12 dog starts</strong></span></div>
     </div>
   </section>
 
   <section class="public-section soft">
     <div class="public-container feature-story reverse">
-      <div class="feature-copy"><p class="public-kicker">Historical integrity</p><h2>Past state remains understandable.</h2><p>Housing, class, availability and lifecycle are effective-dated. An archived dog is preserved—not deleted—so pedigree, housing and work history remain navigable.</p><a routerLink="/demo/archive">Review Archive <span aria-hidden="true">→</span></a></div>
-      <div class="feature-preview history-preview"><span><small>2025-12-01</small><strong>Available</strong></span><span><small>2025-12-20</small><strong>Injured</strong></span><span><small>2026-01-10</small><strong>Available</strong></span><span><small>2026-03-31</small><strong>Reference date</strong></span></div>
+      <div class="feature-copy"><p class="public-kicker">Workload Analytics</p><h2>Operational workload signals grounded in actual work.</h2><p>Population snapshots resolve state on a selected date. Workload analytics derive sessions, dog starts, dog-km, weekly trends and class-aware attention signals from actual work only—without making veterinary diagnoses.</p><a routerLink="/demo/analytics">Explore Analytics <span aria-hidden="true">→</span></a></div>
+      <div class="feature-preview analytics-preview"><div class="analytics-kpis"><span><small>Sessions</small><strong>140</strong></span><span><small>Dog starts</small><strong>1,120</strong></span><span><small>Dogs worked</small><strong>36</strong></span></div><div class="analytics-bars" aria-label="Weekly workload trend preview">@for (height of [35, 56, 48, 72, 64, 88, 70, 93]; track $index) { <i [style.height.%]="height"></i> }</div></div>
     </div>
   </section>
 
-  <section class="public-section"><div class="public-container features-cta"><div><p class="public-kicker">Entirely fictional data</p><h2>Explore every workflow without exposing real kennel information.</h2></div><a class="button primary" routerLink="/demo/dashboard">Explore the live demo</a></div></section>
+  <section class="public-section">
+    <div class="public-container feature-story">
+      <div class="feature-copy"><p class="public-kicker">Kennel Map · housing context</p><h2>Housing that reads like a physical place.</h2><p>Continuous enclosure rows show every resident on a selected date. Sex, neuter state, class and unavailable layers add operational context without moving the kennel geometry.</p><a routerLink="/demo/kennel">Open Kennel Map <span aria-hidden="true">→</span></a></div>
+      <div class="feature-preview map-preview" aria-label="Kennel Map interface preview">
+        <header><strong>Zone A</strong><span>20 residents</span></header>
+        @for (row of ['A1', 'A2']; track row) { <div class="map-row"><b>{{ row }}</b>@for (cell of [1, 2, 3, 4, 5]; track cell) { <span><small>{{ row }}-0{{ cell }}</small><i></i><i></i></span> }</div> }
+        <div class="map-aisle">Central aisle</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section soft">
+    <div class="public-container feature-story reverse">
+      <div class="feature-copy"><p class="public-kicker">Dog records, pedigree and history</p><h2>One record, connected across generations and time.</h2><p>Profiles combine identity, synthetic portrait, litter, parents, grandparents, siblings and offspring with work and effective-dated history. Archived relatives remain navigable, preserving pedigree and operational context rather than deleting it.</p><a routerLink="/demo/dogs">Browse fictional dogs <span aria-hidden="true">→</span></a></div>
+      <div class="feature-preview profile-preview">
+        <img src="/media/dogs/6415eb4a-17f2-5878-b2cc-d04803f30245.webp?v=dog-media-v1" width="1086" height="1448" alt="Portrait of Nova, a fictional sled dog" />
+        <div><small>Dog profile</small><h3>Nova</h3><p>Training · Available</p><ul><li>Overview</li><li>Pedigree</li><li>Work</li><li>History</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section"><div class="public-container features-cta"><div><p class="public-kicker">Entirely fictional data</p><h2>Explore every workflow without exposing real kennel information.</h2></div><a class="button primary" routerLink="/demo/dashboard">Explore the interactive demo</a></div></section>
 </article>

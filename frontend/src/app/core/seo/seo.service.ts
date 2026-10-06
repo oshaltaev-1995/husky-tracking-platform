@@ -6,7 +6,7 @@ import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 const DEFAULT_DESCRIPTION =
-  'A full-stack web application for planning kennel operations, managing dog teams, tracking workload and analysing operational data.';
+  'Explore Husky Tracking, an operations platform preview for professional sled-dog kennels and safari teams, covering planning, teams, actual work and workload.';
 const DEFAULT_SOCIAL_IMAGE =
   '/assets/husky-tracking-social-preview-v1.jpg';
 const SOCIAL_IMAGE_ALT =
@@ -109,7 +109,7 @@ export class SeoService {
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
       description:
-        'An independent interactive demonstration of modern sled-dog kennel operations software using fictional data.',
+        'An independent operations platform preview for professional sled-dog kennels and safari teams, with an interactive fictional dataset.',
     });
   }
 }

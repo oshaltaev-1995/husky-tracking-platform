@@ -5,6 +5,11 @@
 .about-fact span { display: block; color: var(--brand); font-size: clamp(3rem, 7vw, 5rem); font-weight: 760; letter-spacing: -.06em; line-height: 1; }
 .about-fact strong { display: block; margin-top: var(--space-2); }
 .about-fact p { margin: var(--space-3) 0 0; color: var(--text-secondary); font-size: .78rem; line-height: 1.65; }
+.experience-section { display: grid; grid-template-columns: minmax(0, .8fr) minmax(24rem, 1.2fr); gap: clamp(3rem, 8vw, 7rem); align-items: start; }
+.experience-section h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); letter-spacing: -.045em; line-height: 1.08; }
+.experience-section > div:last-child { border-left: 1px solid var(--border-strong); padding-left: clamp(2rem, 5vw, 4rem); }
+.experience-section > div:last-child p { margin: 0; color: var(--text-secondary); line-height: 1.8; }
+.experience-section > div:last-child p + p { margin-top: var(--space-5); }
 .story-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(24rem, 1.2fr); gap: clamp(3rem, 8vw, 7rem); }
 .story-steps { display: grid; gap: var(--space-6); margin: 0; padding: 0; list-style: none; }
 .story-steps li { display: grid; grid-template-columns: 3rem 1fr; gap: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: var(--space-6); }
@@ -26,8 +31,9 @@
 .about-cta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
 
 @include mixins.tablet {
-  .about-hero-grid, .story-grid, .technology-section, .synthetic-section { grid-template-columns: 1fr; }
+  .about-hero-grid, .experience-section, .story-grid, .technology-section, .synthetic-section { grid-template-columns: 1fr; }
   .about-fact { max-width: 24rem; }
+  .experience-section > div:last-child { border-top: 1px solid var(--border-strong); border-left: 0; padding-top: var(--space-6); padding-left: 0; }
 }
 
 @include mixins.phone {

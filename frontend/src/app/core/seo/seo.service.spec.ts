@@ -21,6 +21,9 @@ describe('SeoService production origin', () => {
     service['updateStructuredData'](service['publicSiteUrl']());
     const schema = document.querySelector<HTMLScriptElement>('#ht-product-schema');
     expect(schema?.textContent).toContain('"url":"https://huskytracking.com/"');
+    expect(schema?.textContent).toContain('"applicationCategory":"BusinessApplication"');
+    expect(schema?.textContent).toContain('professional sled-dog kennels and safari teams');
+    expect(schema?.textContent).not.toContain('"offers"');
   });
 
   it('publishes the complete versioned social preview metadata', () => {

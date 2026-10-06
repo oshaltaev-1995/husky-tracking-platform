@@ -30,6 +30,11 @@
 .workflow-list li:not(:last-child)::after { position: absolute; top: -.28rem; right: .5rem; width: .5rem; aspect-ratio: 1; border-radius: 50%; background: var(--brand); content: ''; }
 .workflow-list span { color: var(--brand); font-size: .62rem; font-weight: 900; }
 .workflow-list strong { font-size: .75rem; }
+.operations-contexts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.operations-contexts article { min-height: 12rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: var(--space-6); }
+.operations-contexts span { color: var(--brand); font-size: .6rem; font-weight: 900; }
+.operations-contexts h3 { margin: var(--space-8) 0 var(--space-3); font-size: 1.08rem; }
+.operations-contexts p { margin: 0; color: var(--text-secondary); font-size: .78rem; line-height: 1.65; }
 .feature-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
 .feature-overview a { position: relative; min-height: 15rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: var(--space-6); color: inherit; text-decoration: none; transition: background-color var(--transition-fast); }
 .feature-overview a:hover { background: var(--surface-brand-soft); }
@@ -38,8 +43,12 @@
 .feature-overview p { margin: 0; color: var(--text-secondary); font-size: .78rem; line-height: 1.65; }
 .feature-overview b { position: absolute; right: var(--space-5); bottom: var(--space-5); color: var(--brand); }
 .centered { justify-content: center; }
-.principles-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(3rem, 8vw, 7rem); }
-.principles-grid h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.5rem); letter-spacing: -.04em; }
+.focused-operations { display: grid; gap: clamp(3rem, 7vw, 5rem); }
+.focus-intro { display: grid; max-width: 58rem; grid-template-columns: minmax(16rem, .75fr) minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); align-items: start; }
+.focus-intro h2 { margin: 0; color: var(--text-inverse); font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -.05em; line-height: 1.05; }
+.focus-intro > p:not(.public-kicker) { margin: 0; color: var(--text-sidebar); line-height: 1.75; }
+.principles-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(3rem, 8vw, 7rem); border-top: 1px solid rgba(255, 255, 255, .14); padding-top: var(--space-8); }
+.principles-grid h3 { margin: 0; color: var(--text-inverse); font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: -.04em; }
 .principles-grid p:not(.public-kicker) { margin: var(--space-4) 0 0; color: var(--text-sidebar); line-height: 1.75; }
 .final-cta { display: grid; max-width: 60rem; grid-template-columns: 12rem minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: center; }
 .final-cta img { width: 100%; min-width: 0; aspect-ratio: 3 / 4; border-radius: var(--radius-panel); object-fit: cover; box-shadow: var(--shadow-raised); }
@@ -50,7 +59,10 @@
   .hero-grid { grid-template-columns: 1fr; }
   .hero-visual { max-width: 36rem; transform: none; }
   .workflow-list { grid-template-columns: repeat(3, 1fr); gap: var(--space-6) 0; }
+  .operations-contexts { grid-template-columns: 1fr; }
+  .operations-contexts article { min-height: auto; }
   .feature-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .focus-intro { grid-template-columns: 1fr; }
 }
 
 @include mixins.phone {

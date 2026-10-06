@@ -2,9 +2,9 @@
   <section class="public-hero">
     <div class="public-container hero-grid">
       <div class="hero-copy">
-        <p class="public-kicker">Sled-dog kennel operations · interactive demo</p>
-        <h1 class="public-display">Sled-dog operations, clearly connected.</h1>
-        <p class="public-lead">Husky Tracking brings dogs, housing, daily planning, teams, actual work and workload analytics into one coherent operational interface.</p>
+        <p class="public-kicker">Operations software for professional sled-dog kennels</p>
+        <h1 class="public-display">Plan teams. Record actual work. Understand workload.</h1>
+        <p class="public-lead">Husky Tracking connects dog availability, housing, daily plans, team lineups, actual work and workload analytics for professional sled-dog kennels and safari operations.</p>
         <div class="public-actions">
           <a class="button primary" routerLink="/demo/dashboard">Try interactive demo <span aria-hidden="true">→</span></a>
           <a class="button secondary" routerLink="/features">Explore features</a>
@@ -40,7 +40,18 @@
 
   <section class="public-section">
     <div class="public-container">
-      <div class="public-section-heading"><p class="public-kicker">Implemented product</p><h2>A credible kennel-management demonstration, not a generic admin template.</h2></div>
+      <div class="public-section-heading"><p class="public-kicker">Built for professional operations</p><h2>Daily context for working-dog teams.</h2><p>Designed for operations managing dozens of working dogs, where availability, team assignment and workload can change every day.</p></div>
+      <div class="operations-contexts">
+        <article><span>01</span><h3>Sled-dog kennels</h3><p>Daily visibility across dogs, housing, availability and work.</p></article>
+        <article><span>02</span><h3>Safari operations</h3><p>Plan working teams and reconcile planned activity with what actually happened.</p></article>
+        <article><span>03</span><h3>Multi-user daily teams</h3><p>Keep operational decisions and workload context visible across the working day.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <div class="public-container">
+      <div class="public-section-heading"><p class="public-kicker">Implemented workflows</p><h2>Operational modules connected around working dogs.</h2><p>Move from current kennel state to planning, actual work and workload insight without maintaining disconnected records.</p></div>
       <div class="feature-overview">
         @for (feature of features; track feature.title) {
           <a [routerLink]="feature.route"><span>{{ feature.mark }}</span><h3>{{ feature.title }}</h3><p>{{ feature.copy }}</p><b aria-hidden="true">→</b></a>
@@ -51,16 +62,19 @@
   </section>
 
   <section class="public-section dark">
-    <div class="public-container principles-grid">
-      <div><p class="public-kicker">Historical by design</p><h2>See the kennel as it was, not only as it is.</h2><p>Housing, class and operational state are date-aware, so historical views remain internally consistent.</p></div>
-      <div><p class="public-kicker">Explainable by design</p><h2>Rules stay visible to the user.</h2><p>Role capability, availability, workload and pairing rules guide team building without opaque AI or hidden decision-making.</p></div>
+    <div class="public-container focused-operations">
+      <div class="focus-intro"><p class="public-kicker">Deliberate product scope</p><h2>Focused on kennel operations.</h2><p>Husky Tracking does not try to be a social network, GPS tracker, tour marketplace or accounting suite. It connects kennel state with the practical work of planning teams, recording actual activity and understanding workload.</p></div>
+      <div class="principles-grid">
+        <div><p class="public-kicker">Historical by design</p><h3>See the kennel as it was, not only as it is.</h3><p>Housing, class and operational state are date-aware, so historical views remain internally consistent.</p></div>
+        <div><p class="public-kicker">Explainable by design</p><h3>Rules stay visible to the user.</h3><p>Role capability, availability, workload and pairing rules guide team building without opaque AI or hidden decision-making.</p></div>
+      </div>
     </div>
   </section>
 
   <section class="public-section">
     <div class="public-container final-cta">
       <img src="/media/dogs/9422673b-331b-5e72-a700-5fff0574a209.webp?v=dog-media-v1" alt="Portrait of Aurora, a fictional sled dog" width="1086" height="1448" loading="lazy" />
-      <div><p class="public-kicker">Winter 2025–2026</p><h2>Explore a complete fictional kennel.</h2><p>Browse 60 represented dogs, their family network, dated housing and a full synthetic season of work records.</p><div class="public-actions"><a class="button primary" routerLink="/demo/dashboard">Try the demo</a><a class="button secondary" routerLink="/about">About the project</a></div></div>
+      <div><p class="public-kicker">Built with real operational context</p><h2>Software shaped by hands-on sled-dog experience.</h2><p>Developed from sled-dog operations experience since 2019, including large-scale safari kennel work in Finnish Lapland. Explore the product safely through a complete fictional kennel.</p><div class="public-actions"><a class="button primary" routerLink="/demo/dashboard">Try interactive demo</a><a class="button secondary" routerLink="/about">About Husky Tracking</a></div></div>
     </div>
   </section>
 </article>
