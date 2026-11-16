@@ -54,3 +54,12 @@
 .empty-resident-slot small { font-size: .65rem; font-weight: 750; }
 .puppy-area { border-top: 0.22rem solid var(--brand); padding-top: calc(var(--space-2) - 0.22rem); }
 .area-detail { margin: calc(var(--space-1) * -1) 0 var(--space-3); color: var(--text-secondary); font-size: 0.68rem; }
+
+.location-card.compact { padding: var(--space-1); border-radius: inherit; }
+.compact > header { align-items: center; margin-block-end: var(--space-1); gap: var(--space-1); }
+.compact > header h3 { font-size: 0.76rem; }
+.compact > header > span { padding: var(--space-1); white-space: nowrap; }
+.compact .resident-list { border-radius: calc(var(--radius-control) * .6); }
+.compact .empty-resident-slot { display: block; min-height: auto; padding: var(--space-1); }
+.compact .empty-resident-slot span { display: none; }
+.compact .area-detail { margin: 0 0 var(--space-1); }

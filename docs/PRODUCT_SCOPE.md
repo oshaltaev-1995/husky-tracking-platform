@@ -79,10 +79,12 @@ Tabbed presentation:
 
 ### Kennel Map
 
-The map is a first-class HTML/DOM application view backed by dated housing. It needs a
-neutral view plus Gender, Neutered, Class, and Unavailable layers. Class distinguishes
-Puppy, Junior, Training, and Standard. The Unavailable projection explains injury,
-rest, restriction, and retirement. Dog interactions open Dog Profile.
+The map offers two read-only representations of the same dated housing snapshot:
+Overview adapts its named rows to the screen, and Ground preserves the spatial plan
+with zoom, Fit, and pan inside the map viewport. Both show all residents, support dog
+search and Dog Profile links, and use the same Default, Gender, Neutered, Class, and
+Unavailable layers. Class distinguishes Puppy, Junior, Training, and Standard. The
+Unavailable layer explains injury, rest, restriction, and retirement.
 
 ### Planning and work
 

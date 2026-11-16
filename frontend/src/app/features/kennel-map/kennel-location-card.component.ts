@@ -14,12 +14,15 @@ import { ResidentDogComponent } from './resident-dog.component';
       class="location-card"
       [class.puppy-area]="location().location_type === 'puppy_area'"
       [class.highlighted]="containsHighlight()"
+      [class.compact]="compact()"
       [attr.data-location-code]="location().code"
       [attr.aria-label]="location().display_name + ', ' + occupancyLabel()"
     >
       <header>
         <div>
-          <p>{{ location().location_type === 'puppy_area' ? 'Puppy area' : 'Enclosure' }}</p>
+          @if (!compact()) {
+            <p>{{ location().location_type === 'puppy_area' ? 'Puppy area' : 'Enclosure' }}</p>
+          }
           <h3>{{ location().code }}</h3>
         </div>
         <span>{{ occupancyLabel() }}</span>
@@ -33,6 +36,7 @@ import { ResidentDogComponent } from './resident-dog.component';
             [resident]="dog"
             [layer]="layer()"
             [highlighted]="dog.id === highlightedDogId()"
+            [compact]="compact()"
           />
         }
         @for (slot of emptySlots(); track slot) {
@@ -51,6 +55,7 @@ export class KennelLocationCardComponent {
   readonly location = input.required<KennelMapLocation>();
   readonly layer = input.required<KennelMapLayer>();
   readonly highlightedDogId = input<string | null>(null);
+  readonly compact = input(false);
 
   protected readonly containsHighlight = computed(() =>
     this.location().residents.some((dog) => dog.id === this.highlightedDogId()),
@@ -61,6 +66,8 @@ export class KennelLocationCardComponent {
   }
 
   protected emptySlots(): number[] {
+    // Ground shows occupancy, rather than drawing nominal places as separate rows.
+    if (this.compact()) return this.location().residents.length ? [] : [0];
     return Array.from(
       { length: Math.max(0, this.location().capacity - this.location().residents.length) },
       (_, index) => index,

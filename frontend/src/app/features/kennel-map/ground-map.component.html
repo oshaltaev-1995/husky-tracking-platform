@@ -1,0 +1,71 @@
+<div class="ground-controls" role="group" aria-label="Ground map controls">
+  <p id="ground-map-help">Drag or scroll inside the map. When focused, use arrow keys to pan, + / − to zoom, or 0 to fit.</p>
+  <div class="zoom-controls" role="group" aria-label="Map zoom">
+    <button class="button secondary zoom-step" type="button" aria-label="Zoom out"
+      [disabled]="!canZoomOut()" (click)="zoomBy(-1)">−</button>
+    <output aria-label="Zoom level">{{ (scale() * 100).toFixed(0) }}%</output>
+    <button class="button secondary zoom-step" type="button" aria-label="Zoom in"
+      [disabled]="!canZoomIn()" (click)="zoomBy(1)">+</button>
+    <button class="button secondary" type="button" (click)="fit()">Fit map</button>
+  </div>
+</div>
+
+<div #viewport class="ground-viewport" tabindex="0" role="region" aria-label="Ground map viewport"
+  aria-describedby="ground-map-help" [class.panning]="panning()"
+  (pointerdown)="onPointerDown($event)" (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerEnd($event)" (pointercancel)="onPointerEnd($event)"
+  (lostpointercapture)="onPointerEnd($event)" (keydown)="onKeyDown($event)">
+  <div class="ground-stage">
+    <div #board class="ground-board" [attr.data-layer]="layer()">
+      <div class="ground-caption">
+        <strong>Kennel grounds</strong>
+        <span>Illustrative site plan · not to scale</span>
+      </div>
+
+      <div class="adult-grounds">
+        @for (block of blocks(); track block.zone) {
+          <section class="ground-zone" [attr.data-zone]="block.zone"
+            [attr.aria-labelledby]="'ground-zone-' + block.zone">
+            <header class="ground-zone-label">
+              <h2 [id]="'ground-zone-' + block.zone">{{ block.label }}</h2>
+              <span>Adult housing · {{ block.zone }}1 / {{ block.zone }}2</span>
+            </header>
+            <div class="ground-zone-rows">
+              @for (row of block.rows; track row.code; let last = $last) {
+                <section class="ground-row" [attr.data-row]="row.code"
+                  [attr.aria-labelledby]="'ground-row-' + row.code">
+                  <h3 [id]="'ground-row-' + row.code">{{ row.code }}</h3>
+                  <div class="ground-enclosures">
+                    @for (location of row.locations; track location.id) {
+                      <ht-kennel-location-card [location]="location" [layer]="layer()"
+                        [highlightedDogId]="highlightedDogId()" [compact]="true" />
+                    }
+                  </div>
+                </section>
+                @if (!last) {
+                  <div class="ground-service-aisle" aria-hidden="true"><span>Service aisle</span></div>
+                }
+              }
+            </div>
+          </section>
+          @if (!$last) {
+            <div class="ground-main-path" aria-hidden="true"><span>Main path</span></div>
+          }
+        }
+      </div>
+
+      <section class="ground-puppy-zone" aria-labelledby="ground-puppy-title">
+        <header>
+          <h2 id="ground-puppy-title">Puppy buildings</h2>
+          <span>Separate housing off the main path</span>
+        </header>
+        <div class="ground-buildings">
+          @for (location of puppyAreas(); track location.id) {
+            <ht-kennel-location-card [location]="location" [layer]="layer()"
+              [highlightedDogId]="highlightedDogId()" [compact]="true" />
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

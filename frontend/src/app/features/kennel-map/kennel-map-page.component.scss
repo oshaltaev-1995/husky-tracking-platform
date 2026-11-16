@@ -3,14 +3,18 @@
 :host { display: block; min-width: 0; }
 .map-header { align-items: center; }
 .date-control { width: min(13rem, 100%); }
-.map-toolbar { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-3); padding: var(--space-3); box-shadow: var(--shadow-card); }
+.map-toolbar { display: flex; min-width: 0; align-items: center; flex-wrap: wrap; gap: var(--space-3) var(--space-4); margin-bottom: var(--space-3); padding: var(--space-3); box-shadow: var(--shadow-card); }
+.view-control { display: inline-flex; align-self: flex-start; gap: var(--space-1); padding: var(--space-1); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface-soft); }
+.view-control button { min-height: 2.15rem; border: 0; border-radius: calc(var(--radius-control) - .15rem); padding: .42rem .68rem; color: var(--text-secondary); background: transparent; font-size: .76rem; font-weight: 800; }
+.view-control button:hover { color: var(--text-primary); background: var(--surface-card); }
+.view-control button[aria-pressed='true'] { color: var(--text-inverse); background: var(--brand-strong); }
 .layer-control { display: flex; min-width: 0; align-items: center; gap: var(--space-3); }
 .layer-control > span { color: var(--text-muted); font-size: var(--font-caption); font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .layer-control > div { display: inline-flex; min-width: 0; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-control); background: var(--surface-soft); }
 .layer-control button { min-height: 2.15rem; border: 0; border-radius: calc(var(--radius-control) - .15rem); padding: .42rem .68rem; color: var(--text-secondary); background: transparent; font-size: .72rem; font-weight: 800; }
 .layer-control button:hover { color: var(--text-primary); background: var(--surface-card); }
 .layer-control button.active { color: var(--text-inverse); background: var(--brand-strong); }
-.dog-finder { display: flex; min-width: 16rem; gap: var(--space-2); align-items: center; }
+.dog-finder { display: flex; min-width: 16rem; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
 .dog-finder label { min-width: 10rem; flex: 1; }
 .dog-finder input { min-height: 2.3rem; }
 .dog-finder .button { min-height: 2.3rem; padding-block: .45rem; }

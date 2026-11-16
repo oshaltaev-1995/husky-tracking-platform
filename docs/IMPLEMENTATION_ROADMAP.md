@@ -582,6 +582,34 @@ No migration or parallel correction ledger is introduced. One active actual per 
 activity remains enforced by the existing service idempotency and database unique
 constraint; manual actual entry remains an intentional editable form submission.
 
+## P13A — Read-only Ground view
+
+**Status:** local review on the feature branch; browser and quality-gate evidence is
+reported separately from this roadmap. Overview remains the default for existing links;
+`/demo/kennel?view=ground` opens the spatial view. The two views reuse a single dated
+snapshot and the existing layers, legends, finder, and Dog Profile links. View and
+layer switches do not request a new snapshot for the same date.
+
+**Geometry and occupancy:** Ground keeps the fictional A1/A2 and B1/B2 enclosure order,
+aisles, and separate Puppy A/B buildings even on phones. It contains zoom, Fit, and
+pointer, touch, and keyboard movement within the map viewport. Layout responds to
+viewport and content bounds without creating page-wide horizontal scrolling. Both
+views render the whole resident list independently of nominal capacity; Ground allows
+rows to grow without hiding names or moving enclosures to different rows.
+
+**Acceptance:** retain Overview and historical rendering; verify date/layer/view URL
+state, only one active view, no redundant snapshot requests, navigation and search,
+viewport controls and cleanup, and complete resident rendering with variable occupancy.
+Use frontend fixtures for over-capacity examples, never a changed seed. Check desktop,
+tablet, and mobile with real browser evidence.
+
+**Scope boundary:** no API, database, seed, demo clock, or checksum changes. No housing
+editing, print workflows, Training changes, or Operations Agent capabilities in P13A.
+
+**Later packages:** P13B–P13G remain planned and require separate authorization. Work
+such as workspace housing overrides, staged moves, A4 print views, and an opt-in demo
+Training Day is deferred. P14 Operations Agent is not part of this release.
+
 ## Completion discipline
 
 Each package updates this roadmap only when evidence changes scope. It must include a

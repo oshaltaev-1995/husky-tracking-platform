@@ -255,24 +255,33 @@ and cannot mutate housing or status.
 
 ### Historical Kennel Map
 
-P4 adds `/demo/kennel` as a `.content-wide` route. `date` and `layer` query parameters make
-historical views reload-safe and shareable; invalid values normalize to the reference
-date and Default layer. Public browsing is constrained to `2025-12-01` through
-`2026-03-31`. Every snapshot resolves birth, lifecycle, class, availability, and
-housing on that same calendar date. A historical housing gap stays empty rather than
-falling back to a current assignment.
+`/demo/kennel` is a read-only `.content-wide` route. `date`, `layer`, and `view` query
+parameters make a presentation reload-safe and shareable. The reference date, Default
+layer, and Overview are the fallbacks; `?view=ground` opens Ground directly. Public
+browsing is constrained to `2025-12-01` through `2026-03-31`. The existing
+`KennelMapSnapshot` API resolves birth, lifecycle, class, availability, and housing on
+one calendar date. A historical housing gap stays empty rather than falling back to a
+current assignment. Both views share the date-driven snapshot and mount only the active
+view, so switching the view or layer does not refetch the same date or duplicate links.
 
-P4.1 renders each five-enclosure adult row as a continuous physical block with shared
-walls and fixed resident slots. A1/A2 and B1/B2 remain paired around a narrow service
-aisle, so layer or historical-state changes update the residents inside stable
-geography rather than rearranging locations. Puppy areas use separate building
-footprints on the same ground surface. At tablet widths the compact five-cell rows are
-retained while readable; narrower layouts reflow within named rows, and phone widths
-stack cells without page-wide horizontal scrolling. Default, Gender, Neutered, Class,
-and Unavailable are single-select presentation layers over the same payload. Text
-markers and compact legends accompany shared semantic colors. Search focuses a dated
-resident and outlines its enclosure; every resident name is a normal
-`/demo/dogs/{public_id}` link.
+- **Overview** retains P4.1's paired A1/A2 and B1/B2 rows, separate puppy areas, and
+  responsive reflow within each named row.
+- **Ground** depicts the same fictional zones, paired five-cell rows, aisles and
+  separate puppy buildings as a DOM/CSS plan. The viewport contains zoom and pan
+  instead of changing enclosure order or adjacency at mobile widths. The zoom range
+  is 25–175%; Fit uses the viewport and board dimensions and never enlarges above
+  100%. Additional residents can expand a row and change those bounds without
+  changing the topology. Fit recalculates on resize until the user chooses a manual
+  zoom. Users may zoom in to read names following a small-screen Fit; any overflow
+  stays in the map viewport.
+
+Both views render every resident in each location. Nominal capacity describes the
+baseline and may guide empty-slot presentation; it does not truncate the rendered list.
+Default, Gender, Neutered, Class, and Unavailable remain presentation-only layers with
+text markers and legends. Search matches exact name, then prefix, then substring;
+it highlights the dog and enclosure and reveals the active profile link. Every resident
+name remains a regular `/demo/dogs/{public_id}` link. No housing writes, snapshot API
+changes, migrations, or seed changes are part of this two-view map.
 
 The canonical archived dogs keep valid housing history, but their assignments all end
 before the public demo season. P4 therefore truthfully shows no archived resident in a

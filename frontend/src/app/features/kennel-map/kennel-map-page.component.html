@@ -7,17 +7,22 @@
   <label class="date-control form-field">
     <span>Map date</span>
     <input
+      #mapDate
       type="date"
       name="map-date"
       min="2025-12-01"
       max="2026-03-31"
-      [(ngModel)]="selectedDate"
-      (ngModelChange)="changeDate($event)"
+      [value]="selectedDate"
+      (input)="changeDate(mapDate)"
     />
   </label>
 </header>
 
 <section class="map-toolbar surface" aria-label="Kennel map controls">
+  <div class="view-control" role="group" aria-label="Map view">
+    <button type="button" [attr.aria-pressed]="activeView === 'overview'" (click)="selectView('overview')">Overview</button>
+    <button type="button" [attr.aria-pressed]="activeView === 'ground'" (click)="selectView('ground')">Ground</button>
+  </div>
   <div class="layer-control" role="group" aria-label="Visual layer">
     <span>Layer</span>
     <div>
@@ -98,8 +103,16 @@
         </div>
       }
 
+      @if (activeView === 'ground') {
+        <ht-ground-map
+          [blocks]="state.layout.blocks"
+          [puppyAreas]="state.layout.puppyAreas"
+          [layer]="activeLayer"
+          [highlightedDogId]="highlightedDogId"
+        />
+      } @else {
       <div class="kennel-canvas" [attr.data-layer]="activeLayer">
-        @for (block of blocks(state.data); track block.zone) {
+        @for (block of state.layout.blocks; track block.zone) {
           <section
             class="kennel-block"
             [attr.data-zone]="block.zone"
@@ -144,7 +157,7 @@
             <span>Complete litters stay together</span>
           </header>
           <div class="puppy-grid" aria-label="Puppy buildings">
-            @for (location of puppyAreas(state.data); track location.id) {
+            @for (location of state.layout.puppyAreas; track location.id) {
               <ht-kennel-location-card
                 [location]="location"
                 [layer]="activeLayer"
@@ -154,6 +167,7 @@
           </div>
         </section>
       </div>
+      }
     }
   }
 }

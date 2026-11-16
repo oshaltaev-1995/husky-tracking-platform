@@ -1,0 +1,234 @@
+@use '../../../styles/mixins' as mixins;
+
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.ground-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+
+.ground-controls p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-label);
+}
+
+.zoom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.zoom-controls .button {
+  min-block-size: 2.4rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.zoom-controls .button:disabled { opacity: 0.5; cursor: default; }
+.zoom-controls .zoom-step { min-inline-size: 2.4rem; font-size: 1rem; line-height: 1; }
+
+.zoom-controls output {
+  min-inline-size: 3.2rem;
+  color: var(--text-secondary);
+  font-size: var(--font-label);
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  text-align: center;
+}
+
+.ground-viewport {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  block-size: clamp(22rem, 62vh, 43rem);
+  overflow: auto;
+  border: 1px solid var(--kennel-wall-strong);
+  border-radius: var(--radius-panel);
+  background: var(--kennel-ground);
+  cursor: grab;
+}
+
+.ground-viewport.panning { cursor: grabbing; user-select: none; }
+.ground-viewport:focus-visible { @include mixins.focus-ring; }
+
+.ground-stage {
+  display: grid;
+  inline-size: max-content;
+  min-inline-size: 100%;
+  min-block-size: 100%;
+  place-items: start center;
+}
+
+.ground-board {
+  --ground-enclosure-width: 6.15rem;
+  --ground-zone-width: calc(5 * var(--ground-enclosure-width) + var(--space-4) + 2px);
+  --ground-path-width: 4.25rem;
+  inline-size: max-content;
+  padding: var(--space-5);
+  background-image: radial-gradient(var(--kennel-wall) 0.045rem, transparent 0.065rem);
+  background-size: 0.8rem 0.8rem;
+}
+
+.ground-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  margin-block-end: var(--space-4);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--kennel-wall-strong);
+}
+
+.ground-caption strong { color: var(--brand-strong); font-size: var(--font-section-title); }
+.ground-caption span { color: var(--text-secondary); font-size: var(--font-label); }
+
+.adult-grounds {
+  display: grid;
+  grid-template-columns: var(--ground-zone-width) var(--ground-path-width) var(--ground-zone-width);
+}
+
+.ground-zone {
+  display: grid;
+  align-content: start;
+  padding: var(--space-2);
+  border: 1px solid var(--kennel-wall-strong);
+  border-radius: var(--radius-card);
+  background: var(--kennel-ground-soft);
+}
+
+.ground-zone-label, .ground-puppy-zone > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+  padding-inline: var(--space-1);
+}
+
+.ground-zone-label h2, .ground-puppy-zone h2 {
+  margin: 0;
+  color: var(--brand-strong);
+  font-size: 1rem;
+}
+
+.ground-zone-label span, .ground-puppy-zone header span {
+  color: var(--text-secondary);
+  font-size: var(--font-caption);
+}
+
+.ground-zone-rows {
+  display: grid;
+  border: 1px solid var(--kennel-wall-strong);
+  border-radius: var(--radius-control);
+}
+
+.ground-row {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-inline-size: 0;
+}
+
+.ground-row > h3 {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  color: var(--text-inverse);
+  background: var(--brand-strong);
+  line-height: 1.3;
+  font-size: var(--font-label);
+}
+
+.ground-row:first-child > h3 {
+  border-start-start-radius: calc(var(--radius-control) - 1px);
+  border-start-end-radius: calc(var(--radius-control) - 1px);
+}
+
+.ground-enclosures {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--kennel-wall);
+}
+
+.ground-row:last-child .ground-enclosures {
+  border-end-start-radius: calc(var(--radius-control) - 1px);
+  border-end-end-radius: calc(var(--radius-control) - 1px);
+}
+
+.ground-main-path, .ground-service-aisle {
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  background: repeating-linear-gradient(
+    135deg, var(--kennel-aisle) 0 var(--space-1), var(--kennel-ground-soft) var(--space-1) var(--space-2)
+  );
+}
+
+.ground-main-path {
+  margin-inline: var(--space-2);
+  border-inline: 1px dashed var(--kennel-wall-strong);
+}
+
+.ground-main-path span { writing-mode: vertical-rl; }
+
+.ground-service-aisle {
+  min-block-size: var(--space-8);
+  border-block-start: 1px dashed var(--kennel-wall-strong);
+}
+
+.ground-main-path span, .ground-service-aisle span {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  font-size: var(--font-caption);
+  font-weight: 750;
+}
+
+/* Shared row tracks keep aisles aligned as residents make one enclosure taller. */
+@supports (grid-template-rows: subgrid) {
+  .adult-grounds { grid-template-rows: repeat(4, auto); }
+  .ground-zone, .ground-main-path { grid-row: 1 / -1; }
+  .ground-zone { grid-template-rows: subgrid; }
+  .ground-zone-rows { grid-row: 2 / -1; grid-template-rows: subgrid; }
+}
+
+.ground-puppy-zone {
+  position: relative;
+  inline-size: calc(2 * 13rem + var(--ground-path-width));
+  margin: var(--space-6) auto 0;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  border: 1px solid var(--kennel-wall-strong);
+  border-radius: var(--radius-card);
+  background: var(--kennel-ground-soft);
+}
+
+.ground-puppy-zone::before {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: 50%;
+  inline-size: calc(var(--ground-path-width) - 2 * var(--space-2));
+  block-size: calc(var(--space-6) + 1px);
+  transform: translateX(-50%);
+  border-inline: 1px dashed var(--kennel-wall-strong);
+  background: var(--kennel-aisle);
+  content: '';
+}
+
+.ground-buildings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ground-path-width);
+}
+
+.ground-buildings ht-kennel-location-card {
+  border: 1px solid var(--kennel-wall-strong);
+  border-block-start: var(--space-1) solid var(--brand);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+}

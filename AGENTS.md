@@ -48,9 +48,11 @@ These instructions apply to the entire repository.
 - Public pages use the marketing shell at `/`, `/features`, `/about`, and `/contact`.
   The operational application has one canonical route tree under `/demo`; legacy
   pre-P11 routes redirect into it while retaining path and query state.
-- Kennel Map is the read-only `/demo/kennel` wide workspace. Its `date` and `layer` URL
-  state must remain demo-season bounded, and its DOM/CSS layout must preserve the
-  A1/A2/B1/B2 grouping without horizontal page overflow on narrow screens.
+- Kennel Map is the read-only `/demo/kennel` wide workspace. Preserve its season-bounded
+  `date` and its `layer` and `view` URL state. Overview and Ground use one dated snapshot
+  and render all residents regardless of nominal capacity. Ground preserves the fictional
+  enclosure order and adjacency at every viewport size; contain map scrolling without
+  horizontal page overflow.
 - Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.

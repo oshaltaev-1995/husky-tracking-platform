@@ -21,11 +21,14 @@ interface ResidentPresentation {
       [id]="'map-dog-' + resident().id"
       [routerLink]="['/demo/dogs', resident().id]"
       [class.highlighted]="highlighted()"
+      [class.compact]="compact()"
       [class.receded]="layer() === 'unavailable' && resident().availability === 'available'"
       [attr.data-tone]="presentation().tone"
       [attr.aria-label]="ariaLabel()"
     >
-      <span class="resident-initial" aria-hidden="true">{{ resident().name.slice(0, 1) }}</span>
+      @if (!compact()) {
+        <span class="resident-initial" aria-hidden="true">{{ resident().name.slice(0, 1) }}</span>
+      }
       <span class="resident-copy">
         <strong>{{ resident().name }}</strong>
         <small>{{ presentation().label }}</small>
@@ -42,6 +45,7 @@ export class ResidentDogComponent {
   readonly resident = input.required<KennelMapResident>();
   readonly layer = input.required<KennelMapLayer>();
   readonly highlighted = input(false);
+  readonly compact = input(false);
 
   protected readonly presentation = computed<ResidentPresentation>(() => {
     const dog = this.resident();
