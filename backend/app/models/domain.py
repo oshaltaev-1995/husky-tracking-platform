@@ -357,6 +357,11 @@ class DogRelationshipConstraint(Base):
 
 class DemoWorkspace(Base):
     __tablename__ = "demo_workspaces"
+    __table_args__ = (
+        CheckConstraint(
+            "housing_revision >= 0", name="ck_demo_workspaces_housing_revision"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     public_id: Mapped[UUID] = mapped_column(
@@ -364,6 +369,7 @@ class DemoWorkspace(Base):
     )
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     schema_version: Mapped[int] = mapped_column(default=1)
+    housing_revision: Mapped[int] = mapped_column(default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -372,6 +378,32 @@ class DemoWorkspace(Base):
     materialized_days: Mapped[list[DemoWorkspaceDay]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
     )
+
+
+class DemoWorkspaceHousingOverride(Base):
+    __tablename__ = "demo_workspace_housing_overrides"
+    __table_args__ = (
+        UniqueConstraint(
+            "workspace_id",
+            "dog_id",
+            "effective_date",
+            name="uq_workspace_housing_dog_date",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("demo_workspaces.id", ondelete="CASCADE"), index=True
+    )
+    dog_id: Mapped[int] = mapped_column(
+        ForeignKey("dogs.id", ondelete="RESTRICT"), index=True
+    )
+    effective_date: Mapped[date] = mapped_column(Date)
+    location_id: Mapped[int] = mapped_column(
+        ForeignKey("kennel_locations.id", ondelete="RESTRICT"), index=True
+    )
+
+    location: Mapped[KennelLocation] = relationship()
 
 
 class DemoWorkspaceDay(Base):

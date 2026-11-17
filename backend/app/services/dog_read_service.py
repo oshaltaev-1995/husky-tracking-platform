@@ -42,9 +42,15 @@ from app.schemas.dogs import (
     OffspringLitterRead,
     PeriodHistoryRead,
     RelatedDogRead,
+    WorkspaceHousingRead,
 )
 from app.services.demo_workspace_service import scoped_date_filter
 from app.services.effective_state import EffectiveDogState, effective_period
+from app.services.housing_context import (
+    HousingContext,
+    HousingLocation,
+    load_housing_context,
+)
 
 
 def age_at(birth_date: date, reference_date: date) -> tuple[int, int, str]:
@@ -79,14 +85,28 @@ class DogReadService:
     """Read-only P3 projections with one shared effective-state policy."""
 
     def __init__(
-        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
     ) -> None:
         self.session = session
         self.clock = clock
         self.workspace_id = workspace_id
+        self._housing_context = housing_context
         self._dogs: list[Dog] | None = None
         self._pedigree_dogs: list[Dog] | None = None
         self._litters: list[Litter] | None = None
+
+    @property
+    def housing_context(self) -> HousingContext:
+        if self._housing_context is None:
+            self._housing_context = load_housing_context(
+                self.session, self.clock, self.workspace_id
+            )
+        return self._housing_context
 
     def _all_dogs(self) -> list[Dog]:
         if self._dogs is None:
@@ -153,8 +173,12 @@ class DogReadService:
     def _availability(self, dog: Dog) -> str | None:
         return EffectiveDogState(self.clock.reference_date).availability(dog)
 
-    def _current_housing_assignment(self, dog: Dog) -> HousingAssignment | None:
-        return EffectiveDogState(self.clock.reference_date).housing(dog)
+    def _current_housing_assignment(
+        self, dog: Dog
+    ) -> HousingAssignment | HousingLocation | None:
+        return EffectiveDogState(
+            self.clock.reference_date, self.housing_context
+        ).housing(dog)
 
     def _last_housing_assignment(self, dog: Dog) -> HousingAssignment | None:
         return max(
@@ -543,6 +567,7 @@ class DogReadService:
         if not dog:
             return None
         reference = self.clock.reference_date
+        override = self.housing_context.override(dog.id, reference)
         return DogHistoryRead(
             dog_id=dog.public_id,
             reference_date=reference,
@@ -590,5 +615,13 @@ class DogReadService:
                     dog.housing_assignments, key=lambda row: row.valid_from
                 )
             ],
+            workspace_housing=(
+                WorkspaceHousingRead(
+                    effective_date=reference,
+                    location=location_read(override.location),
+                )
+                if override
+                else None
+            ),
             archive=self._archive(dog),
         )

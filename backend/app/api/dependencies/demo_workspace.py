@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Cookie, Depends, Response
+from fastapi import Cookie, Depends, HTTPException, Response
 
 from app.core.config import Settings, get_settings
 from app.db.session import SessionLocal
@@ -18,6 +18,35 @@ class DemoWorkspaceContext:
     workspace: DemoWorkspace
     created: bool
     replaced_expired: bool
+
+
+def get_optional_demo_workspace(
+    settings: Annotated[Settings, Depends(get_settings)],
+    token: str | None = Cookie(default=None, alias=COOKIE_NAME),
+) -> DemoWorkspaceContext | None:
+    """Resolve an existing cookie without issuing or replacing a workspace."""
+    with SessionLocal() as session:
+        workspace = resolve_workspace(session, token, settings.demo_session_secret)
+        if workspace is None:
+            return None
+        session.expunge(workspace)
+        return DemoWorkspaceContext(workspace, False, False)
+
+
+def get_existing_demo_workspace(
+    workspace: Annotated[
+        DemoWorkspaceContext | None, Depends(get_optional_demo_workspace)
+    ],
+) -> DemoWorkspaceContext:
+    if workspace is None:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "housing_session_required",
+                "message": "Open a current demo session first.",
+            },
+        )
+    return workspace
 
 
 def get_demo_workspace(

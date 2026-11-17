@@ -217,6 +217,45 @@ reset removes one workspace's materialized rows. The guarded global reset clears
 workspace before restoring the seed. `python -m app.demo.cleanup` removes expired
 workspaces; the 24-hour default is configurable.
 
+P13B adds a separate reference-date housing overlay without using the date-level
+plan/work materialization path. `HousingContext` loads one explicitly scoped set of
+overrides after locking the workspace row and rechecking expiry. `EffectiveDogState`
+uses that context only at `DemoClock.reference_date`; historical reads retain the
+canonical half-open assignment or a real gap. The location-shaped result supports
+existing `location_id` and `location` consumers without inventing ORM history periods.
+The context is cached only within one service request; Dashboard passes one context
+to its nested Population, Map, Plan, and Entry services. Registry/profile, planning
+candidates/participants, Team Builder candidate home pairing, Daily Entry groupings,
+and Analytics housing buckets/range-end labels all consume the same policy.
+
+`GET /api/v1/kennel-map?date=…` optionally resolves an existing cookie without issuing
+or replacing a workspace. Missing, invalid, or expired cookies return baseline with
+non-editable context. A valid reference-date workspace receives `housing_edit` with
+the date, revision and an opaque HMAC precondition. `POST /api/v1/kennel-map/moves`
+requires that existing cookie and a nonempty batch of at most 60 unique dogs. The
+precondition binds workspace identity, reference date, and monotonic revision under
+the existing session secret; it exposes neither the cookie nor secret. Origin checks
+and the precondition are separate protections.
+
+Snapshot projection, batch changes, and Reset serialize on the workspace row, using
+freshly loaded state after any lock wait. The lock spans reading overrides/revision
+and constructing the response; the route commits before returning the response.
+Batch validation finishes before any write, and one changed batch increments revision
+once. Stale confirmation returns a structured `409`; Reset increments even when empty
+so an old confirmation cannot restore reset placements. Expiry cleanup deletes the
+workspace and cascades its housing rows. Housing-only writes never create a
+`DemoWorkspaceDay`, plan, or actual session. API responses stay `no-store`, and existing
+request logs omit bodies, cookies, preconditions, and query strings. See
+`P13C_HOUSING_HANDOFF.md` for the exact read/write and conflict contract.
+
+The migration is additive, but an older application binary does not understand these
+overrides or remove them on Reset. Before an application rollback to an older version,
+use compatible code in a controlled maintenance step to drain/invalidate temporary
+workspace data and pending housing confirmations, preserving the immutable baseline.
+Otherwise an older binary can leave stale overlays that reappear after re-upgrade.
+Do not assume compatibility from an additive schema alone; test the chosen rollback
+sequence in a disposable database and do not routinely downgrade live schema.
+
 The Angular demo-route guard initializes the session before operational components load.
 The shell exposes expiry, a real-data warning, and an explicit scoped reset. Public
 routes and Contact/Privacy endpoints have no workspace dependency. See
@@ -255,8 +294,10 @@ and cannot mutate housing or status.
 
 ### Historical Kennel Map
 
-`/demo/kennel` is a read-only `.content-wide` route. `date`, `layer`, and `view` query
-parameters make a presentation reload-safe and shareable. The reference date, Default
+`/demo/kennel` has read-only Overview and Ground views in a `.content-wide` route.
+P13B's atomic housing API supplies the backend foundation; Move UI is deferred to P13C.
+`date`, `layer`, and `view` query parameters make a presentation reload-safe and
+shareable. The reference date, Default
 layer, and Overview are the fallbacks; `?view=ground` opens Ground directly. Public
 browsing is constrained to `2025-12-01` through `2026-03-31`. The existing
 `KennelMapSnapshot` API resolves birth, lifecycle, class, availability, and housing on
@@ -280,8 +321,9 @@ baseline and may guide empty-slot presentation; it does not truncate the rendere
 Default, Gender, Neutered, Class, and Unavailable remain presentation-only layers with
 text markers and legends. Search matches exact name, then prefix, then substring;
 it highlights the dog and enclosure and reveals the active profile link. Every resident
-name remains a regular `/demo/dogs/{public_id}` link. No housing writes, snapshot API
-changes, migrations, or seed changes are part of this two-view map.
+name remains a regular `/demo/dogs/{public_id}` link. P13A's presentation adds no
+housing writes, snapshot API changes, migrations, or seed changes. P13B adds only the
+workspace exception described above; the canonical map projection remains read-only.
 
 The canonical archived dogs keep valid housing history, but their assignments all end
 before the public demo season. P4 therefore truthfully shows no archived resident in a

@@ -91,6 +91,13 @@ const adultLocations = [
 ].map((code) => location(code, 'adult_enclosure', code === 'A1-01' ? [maple, fjord] : []));
 
 const snapshot: KennelMapSnapshot = {
+  housing_edit: {
+    editable: false,
+    effective_date: '2026-03-31',
+    revision: null,
+    precondition: null,
+    reason: 'workspace_required',
+  },
   selected_date: '2026-03-31',
   season_start: '2025-12-01',
   season_end: '2026-03-31',

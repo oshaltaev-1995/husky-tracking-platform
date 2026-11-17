@@ -15,6 +15,7 @@ from app.models import (
     DailyPlan,
     DemoWorkspace,
     DemoWorkspaceDay,
+    DemoWorkspaceHousingOverride,
     PlannedActivity,
     PlannedActivityParticipant,
     PlannedTeam,
@@ -22,9 +23,14 @@ from app.models import (
     WorkParticipation,
     WorkSession,
 )
+from app.services.housing_context import lock_workspace
 
 COOKIE_NAME = "ht_demo_session"
 WORKSPACE_SCHEMA_VERSION = 1
+
+
+class DemoWorkspaceExpiredError(RuntimeError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -218,6 +224,14 @@ class DemoWorkspaceService:
         self.session.flush()
 
     def reset(self) -> None:
+        workspace = lock_workspace(self.session, self.workspace_id)
+        if workspace is None:
+            raise DemoWorkspaceExpiredError("The demo session expired.")
+        self.session.execute(
+            delete(DemoWorkspaceHousingOverride).where(
+                DemoWorkspaceHousingOverride.workspace_id == self.workspace_id
+            )
+        )
         self.session.execute(
             delete(DailyPlan).where(DailyPlan.demo_workspace_id == self.workspace_id)
         )
@@ -231,6 +245,9 @@ class DemoWorkspaceService:
                 DemoWorkspaceDay.workspace_id == self.workspace_id
             )
         )
+        # Even an empty reset invalidates every pending housing confirmation.
+        workspace.housing_revision += 1
+        self.session.flush()
 
 
 def cleanup_expired_workspaces(session: Session, now: datetime | None = None) -> int:

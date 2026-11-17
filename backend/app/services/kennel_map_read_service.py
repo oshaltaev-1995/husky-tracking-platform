@@ -10,20 +10,39 @@ from app.core.demo_clock import DemoClock
 from app.models import Dog, KennelLocation
 from app.models.enums import AvailabilityState, LifecycleState, LocationType
 from app.schemas.kennel_map import (
+    HousingEditRead,
     KennelMapLocationRead,
     KennelMapResidentRead,
     KennelMapSnapshotRead,
     KennelMapSummaryRead,
 )
 from app.services.effective_state import EffectiveDogState
+from app.services.housing_context import HousingContext, load_housing_context
 
 
 class KennelMapReadService:
     """Build one bounded-query, internally consistent historical kennel snapshot."""
 
-    def __init__(self, session: Session, clock: DemoClock) -> None:
+    def __init__(
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
+    ) -> None:
         self.session = session
         self.clock = clock
+        self.workspace_id = workspace_id
+        self._housing_context = housing_context
+
+    @property
+    def housing_context(self) -> HousingContext:
+        if self._housing_context is None:
+            self._housing_context = load_housing_context(
+                self.session, self.clock, self.workspace_id
+            )
+        return self._housing_context
 
     def snapshot(self, on_date: date) -> KennelMapSnapshotRead:
         locations = list(
@@ -43,7 +62,8 @@ class KennelMapReadService:
             ).unique()
         )
         locations_by_id = {location.id: location for location in locations}
-        state = EffectiveDogState(on_date)
+        context = self.housing_context
+        state = EffectiveDogState(on_date, context)
         residents_by_location: dict[int, list[KennelMapResidentRead]] = defaultdict(
             list
         )
@@ -130,6 +150,28 @@ class KennelMapReadService:
                 availability_counts=dict(sorted(availability_counts.items())),
             ),
             locations=location_reads,
+            housing_edit=HousingEditRead(
+                editable=(
+                    context.workspace_id is not None
+                    and on_date == self.clock.reference_date
+                ),
+                effective_date=on_date,
+                revision=(
+                    context.revision if on_date == self.clock.reference_date else None
+                ),
+                precondition=(
+                    context.precondition
+                    if on_date == self.clock.reference_date
+                    else None
+                ),
+                reason=(
+                    "historical_date"
+                    if on_date != self.clock.reference_date
+                    else (
+                        "workspace_required" if context.workspace_id is None else None
+                    )
+                ),
+            ),
         )
 
     @staticmethod

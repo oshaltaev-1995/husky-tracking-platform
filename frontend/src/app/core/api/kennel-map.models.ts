@@ -45,6 +45,21 @@ export interface KennelMapSnapshot {
   reference_date: string;
   summary: KennelMapSummary;
   locations: KennelMapLocation[];
+  housing_edit: HousingEditContext;
+}
+
+export interface HousingEditContext {
+  editable: boolean;
+  effective_date: string;
+  revision: number | null;
+  precondition: string | null;
+  reason: 'workspace_required' | 'historical_date' | null;
+}
+
+export interface HousingMoveBatch {
+  effective_date: string;
+  precondition: string;
+  moves: { dog_id: string; destination_code: string }[];
 }
 
 export interface KennelRowView {

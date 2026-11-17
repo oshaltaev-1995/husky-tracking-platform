@@ -614,9 +614,50 @@ Local production-build regression evidence covers the last Puppy A/B resident at
 initial Fit and manual zoom, plus Overview at desktop, tablet, and mobile widths.
 Technical validation is separate from the owner's independent acceptance.
 
-**Later packages:** P13B–P13G remain planned and require separate authorization. Work
-such as workspace housing overrides, staged moves, A4 print views, and an opt-in demo
-Training Day is deferred. P14 Operations Agent is not part of this release.
+**P13A-R1 technical gate:** completed locally before starting P13B under the owner's
+explicit sequential authorization. Independent acceptance remains separate.
+
+## P13B — Workspace housing backend and consistent reads
+
+**Status:** local implementation for independent review. Gate results and migration,
+concurrency, and browser evidence belong in the accompanying package report; this
+status does not claim owner acceptance or production deployment.
+
+**Persistence:** additive migration `b7e13a9d4c20` adds reference-date overrides unique
+by workspace/dog/date, restrictive Dog/Location references, cascading workspace
+ownership, and monotonic workspace `housing_revision`. Canonical housing intervals,
+capacity metadata, baseline validation, seed, and checksum remain unchanged.
+
+**API and transactions:** baseline GET without a valid cookie does not issue a session.
+A current workspace/reference-date snapshot exposes a housing revision and HMAC
+precondition bound to workspace, date, and revision. A cookie-authorized batch move
+validates all unique dogs/destinations before writes and commits atomically. Occupied
+destinations and occupancy above nominal capacity are supported. Same-origin checks
+remain in place. Snapshot, moves, and Reset share the workspace row lock; Reset always
+advances housing revision, and expiration cascades overrides. No plan/work day is
+materialized by housing changes.
+
+**Consumers:** one request-scoped `HousingContext` feeds Map, Registry/profile,
+planning eligibility/participants, Team Builder soft home pairing, Entry housing
+groups, Analytics housing projections, and nested Dashboard services. History labels
+the temporary placement separately from canonical episodes. Earlier dates, historical
+gaps, saved teams, actual work, workload totals, and eligibility policies retain their
+existing semantics.
+
+**Acceptance:** immutable checksum and strict baseline validation; two-workspace
+isolation; reference-date-only overrides; over-capacity/mixed occupancy; all-or-nothing
+validation; stale/cross-workspace preconditions; real PostgreSQL move/reset/cleanup
+races; existing populated-workspace migration; bounded reads; every consumer; and
+two-browser-context Map/Profile/reset checks. Destructive tests and migration rehearsal
+must use only a dedicated disposable PostgreSQL instance.
+
+**Handoff:** `P13C_HOUSING_HANDOFF.md` defines payloads, response metadata, and recovery
+from stale or expired requests. Older binaries do not clear the new rows on Reset:
+document and rehearse invalidating temporary data with compatible code before rollback.
+
+**Later packages:** P13C–P13G remain planned and require separate authorization. Staged
+Move/Swap UI, A4 print views, Dog Summary, and an opt-in demo Training Day are deferred.
+P14 Operations Agent is not part of this package.
 
 ## Completion discipline
 

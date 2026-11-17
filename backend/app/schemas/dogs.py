@@ -201,6 +201,13 @@ class HousingHistoryRead(BaseModel):
     note: str | None
 
 
+class WorkspaceHousingRead(BaseModel):
+    """A current demo placement, separate from canonical effective history."""
+
+    effective_date: date
+    location: LocationRead
+
+
 class DogHistoryRead(BaseModel):
     dog_id: UUID
     reference_date: date
@@ -208,4 +215,5 @@ class DogHistoryRead(BaseModel):
     classes: list[PeriodHistoryRead]
     lifecycle: list[PeriodHistoryRead]
     housing: list[HousingHistoryRead]
+    workspace_housing: WorkspaceHousingRead | None = None
     archive: ArchiveRead | None

@@ -38,6 +38,7 @@ from app.schemas.daily_plans import (
 )
 from app.services.demo_workspace_service import DemoWorkspaceService, scoped_date_filter
 from app.services.effective_state import EffectiveDogState
+from app.services.housing_context import HousingContext, load_housing_context
 
 
 class DailyPlanError(ValueError):
@@ -52,11 +53,25 @@ class DailyPlanService:
     """Date-scoped planning mutations built on canonical effective dog state."""
 
     def __init__(
-        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
     ) -> None:
         self.session = session
         self.clock = clock
         self.workspace_id = workspace_id
+        self._housing_context = housing_context
+
+    @property
+    def housing_context(self) -> HousingContext:
+        if self._housing_context is None:
+            self._housing_context = load_housing_context(
+                self.session, self.clock, self.workspace_id
+            )
+        return self._housing_context
 
     def materialize(self, plan_date: date) -> None:
         if self.workspace_id is not None:
@@ -337,7 +352,7 @@ class DailyPlanService:
         return self._read(self._plan(plan_date), plan_date)
 
     def _read(self, plan: DailyPlan | None, plan_date: date) -> DailyPlanRead:
-        state = EffectiveDogState(plan_date)
+        state = EffectiveDogState(plan_date, self.housing_context)
         activities: list[PlannedActivityRead] = []
         if plan is not None:
             for activity in sorted(plan.activities, key=lambda item: item.sequence):
@@ -482,7 +497,7 @@ class DailyPlanService:
         distance_km: int | None,
         planned_training_km: int,
     ) -> EligibleDogRead:
-        state = EffectiveDogState(plan_date)
+        state = EffectiveDogState(plan_date, self.housing_context)
         dog_class, _ = state.dog_class(dog)
         lifecycle = state.lifecycle(dog)
         availability = state.availability(dog)

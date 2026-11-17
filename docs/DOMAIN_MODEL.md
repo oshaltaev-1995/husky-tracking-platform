@@ -119,9 +119,38 @@ parsing the code or redesigning persistence.
 Stores restrictive Dog/Location foreign keys, effective interval, and optional note.
 A GiST exclusion constraint prevents one dog occupying two locations simultaneously;
 an indexed location/date path supports capacity checks and dated maps. Capacity spans
-multiple rows, so the application validator sweeps all interval boundaries and rejects
-over-capacity worlds. Historical gaps remain gaps and are never replaced by current
-housing.
+multiple rows, so the canonical dataset validator sweeps all interval boundaries and
+rejects over-capacity baseline worlds. Historical gaps remain gaps and are never
+replaced by current housing.
+
+### `demo_workspace_housing_overrides`
+
+P13B adds a separate temporary placement, unique by `(workspace_id, dog_id,
+effective_date)`. The workspace FK cascades; Dog and KennelLocation FKs restrict
+deletion. Lookup indexes support explicit workspace, dog, and location access. The
+workspace stores a nonnegative monotonic `housing_revision`, initially zero for both
+existing and new workspaces. No workspace column or altered interval is added to
+canonical `HousingAssignment`.
+
+The service accepts writes only on `DemoClock.reference_date`, not machine today.
+At that date an override wins; otherwise `EffectiveDogState` resolves the canonical
+half-open period. A born, lifecycle-active dog may move to any existing active
+location, including an occupied adult enclosure or puppy building. Availability,
+operational class, location type, nominal capacity, and harness-pair constraints are
+not housing move prohibitions. Every other resident remains where it was. Capacity
+remains canonical metadata and may be shown as informational context.
+
+A changed atomic batch advances revision once. A true no-op preserves it. Moving back
+to the canonical location removes the redundant override; a later move can replace it.
+Reset deletes that workspace's overrides and always advances revision, even when empty.
+Expiry deletion cascades the overrides. These rows remain outside the baseline
+semantic snapshot; no seed, validator, or checksum input is weakened.
+
+The profile's `workspace_housing` history field presents the temporary current
+location separately. Canonical housing periods and archived last-known housing remain
+canonical; an override is not fabricated as a permanent history event. Housing edits
+change only effective housing labels/grouping and future Team Builder soft home-pair
+ranking, never saved participants, lineups, workload, status, or ledger rows.
 
 ## Team-builder relationship facts
 
@@ -329,6 +358,13 @@ Forward migration `c4e87a1b92f0_add_daily_entry_actual_metadata` extends the can
 ledger with public/revision metadata, nullable plan provenance, start time, complete
 actual harness geometry, session-owned participation cascade, and the minimal not-run
 flag. One actual per planned activity and one dog/position per session are constrained.
+
+Forward migration `b7e13a9d4c20_add_workspace_housing_overrides` follows
+`5c82f32e5d8a` and adds the override table, restrictive/cascading FKs and indexes,
+plus the workspace revision with a zero server default and nonnegative check.
+It does not seed, reset, or rewrite existing plan, team, actual, or canonical rows.
+Downgrade drops temporary housing overrides and the revision; it is destructive to
+those temporary placements and is not a routine production rollback procedure.
 
 ## Read projections and later packages
 

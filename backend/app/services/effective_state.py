@@ -6,6 +6,7 @@ from datetime import date
 from typing import Protocol, TypeVar
 
 from app.models import Dog, HousingAssignment
+from app.services.housing_context import HousingContext, HousingLocation
 
 
 class EffectivePeriod(Protocol):
@@ -34,6 +35,7 @@ class EffectiveDogState:
     """Shared dated state resolver for Dog Profile and Kennel Map projections."""
 
     on_date: date
+    housing_context: HousingContext | None = None
 
     def lifecycle(self, dog: Dog) -> str | None:
         period = effective_period(dog.lifecycle_periods, self.on_date)
@@ -56,5 +58,9 @@ class EffectiveDogState:
         period = effective_period(dog.availability_periods, self.on_date)
         return period.availability_state if period else None
 
-    def housing(self, dog: Dog) -> HousingAssignment | None:
+    def housing(self, dog: Dog) -> HousingAssignment | HousingLocation | None:
+        if self.housing_context is not None:
+            override = self.housing_context.override(dog.id, self.on_date)
+            if override is not None:
+                return override
         return effective_period(dog.housing_assignments, self.on_date)

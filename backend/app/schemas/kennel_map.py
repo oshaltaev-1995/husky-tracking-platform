@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class KennelMapResidentRead(BaseModel):
@@ -42,6 +43,29 @@ class KennelMapSummaryRead(BaseModel):
     availability_counts: dict[str, int]
 
 
+class HousingEditRead(BaseModel):
+    editable: bool
+    effective_date: date
+    revision: int | None = None
+    precondition: str | None = None
+    reason: Literal["workspace_required", "historical_date"] | None = None
+
+
+class HousingMoveWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dog_id: UUID
+    destination_code: str = Field(min_length=1, max_length=30)
+
+
+class HousingMovesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    effective_date: date
+    precondition: str = Field(min_length=1, max_length=128)
+    moves: list[HousingMoveWrite] = Field(min_length=1, max_length=60)
+
+
 class KennelMapSnapshotRead(BaseModel):
     selected_date: date
     season_start: date
@@ -49,3 +73,4 @@ class KennelMapSnapshotRead(BaseModel):
     reference_date: date
     summary: KennelMapSummaryRead
     locations: list[KennelMapLocationRead]
+    housing_edit: HousingEditRead

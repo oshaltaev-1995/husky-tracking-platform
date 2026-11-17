@@ -47,6 +47,7 @@ from app.schemas.daily_entry import (
 from app.services.daily_plan_service import DailyPlanService
 from app.services.demo_workspace_service import scoped_date_filter
 from app.services.effective_state import EffectiveDogState
+from app.services.housing_context import HousingContext
 
 
 class DailyEntryError(ValueError):
@@ -61,12 +62,23 @@ class DailyEntryService:
     """Canonical actual-work reads and mutations for one demo-season date."""
 
     def __init__(
-        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
     ) -> None:
         self.session = session
         self.clock = clock
         self.workspace_id = workspace_id
-        self.plans = DailyPlanService(session, clock, workspace_id)
+        self.plans = DailyPlanService(
+            session, clock, workspace_id, housing_context=housing_context
+        )
+
+    @property
+    def housing_context(self) -> HousingContext:
+        return self.plans.housing_context
 
     def read(self, work_date: date) -> DailyEntryRead:
         self.plans.validate_date(work_date)
@@ -367,7 +379,7 @@ class DailyEntryService:
     def _eligibility_read(
         self, dog: Dog, work_date: date, distance_km: int, current_km: int
     ) -> ActualEligibleDogRead:
-        state = EffectiveDogState(work_date)
+        state = EffectiveDogState(work_date, self.housing_context)
         dog_class, _ = state.dog_class(dog)
         lifecycle = state.lifecycle(dog)
         availability = state.availability(dog)
@@ -540,7 +552,7 @@ class DailyEntryService:
             if work_session.source_reference.startswith("plan:")
             else "manual"
         )
-        state = EffectiveDogState(work_session.work_date)
+        state = EffectiveDogState(work_session.work_date, self.housing_context)
         participants = []
         for item in sorted(
             work_session.participations,
@@ -711,7 +723,7 @@ class DailyEntryService:
             )
         )
         locations_by_id = {item.id: item for item in locations}
-        state = EffectiveDogState(work_date)
+        state = EffectiveDogState(work_date, self.housing_context)
         grouped: dict[int | None, list[DailyDogRead]] = defaultdict(list)
         for dog in dogs:
             if dog.birth_date > work_date or state.lifecycle(dog) != "active":

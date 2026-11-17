@@ -48,11 +48,17 @@ These instructions apply to the entire repository.
 - Public pages use the marketing shell at `/`, `/features`, `/about`, and `/contact`.
   The operational application has one canonical route tree under `/demo`; legacy
   pre-P11 routes redirect into it while retaining path and query state.
-- Kennel Map is the read-only `/demo/kennel` wide workspace. Preserve its season-bounded
-  `date` and its `layer` and `view` URL state. Overview and Ground use one dated snapshot
-  and render all residents regardless of nominal capacity. Ground preserves the fictional
+- Kennel Map is the `/demo/kennel` wide workspace with read-only Overview/Ground views.
+  Preserve its season-bounded `date` and its `layer` and `view` URL state. Both use one
+  dated snapshot and render all residents regardless of nominal capacity. Ground preserves the fictional
   enclosure order and adjacency at every viewport size; contain map scrolling without
   horizontal page overflow.
+- Canonical housing remains immutable. P13B allows only temporary workspace overrides
+  on `DemoClock.reference_date`, through the cookie-authorized atomic housing batch API.
+  Use the shared `HousingContext` and `EffectiveDogState` for every consumer; never apply
+  a reference-date override to past dates. Nominal capacity is not a workspace move
+  limit. Moves do not alter work eligibility, plans, teams, actual records, or status.
+  Move UI remains a separately authorized P13C package.
 - Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.
@@ -91,9 +97,17 @@ These instructions apply to the entire repository.
   Mutable Daily Plan/Team and actual-work reads use the baseline plus date-materialized
   workspace overlay; never query all workspace rows or mutate baseline rows from public
   endpoints. Public pages, Contact, and Privacy must not create a workspace cookie.
+- Housing reads use explicitly scoped overrides without materializing a plan/work day.
+  Snapshot GET without a valid cookie returns a non-editable baseline without issuing
+  a cookie. Housing writes require an existing workspace and a server HMAC precondition
+  bound to workspace, reference date, and housing revision; never accept a payload
+  workspace ID as authorization. Do not log preconditions, cookies, or move bodies.
 - Per-workspace reset deletes only that workspace's mutable rows. The global guarded
   reset clears every workspace and restores the canonical baseline. Semantic checksum
   and canonical validation always exclude workspace-owned actual rows.
+  Moves, consistent housing reads, and Reset share a database workspace-row lock;
+  Reset always advances housing revision, including when already empty. Expiration
+  cascades temporary housing overrides with the workspace.
 - Add migrations for every schema change; never use `Base.metadata.create_all()` as a
   production migration mechanism.
 - Use `.env.example` for public configuration; never commit secrets.

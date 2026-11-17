@@ -159,6 +159,11 @@ export interface HousingHistory {
   note: string | null;
 }
 
+export interface WorkspaceHousing {
+  effective_date: string;
+  location: LocationView;
+}
+
 export interface DogHistory {
   dog_id: string;
   reference_date: string;
@@ -166,6 +171,7 @@ export interface DogHistory {
   classes: PeriodHistory[];
   lifecycle: PeriodHistory[];
   housing: HousingHistory[];
+  workspace_housing?: WorkspaceHousing | null;
   archive: ArchiveRecord | null;
 }
 

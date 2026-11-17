@@ -46,6 +46,7 @@ from app.schemas.team_builder import (
 )
 from app.services.daily_plan_service import DailyPlanService
 from app.services.demo_workspace_service import scoped_date_filter
+from app.services.housing_context import HousingContext
 
 
 class TeamBuilderError(ValueError):
@@ -67,12 +68,19 @@ class TeamBuilderService:
     """P6 projection, deterministic generation, and validated lineup persistence."""
 
     def __init__(
-        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
     ) -> None:
         self.session = session
         self.clock = clock
         self.workspace_id = workspace_id
-        self.plans = DailyPlanService(session, clock, workspace_id)
+        self.plans = DailyPlanService(
+            session, clock, workspace_id, housing_context=housing_context
+        )
 
     def context(self, plan_date: date, activity_id: UUID) -> TeamBuilderContextRead:
         activity = self._required_activity(plan_date, activity_id)

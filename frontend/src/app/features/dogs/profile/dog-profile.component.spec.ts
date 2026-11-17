@@ -198,6 +198,41 @@ describe('DogProfileComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Back to Archive');
   });
 
+  it('shows a temporary placement separately from canonical housing history', async () => {
+    const moved = structuredClone(bundle);
+    const baselineLocation = structuredClone(moved.profile.state.housing!);
+    moved.history.housing = [{
+      location: baselineLocation,
+      valid_from: '2025-12-01',
+      valid_to: null,
+      is_current: true,
+      note: null,
+    }];
+    moved.history.workspace_housing = {
+      effective_date: '2026-03-31',
+      location: {
+        code: 'PUPPY-A',
+        display_name: 'Puppy building A',
+        location_type: 'puppy_area',
+        zone: 'PUPPY',
+        row: 'A',
+      },
+    };
+    moved.profile.state.housing = moved.history.workspace_housing.location;
+    const fixture = await setup(() => of(moved));
+    expect(fixture.nativeElement.querySelector('.header-facts').textContent).toContain('PUPPY-A');
+    query.next(convertToParamMap({ tab: 'history' }));
+    fixture.detectChanges();
+    const temporary = fixture.nativeElement.querySelector('.workspace-placement') as HTMLElement;
+    expect(temporary.textContent).toContain('Temporary demo placement · PUPPY-A');
+    expect(temporary.textContent).toContain('March 31, 2026');
+    expect(temporary.textContent).toContain('baseline housing history below is unchanged');
+    const canonical = fixture.nativeElement.querySelectorAll('.timeline-panel')[2] as HTMLElement;
+    expect(canonical.textContent).toContain('A1-01');
+    expect(canonical.textContent).not.toContain('PUPPY-A');
+    expect(canonical.querySelectorAll('article').length).toBe(1);
+  });
+
   it('shows five recent work entries until the ledger is expanded', async () => {
     const worked = structuredClone(bundle);
     worked.work.summary.starts = 7;

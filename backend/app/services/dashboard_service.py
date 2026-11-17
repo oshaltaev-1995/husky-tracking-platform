@@ -20,6 +20,7 @@ from app.schemas.dashboard import (
 from app.services.analytics_service import AnalyticsService
 from app.services.daily_entry_service import DailyEntryService
 from app.services.daily_plan_service import DailyPlanService
+from app.services.housing_context import HousingContext, load_housing_context
 from app.services.kennel_map_read_service import KennelMapReadService
 
 
@@ -27,13 +28,27 @@ class DashboardService:
     """Compose existing domain projections into one operational home payload."""
 
     def __init__(
-        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
     ) -> None:
         self.clock = clock
-        self.analytics = AnalyticsService(session, clock, workspace_id)
-        self.plans = DailyPlanService(session, clock, workspace_id)
-        self.entries = DailyEntryService(session, clock, workspace_id)
-        self.kennel = KennelMapReadService(session, clock)
+        context = housing_context or load_housing_context(session, clock, workspace_id)
+        self.analytics = AnalyticsService(
+            session, clock, workspace_id, housing_context=context
+        )
+        self.plans = DailyPlanService(
+            session, clock, workspace_id, housing_context=context
+        )
+        self.entries = DailyEntryService(
+            session, clock, workspace_id, housing_context=context
+        )
+        self.kennel = KennelMapReadService(
+            session, clock, workspace_id, housing_context=context
+        )
 
     def read(self, selected_date: date) -> DashboardRead:
         self.analytics.validate_range(selected_date, selected_date)

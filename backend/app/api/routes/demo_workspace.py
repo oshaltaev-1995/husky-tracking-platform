@@ -1,13 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.dependencies.demo_workspace import DemoWorkspaceContext, get_demo_workspace
 from app.core.config import Settings, get_settings
 from app.db.session import get_db
 from app.schemas.demo_workspace import DemoResetRead, DemoSessionRead, PrivacyRead
-from app.services.demo_workspace_service import DemoWorkspaceService
+from app.services.demo_workspace_service import (
+    DemoWorkspaceExpiredError,
+    DemoWorkspaceService,
+)
 
 router = APIRouter()
 Workspace = Annotated[DemoWorkspaceContext, Depends(get_demo_workspace)]
@@ -31,8 +34,14 @@ def demo_session(
 def reset_demo_workspace(
     workspace: Workspace, session: DatabaseSession
 ) -> DemoResetRead:
-    with session.begin():
-        DemoWorkspaceService(session, workspace.workspace.id).reset()
+    try:
+        with session.begin():
+            DemoWorkspaceService(session, workspace.workspace.id).reset()
+    except DemoWorkspaceExpiredError as error:
+        raise HTTPException(
+            status_code=401,
+            detail={"code": "demo_session_expired", "message": str(error)},
+        ) from error
     return DemoResetRead(status="reset", expires_at=workspace.workspace.expires_at)
 
 

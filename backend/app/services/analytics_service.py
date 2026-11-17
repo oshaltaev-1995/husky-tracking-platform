@@ -28,6 +28,7 @@ from app.schemas.analytics import (
 )
 from app.services.demo_workspace_service import scoped_date_filter
 from app.services.effective_state import EffectiveDogState
+from app.services.housing_context import HousingContext, load_housing_context
 
 UNDERUSED_RATE_RATIO = 0.95
 HIGHER_WORKLOAD_RATE_RATIO = 1.15
@@ -124,11 +125,25 @@ class AnalyticsService:
     """Actual-ledger analytics with bounded work and dog-state projections."""
 
     def __init__(
-        self, session: Session, clock: DemoClock, workspace_id: int | None = None
+        self,
+        session: Session,
+        clock: DemoClock,
+        workspace_id: int | None = None,
+        *,
+        housing_context: HousingContext | None = None,
     ) -> None:
         self.session = session
         self.clock = clock
         self.workspace_id = workspace_id
+        self._housing_context = housing_context
+
+    @property
+    def housing_context(self) -> HousingContext:
+        if self._housing_context is None:
+            self._housing_context = load_housing_context(
+                self.session, self.clock, self.workspace_id
+            )
+        return self._housing_context
 
     def validate_range(self, date_from: date, date_to: date) -> None:
         if date_from > date_to:
@@ -201,7 +216,7 @@ class AnalyticsService:
     def population(self, snapshot_date: date) -> PopulationAnalyticsRead:
         self.validate_range(snapshot_date, snapshot_date)
         dogs = [dog for dog in self._dogs() if dog.birth_date <= snapshot_date]
-        state = EffectiveDogState(snapshot_date)
+        state = EffectiveDogState(snapshot_date, self.housing_context)
         lifecycle_by_id = {dog.id: state.lifecycle(dog) for dog in dogs}
         active = [dog for dog in dogs if lifecycle_by_id[dog.id] == "active"]
         archived = [dog for dog in dogs if lifecycle_by_id[dog.id] == "archived"]
@@ -378,7 +393,7 @@ class AnalyticsService:
                 item.recent_14d_km += row.distance_km
 
         result: list[DogAnalysis] = []
-        end_state = EffectiveDogState(date_to)
+        end_state = EffectiveDogState(date_to, self.housing_context)
         for dog in dogs:
             metrics = metrics_by_dog[dog.id]
             worked_dates = metrics.worked_dates or set()
@@ -386,7 +401,7 @@ class AnalyticsService:
             eligible_days = 0
             eligible_by_day: dict[date, bool] = {}
             for day in period:
-                state = EffectiveDogState(day)
+                state = EffectiveDogState(day, self.housing_context)
                 lifecycle = state.lifecycle(dog)
                 dog_class, _ = state.dog_class(dog)
                 availability = state.availability(dog)

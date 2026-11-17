@@ -1,4 +1,7 @@
 :host { display: grid; gap: 1rem; }
+.workspace-placement { min-width: 0; border: 1px solid var(--border-strong); border-radius: var(--radius-card); padding: var(--space-4); background: var(--surface-brand-soft); }
+.workspace-placement h3 { margin: var(--space-1) 0 var(--space-2); font-size: 1rem; overflow-wrap: anywhere; }
+.workspace-placement p:not(.eyebrow) { margin: var(--space-1) 0; color: var(--text-secondary); font-size: var(--font-label); }
 .history-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; }
 .history-heading h2 { margin: .1rem 0 0; font-family: Georgia, serif; font-size: 1.65rem; font-weight: 500; }.history-heading > p { max-width: 30rem; margin: 0; color: var(--ink-soft); font-size: .8rem; }
 .history-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
