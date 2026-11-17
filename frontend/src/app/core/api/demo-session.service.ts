@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, of, shareReplay, tap } from 'rxjs';
+import { Observable, Subject, catchError, defer, of, shareReplay, tap, throwError } from 'rxjs';
 
 export interface DemoSession {
   active: boolean;
@@ -21,6 +21,17 @@ export class DemoSessionService {
   private readonly http = inject(HttpClient);
   private request?: Observable<DemoSession>;
   readonly session = signal<DemoSession | null>(null);
+  readonly resetReviewOpened$ = new Subject<void>();
+  readonly resetStarted$ = new Subject<void>();
+  readonly resetCompleted$ = new Subject<void>();
+  readonly resetFailed$ = new Subject<void>();
+  readonly replaced$ = new Subject<void>();
+
+  reinitialize(): Observable<DemoSession> {
+    this.session.set(null);
+    this.request = undefined;
+    return this.ensure();
+  }
 
   ensure(): Observable<DemoSession> {
     const current = this.session();
@@ -34,10 +45,18 @@ export class DemoSessionService {
   }
 
   reset(): Observable<DemoReset> {
-    return this.http.post<DemoReset>('/api/v1/demo/reset', {}).pipe(
+    return defer(() => {
+      this.resetStarted$.next();
+      return this.http.post<DemoReset>('/api/v1/demo/reset', {});
+    }).pipe(
       tap((result) => {
         const current = this.session();
         if (current) this.session.set({ ...current, expires_at: result.expires_at });
+        this.resetCompleted$.next();
+      }),
+      catchError((error: unknown) => {
+        this.resetFailed$.next();
+        return throwError(() => error);
       }),
     );
   }
@@ -52,5 +71,7 @@ export class DemoSessionService {
       created: true,
       replaced_expired: true,
     });
+    this.request = undefined;
+    this.replaced$.next();
   }
 }

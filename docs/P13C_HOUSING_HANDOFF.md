@@ -1,9 +1,9 @@
 # P13C housing API handoff
 
-P13B provides the backend foundation. Staged Move mode, drag-and-drop, touch/keyboard
-selection, confirmation dialogs, and Swap UI are not implemented or authorized by this
-handoff. P13C requires a separate package. P13A-R1 technical validation and P13B local
-implementation are not independent owner acceptance or a production deployment.
+This document preserves P13B's accepted backend contract. P13C's separately authorized
+local Move UI is described in `P13C_MOVE_TOGETHER.md`; that implementation remains
+subject to independent acceptance and is not a production deployment. Swap UI remains
+outside scope. The examples and transaction semantics below are unchanged by P13C.
 
 ## Read a committed snapshot
 

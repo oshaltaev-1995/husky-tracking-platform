@@ -1,0 +1,43 @@
+<button class="dialog-backdrop" type="button" [attr.aria-label]="saving() ? 'Close housing move review' : 'Cancel housing move review'"
+  [disabled]="submitted() && !saving()" (click)="cancel()"></button>
+<section class="review-dialog" role="dialog" aria-modal="true"
+  aria-labelledby="housing-review-title" aria-describedby="housing-review-consequence"
+  [attr.aria-busy]="saving()">
+  <header>
+    <p class="eyebrow">Your demo workspace</p>
+    <h2 id="housing-review-title">Review housing moves</h2>
+    <p>{{ (effectiveDate() + 'T12:00:00Z') | date: 'EEEE, d MMMM y':'UTC' }}</p>
+  </header>
+  <div class="review-body">
+    <p id="housing-review-consequence" class="consequence">Confirm applies these moves together to your demo workspace only. Existing residents stay in place. Plans, teams, actual work and dog status remain unchanged.</p>
+    @if (saving()) { <p class="save-progress" role="status">The save continues if you close this review.</p> }
+    <section aria-labelledby="housing-review-changes">
+      <h3 id="housing-review-changes">{{ changes().length | countLabel:'move' }} to confirm</h3>
+      <ol class="move-list">
+        @for (change of changes(); track change.dog_id) {
+          <li><strong>{{ change.dog_name }}</strong><span>{{ change.source_code || 'No housing' }} <span aria-hidden="true">→</span><span class="visually-hidden">to</span> {{ change.destination_code }}</span></li>
+        }
+      </ol>
+    </section>
+    <section class="review-rosters" aria-labelledby="housing-review-rosters">
+      <h3 id="housing-review-rosters">Resulting residents</h3>
+      <p class="roster-help">The complete final roster for each affected location.</p>
+      @for (location of locations(); track location.id) {
+        <article class="review-location" [attr.data-location-code]="location.code">
+          <h4>{{ location.code }} <span>{{ location.residents.length | countLabel:'resident' }}</span></h4>
+          <p class="capacity-note">Nominal capacity {{ location.capacity }}@if (location.residents.length > location.capacity) { · Above baseline capacity }</p>
+          @if (location.residents.length) {
+            <ul class="resident-roster">
+              @for (dog of location.residents; track dog.id) { <li>{{ dog.name }}</li> }
+            </ul>
+          } @else { <p class="empty-roster">No residents after these moves.</p> }
+        </article>
+      }
+    </section>
+    @if (serverError()) { <p class="form-error" role="alert">{{ serverError() }}</p> }
+  </div>
+  <footer>
+    <button #cancelButton class="button quiet" type="button" [disabled]="submitted() && !saving()" (click)="cancel()">{{ saving() ? 'Close review' : 'Cancel' }}</button>
+    <button class="button primary" type="button" [disabled]="saving() || submitted() || !changes().length" (click)="confirm()">{{ saving() || submitted() ? 'Saving moves…' : 'Confirm moves' }}</button>
+  </footer>
+</section>

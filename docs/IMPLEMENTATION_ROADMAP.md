@@ -584,8 +584,8 @@ constraint; manual actual entry remains an intentional editable form submission.
 
 ## P13A — Read-only Ground view
 
-**Status:** local review on the feature branch; browser and quality-gate evidence is
-reported separately from this roadmap. Overview remains the default for existing links;
+**Status:** accepted for local continuation after independent P13A-R1/P13B review;
+production deployment remains separate. Overview remains the default for existing links;
 `/demo/kennel?view=ground` opens the spatial view. The two views reuse a single dated
 snapshot and the existing layers, legends, finder, and Dog Profile links. View and
 layer switches do not request a new snapshot for the same date.
@@ -615,13 +615,14 @@ initial Fit and manual zoom, plus Overview at desktop, tablet, and mobile widths
 Technical validation is separate from the owner's independent acceptance.
 
 **P13A-R1 technical gate:** completed locally before starting P13B under the owner's
-explicit sequential authorization. Independent acceptance remains separate.
+explicit sequential authorization. The owner subsequently accepted the independent
+review for continuation to P13C, without authorizing production deployment.
 
 ## P13B — Workspace housing backend and consistent reads
 
-**Status:** local implementation for independent review. Gate results and migration,
-concurrency, and browser evidence belong in the accompanying package report; this
-status does not claim owner acceptance or production deployment.
+**Status:** accepted for local continuation to P13C after independent patch/source/QA
+review. Migration, concurrency, and browser evidence belong in the P13B package report.
+Production deployment has not been authorized by that acceptance.
 
 **Persistence:** additive migration `b7e13a9d4c20` adds reference-date overrides unique
 by workspace/dog/date, restrictive Dog/Location references, cascading workspace
@@ -655,9 +656,41 @@ must use only a dedicated disposable PostgreSQL instance.
 from stale or expired requests. Older binaries do not clear the new rows on Reset:
 document and rehearse invalidating temporary data with compatible code before rollback.
 
-**Later packages:** P13C–P13G remain planned and require separate authorization. Staged
-Move/Swap UI, A4 print views, Dog Summary, and an opt-in demo Training Day are deferred.
-P14 Operations Agent is not part of this package.
+## P13C — Move Together UI
+
+**Status:** implemented locally for independent review. Final gate and browser evidence
+are reported with the package; implementation alone is not independent acceptance or
+production acceptance. The work starts from accepted P13B and preserves its API and
+schema head `b7e13a9d4c20`.
+
+**Behavior:** View is the default. Overview and Ground share one committed snapshot,
+one normalized draft, and action history. Select/touch/keyboard assignment and desktop
+dragging stage a move into an occupied or empty active destination. No availability,
+class, type, or nominal-capacity prohibition is introduced. Undo restores an action;
+Discard clears the draft; Cancel review retains it. One reviewed confirmation sends one
+atomic POST and accepts the server's complete committed snapshot on success.
+
+**Recovery and navigation:** duplicate confirmation is blocked. A stale token requires
+reload; session loss requires explicit reinitialization and a fresh snapshot; uncertain
+save outcomes require reconciliation before another confirmation. There is no automatic
+mutation retry or replay. Dirty date/route/Move-exit navigation is guarded, and shell
+reset/replacement invalidates pending state. View/layer changes retain the draft.
+Ground pan, zoom, search visibility, and all resident names remain available.
+
+**Acceptance:** pure normalization/preview and DOM interaction tests, API-client request
+shape, confirmation/cancel/undo/dirty guards, controlled error/recovery cases, and real
+production-build browser flows against disposable PostgreSQL. Verify desktop/tablet/
+mobile, actual dragging and touch/select, two workspaces and conflicting tabs, reset,
+lost response, R1 visibility measurements, high occupancy, and unchanged plans/actuals/
+checksum. Mark unavailable hardware/browser engines or other missing evidence NOT RUN.
+
+**Scope:** feature UI and narrow session/reset/navigation hooks only. No new backend
+contract, migration, seed, workload rule, or production change. No Swap, multi-select,
+automatic moves, print/PDF, or Agent. See `P13C_MOVE_TOGETHER.md`.
+
+**Later packages:** P13D–P13G remain planned and require separate authorization. A4 map
+printing, Dog Summary, an opt-in demo Training Day, and P14 Operations Agent remain
+outside P13C.
 
 ## Completion discipline
 

@@ -48,9 +48,10 @@ These instructions apply to the entire repository.
 - Public pages use the marketing shell at `/`, `/features`, `/about`, and `/contact`.
   The operational application has one canonical route tree under `/demo`; legacy
   pre-P11 routes redirect into it while retaining path and query state.
-- Kennel Map is the `/demo/kennel` wide workspace with read-only Overview/Ground views.
-  Preserve its season-bounded `date` and its `layer` and `view` URL state. Both use one
-  dated snapshot and render all residents regardless of nominal capacity. Ground preserves the fictional
+- Kennel Map is the `/demo/kennel` wide workspace, initially in View mode. Overview and
+  Ground share one committed snapshot and one feature-local Move draft. Preserve its
+  season-bounded `date` and its `layer` and `view` URL state. Both render all residents
+  regardless of nominal capacity. Ground preserves the fictional
   enclosure order and adjacency at every viewport size; contain map scrolling without
   horizontal page overflow.
 - Canonical housing remains immutable. P13B allows only temporary workspace overrides
@@ -58,7 +59,12 @@ These instructions apply to the entire repository.
   Use the shared `HousingContext` and `EffectiveDogState` for every consumer; never apply
   a reference-date override to past dates. Nominal capacity is not a workspace move
   limit. Moves do not alter work eligibility, plans, teams, actual records, or status.
-  Move UI remains a separately authorized P13C package.
+  P13C stages Move Together changes locally in either view. Drop/select/Undo/Discard
+  never write; one explicit review confirmation sends one existing atomic batch. Keep
+  committed state separate from preview and do not persist or log draft/preconditions.
+  Stale, expired, and unconfirmed request outcomes require reload/reconciliation,
+  never automatic replay. Reset/session replacement invalidates old drafts. Dirty
+  navigation must be confirmed, and an in-flight unsubscribe is not a server rollback.
 - Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.

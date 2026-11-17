@@ -18,6 +18,10 @@ exist.
   `SameSite=Lax`, `Secure` in production, path `/api/v1`, expiry aligned to the
   configured workspace TTL.
 - `localStorage`: none.
+- Kennel Map Move Together previews and Undo history exist only in component memory.
+  Drop, selection, Undo, and review cancellation send no move payload. Only explicit
+  confirmation sends the existing workspace-scoped batch; drafts and preconditions
+  are never written to browser storage, URLs, or logs. Leaving/reloading discards them.
 - `sessionStorage`: none.
 - IndexedDB: none.
 - Analytics, advertising, marketing, and fingerprinting identifiers: none.

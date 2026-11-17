@@ -85,7 +85,7 @@
       <button type="button" class="workspace-reset" (click)="requestReset()">Reset my demo data</button>
     } @else {
       <div class="reset-confirm" role="group" aria-label="Confirm demo reset">
-        <span>This removes only your plans, teams, and actual-work edits.</span>
+        <span>This removes only your plans, teams, housing, and actual-work edits.</span>
         <button type="button" (click)="confirmReset()" [disabled]="resetting()">{{ resetting() ? 'Resetting…' : 'Confirm reset' }}</button>
         <button type="button" (click)="cancelReset()" [disabled]="resetting()">Cancel</button>
       </div>

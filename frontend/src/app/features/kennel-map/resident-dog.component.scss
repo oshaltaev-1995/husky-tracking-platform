@@ -19,6 +19,12 @@
 .resident-dog:focus-visible { outline-offset: calc(-1 * var(--focus-ring-width)); }
 .resident-dog.highlighted { box-shadow: inset 0 0 0 0.16rem var(--focus); }
 .resident-dog.receded { opacity: 0.58; }
+.move-dog { width: 100%; text-align: left; font: inherit; cursor: grab; }
+.move-dog:disabled { cursor: default; }
+.move-dog.selected { outline: 2px solid var(--brand); outline-offset: -2px; }
+.move-dog.dragging { opacity: .55; }
+.move-dog .resident-copy strong, .move-dog .resident-copy small { overflow: visible; white-space: normal; overflow-wrap: anywhere; }
+.resident-copy .pending-label { color: var(--brand-strong); font-weight: 800; }
 
 .resident-initial,
 .resident-marker {

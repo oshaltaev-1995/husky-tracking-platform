@@ -1,5 +1,21 @@
 @use '../../../styles/mixins' as mixins;
 
+.housing-tools { padding: var(--space-4); margin-bottom: var(--space-4); }
+.housing-heading { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: var(--space-3); }
+.housing-heading h2 { font-size: var(--font-section-title); margin: 0 0 var(--space-2); }
+.housing-heading p, .move-hint { color: var(--text-secondary); font-size: var(--font-body); margin: 0 0 var(--space-3); }
+.move-controls { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; margin-block: var(--space-4); }
+.move-controls .form-field { flex: 1 1 14rem; min-width: 0; }
+.move-controls select { width: 100%; min-width: 0; }
+.move-controls a { align-self: center; color: var(--brand-strong); font-size: var(--font-body); text-underline-offset: .15em; }
+.draft-summary { display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: space-between; border-block: 1px solid var(--border); padding-block: var(--space-3); }
+.draft-summary ul { margin: var(--space-2) 0 0; padding-left: var(--space-5); font-size: var(--font-body); }
+.draft-actions { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.housing-feedback, .housing-error { margin-bottom: 0; font-size: var(--font-body); line-height: 1.5; }
+.housing-error { color: var(--danger); }
+.destination-context { padding: var(--space-3); margin-bottom: var(--space-3); background: var(--surface-soft); border-radius: var(--radius-control); font-size: var(--font-body); }
+.destination-context p { margin: var(--space-2) 0 0; }
+
 :host { display: block; min-width: 0; }
 .map-header { align-items: center; }
 .date-control { width: min(13rem, 100%); }

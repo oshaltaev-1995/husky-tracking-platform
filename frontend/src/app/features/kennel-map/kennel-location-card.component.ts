@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, output, signal } from '@angular/core';
 
 import {
   KennelMapLayer,
@@ -15,8 +15,15 @@ import { ResidentDogComponent } from './resident-dog.component';
       [class.puppy-area]="location().location_type === 'puppy_area'"
       [class.highlighted]="containsHighlight()"
       [class.compact]="compact()"
+      [class.move-target]="moveMode() && !interactionsDisabled()"
+      [class.drop-active]="dragOver()"
+      [class.affected]="moveMode() && affectedLocationCodes().has(location().code)"
       [attr.data-location-code]="location().code"
       [attr.aria-label]="location().display_name + ', ' + occupancyLabel()"
+      (dragenter)="onDragOver($event)"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
     >
       <header>
         <div>
@@ -27,6 +34,12 @@ import { ResidentDogComponent } from './resident-dog.component';
         </div>
         <span>{{ occupancyLabel() }}</span>
       </header>
+      @if (moveMode() && affectedLocationCodes().has(location().code)) {
+        <p class="pending-location">Pending changes</p>
+      }
+      @if (location().residents.length > location().capacity) {
+        <p class="capacity-note">{{ location().residents.length }} residents · nominal capacity {{ location().capacity }}</p>
+      }
       @if (location().location_type === 'puppy_area') {
         <p class="area-detail">{{ litterLabel() }}</p>
       }
@@ -37,6 +50,11 @@ import { ResidentDogComponent } from './resident-dog.component';
             [layer]="layer()"
             [highlighted]="dog.id === highlightedDogId()"
             [compact]="compact()"
+            [moveMode]="moveMode()"
+            [selectedDogId]="selectedDogId()"
+            [pendingDogIds]="pendingDogIds()"
+            [interactionsDisabled]="interactionsDisabled()"
+            (dogSelected)="dogSelected.emit($event)"
           />
         }
         @for (slot of emptySlots(); track slot) {
@@ -56,6 +74,48 @@ export class KennelLocationCardComponent {
   readonly layer = input.required<KennelMapLayer>();
   readonly highlightedDogId = input<string | null>(null);
   readonly compact = input(false);
+  readonly moveMode = input(false);
+  readonly selectedDogId = input<string | null>(null);
+  readonly pendingDogIds = input<ReadonlySet<string>>(new Set<string>());
+  readonly affectedLocationCodes = input<ReadonlySet<string>>(new Set<string>());
+  readonly interactionsDisabled = input(false);
+  readonly dogSelected = output<string>();
+  readonly dogDropped = output<{ dogId: string; destinationCode: string }>();
+  protected readonly dragOver = signal(false);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  constructor() {
+    effect(() => {
+      if (!this.moveMode() || this.interactionsDisabled()) this.dragOver.set(false);
+    });
+  }
+
+  protected onDragOver(event: DragEvent): void {
+    if (!this.canAcceptDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dragOver.set(true);
+  }
+
+  protected onDragLeave(event: DragEvent): void {
+    if (event.relatedTarget instanceof Node && this.host.nativeElement.contains(event.relatedTarget)) return;
+    this.dragOver.set(false);
+  }
+
+  protected onDrop(event: DragEvent): void {
+    this.dragOver.set(false);
+    if (!this.canAcceptDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const dogId = event.dataTransfer?.getData('application/x-husky-dog');
+    if (dogId) this.dogDropped.emit({ dogId, destinationCode: this.location().code });
+  }
+
+  private canAcceptDrag(event: DragEvent): boolean {
+    return this.moveMode() && !this.interactionsDisabled() && this.location().is_active &&
+      Array.from(event.dataTransfer?.types ?? []).includes('application/x-husky-dog');
+  }
 
   protected readonly containsHighlight = computed(() =>
     this.location().residents.some((dog) => dog.id === this.highlightedDogId()),

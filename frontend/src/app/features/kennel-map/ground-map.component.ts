@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -40,6 +41,13 @@ export class GroundMapComponent {
   readonly puppyAreas = input.required<KennelMapLocation[]>();
   readonly layer = input.required<KennelMapLayer>();
   readonly highlightedDogId = input<string | null>(null);
+  readonly moveMode = input(false);
+  readonly selectedDogId = input<string | null>(null);
+  readonly pendingDogIds = input<ReadonlySet<string>>(new Set<string>());
+  readonly affectedLocationCodes = input<ReadonlySet<string>>(new Set<string>());
+  readonly interactionsDisabled = input(false);
+  readonly dogSelected = output<string>();
+  readonly dogDropped = output<{ dogId: string; destinationCode: string }>();
 
   private readonly viewport = viewChild.required<ElementRef<HTMLDivElement>>('viewport');
   private readonly board = viewChild.required<ElementRef<HTMLDivElement>>('board');

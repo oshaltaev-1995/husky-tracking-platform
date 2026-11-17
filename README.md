@@ -41,6 +41,9 @@ implementation, not a migration or copy of either reference project.
 - historical Kennel Map snapshots with A1/A2/B1/B2 rows, two puppy buildings,
   dated housing/state resolution, dog finding, and Default/Gender/Neutered/Class/
   Unavailable visual layers
+- Overview and spatial Ground views sharing the dated snapshot, plus workspace-only
+  Move Together staging, stepwise Undo, review, and atomic confirmation at the demo
+  reference date; occupied destinations and every resident remain visible
 - PostgreSQL-backed Daily Plans with ordered activities, dated manual participant pools,
   optimistic revisions, and the shared 30 km per-dog/day training guardrail
 - deterministic Team Builder previews and saved Lead/Team/Wheel harness lineups with
@@ -69,6 +72,14 @@ teams remain intentions; only Daily Entry
 `WorkSession`/`WorkParticipation` rows are workload truth for analytics and the
 Dashboard. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
+
+P13C's Move Together UI is implemented locally for independent review; this does not
+describe a production deployment. Select a dog and destination or drag it into an
+occupied enclosure, review the local preview, and confirm one batch. Cancel review
+keeps the draft; Discard clears it without a request. Reset removes only that visitor's
+temporary placements. Historical housing, saved plans/teams, and actual workload remain
+unchanged. See [`docs/P13C_MOVE_TOGETHER.md`](docs/P13C_MOVE_TOGETHER.md) for editing,
+error recovery, navigation, and validation boundaries.
 
 ## Demo time
 

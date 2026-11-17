@@ -179,6 +179,7 @@ export class DemoShellComponent {
   }
 
   protected requestReset(): void {
+    this.demoSession.resetReviewOpened$.next();
     this.resetMessage.set(null);
     this.resetConfirming.set(true);
   }

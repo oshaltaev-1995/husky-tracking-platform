@@ -38,7 +38,11 @@
                   <div class="ground-enclosures">
                     @for (location of row.locations; track location.id) {
                       <ht-kennel-location-card [location]="location" [layer]="layer()"
-                        [highlightedDogId]="highlightedDogId()" [compact]="true" />
+                        [highlightedDogId]="highlightedDogId()" [compact]="true"
+                        [moveMode]="moveMode()" [selectedDogId]="selectedDogId()"
+                        [pendingDogIds]="pendingDogIds()" [affectedLocationCodes]="affectedLocationCodes()"
+                        [interactionsDisabled]="interactionsDisabled()"
+                        (dogSelected)="dogSelected.emit($event)" (dogDropped)="dogDropped.emit($event)" />
                     }
                   </div>
                 </section>
@@ -62,7 +66,11 @@
         <div class="ground-buildings">
           @for (location of puppyAreas(); track location.id) {
             <ht-kennel-location-card [location]="location" [layer]="layer()"
-              [highlightedDogId]="highlightedDogId()" [compact]="true" />
+              [highlightedDogId]="highlightedDogId()" [compact]="true"
+              [moveMode]="moveMode()" [selectedDogId]="selectedDogId()"
+              [pendingDogIds]="pendingDogIds()" [affectedLocationCodes]="affectedLocationCodes()"
+              [interactionsDisabled]="interactionsDisabled()"
+              (dogSelected)="dogSelected.emit($event)" (dogDropped)="dogDropped.emit($event)" />
           }
         </div>
       </section>

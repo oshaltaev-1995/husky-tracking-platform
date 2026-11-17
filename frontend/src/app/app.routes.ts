@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { demoSessionGuard } from './core/guards/demo-session.guard';
+import { housingDateGuard, housingLeaveGuard } from './features/kennel-map/housing-navigation.guard';
 
 const demoRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -30,6 +31,9 @@ const demoRoutes: Routes = [
   },
   {
     path: 'kennel',
+    canActivate: [housingDateGuard],
+    canDeactivate: [housingLeaveGuard],
+    runGuardsAndResolvers: 'paramsOrQueryParamsChange',
     loadComponent: () =>
       import('./features/kennel-map/kennel-map-page.component').then(
         (component) => component.KennelMapPageComponent,

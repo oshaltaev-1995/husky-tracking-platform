@@ -294,8 +294,8 @@ and cannot mutate housing or status.
 
 ### Historical Kennel Map
 
-`/demo/kennel` has read-only Overview and Ground views in a `.content-wide` route.
-P13B's atomic housing API supplies the backend foundation; Move UI is deferred to P13C.
+`/demo/kennel` has Overview and Ground views in a `.content-wide` route. View mode is
+the default; P13C adds a shared Move mode over P13B's accepted housing API.
 `date`, `layer`, and `view` query parameters make a presentation reload-safe and
 shareable. The reference date, Default
 layer, and Overview are the fallbacks; `?view=ground` opens Ground directly. Public
@@ -324,6 +324,40 @@ it highlights the dog and enclosure and reveals the active profile link. Every r
 name remains a regular `/demo/dogs/{public_id}` link. P13A's presentation adds no
 housing writes, snapshot API changes, migrations, or seed changes. P13B adds only the
 workspace exception described above; the canonical map projection remains read-only.
+
+### Move Together editor
+
+P13C keeps the committed `KennelMapSnapshot`, its server editing context, an in-memory
+dog UUID → destination map, and an action history separate. Pure feature-local draft
+functions derive preview housing and review changes without mutating API data. Repeated
+assignments normalize to one final destination; returning to committed housing removes
+the pending entry. Undo restores the previous intention, including a repeated move of
+the same dog. Discard drops the draft, while cancelling review keeps it.
+
+Both active map representations use the same draft and `KennelMapService.moveDogs`.
+View/layer changes keep draft state and do not fetch a new snapshot. Desktop dragging
+and keyboard/touch selectors stage the same operation; a dog drag does not start Ground
+pan, and moving a dog does not automatically Fit or zoom the map. Review shows committed
+source, proposed destination, and every affected location's resulting residents. Nominal
+capacity remains informational. Server `housing_edit` controls editability, including a
+valid zero revision; historical/no-workspace snapshots remain read-only.
+
+An explicit confirmation freezes one batch and sends one POST. No interceptor or API
+client retries it. A complete HTTP 200 response replaces committed state and clears the
+confirmed draft/history. A 409 blocks stale confirmation until an explicit reload;
+401 requires reinitializing the existing demo-session flow and loading a fresh snapshot
+without replay. Narrow `DemoSessionService` reset/replacement notifications coordinate
+the shell and editor. Network/timeout/uncertain 5xx outcomes remain unconfirmed until
+GET reconciliation; unsubscribing or navigating cannot undo an accepted server write.
+Responses from an old context cannot overwrite a newer date or session.
+
+Date/route changes, leaving Move mode, and profile navigation protect dirty drafts;
+view/layer changes remain presentation-only. Review/discard dialogs use the existing
+focus-managed pattern, and beforeunload warns only while relevant unsaved work exists.
+Reset invalidates the editor without a second stale-discard prompt. Drafts, preconditions,
+and bodies stay out of URLs, browser storage, and logs. No backend, schema, seed, or
+domain-policy changes are part of P13C. Detailed behavior and review boundaries are in
+`P13C_MOVE_TOGETHER.md`; print, Training Day, and Agent work remain separate packages.
 
 The canonical archived dogs keep valid housing history, but their assignments all end
 before the public demo season. P4 therefore truthfully shows no archived resident in a

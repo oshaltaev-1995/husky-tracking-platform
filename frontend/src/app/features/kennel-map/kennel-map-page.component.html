@@ -39,7 +39,7 @@
 
   @if (state$ | async; as state) {
     @if (state.kind === 'ready') {
-      <form class="dog-finder" (submit)="$event.preventDefault(); findDog(state.data)">
+      <form class="dog-finder" (submit)="$event.preventDefault(); findDog(preview() ?? state.data)">
         <label>
           <span class="visually-hidden">Find a resident dog on the map</span>
           <input
@@ -51,7 +51,7 @@
             (ngModelChange)="invalidateSearch()"
           />
           <datalist id="resident-dogs">
-            @for (dog of residents(state.data); track dog.id) { <option [value]="dog.name"></option> }
+            @for (dog of residents(preview() ?? state.data); track dog.id) { <option [value]="dog.name"></option> }
           </datalist>
         </label>
         <button class="button secondary" type="submit">Find</button>
@@ -62,6 +62,69 @@
     }
   }
 </section>
+
+@if (committed(); as snapshot) {
+  <section class="housing-tools surface" aria-label="Housing moves">
+    <div class="housing-heading">
+      <div>
+        <h2>{{ moveMode() ? 'Move together' : 'Housing' }}</h2>
+        <p>{{ canEdit() ? 'Housing changes affect your demo workspace only, on the reference date.' : snapshot.housing_edit.reason === 'historical_date' ? 'Historical housing is read-only. Choose the reference date to move dogs.' : 'An active demo session is required to move dogs. Restore the demo session and reload housing.' }}</p>
+      </div>
+      @if (!moveMode()) {
+        <button type="button" class="button secondary" [disabled]="!canEdit() || phase() !== 'idle'" (click)="enterMove()">Move dogs</button>
+      } @else {
+        <button type="button" class="button quiet" (click)="doneMoving()" [disabled]="phase() === 'resetting' || phase() === 'reloading'">Done moving</button>
+      }
+    </div>
+    @if (moveMode()) {
+      <form class="move-controls" (submit)="$event.preventDefault(); stageSelected()">
+        <label class="form-field"><span>Dog to move</span>
+          <select name="move-dog" [ngModel]="selectedDogId() ?? ''" (ngModelChange)="selectDog($event)" [disabled]="interactionsDisabled()">
+            <option value="">Select a dog</option>
+            @for (dog of sortedResidents(); track dog.id) { <option [value]="dog.id">{{ dog.name }} · {{ dog.housing_code }}</option> }
+          </select>
+        </label>
+        <label class="form-field"><span>Move to</span>
+          <select name="move-destination" [(ngModel)]="destinationCode" [disabled]="!selectedDogId() || interactionsDisabled()">
+            <option value="">Select a destination</option>
+            @for (location of preview()!.locations; track location.code) {
+              @if (location.is_active) { <option [value]="location.code">{{ location.code }} · {{ location.display_name }} · {{ location.residents.length }} {{ draft().size ? 'preview' : 'current' }} residents</option> }
+            }
+          </select>
+        </label>
+        <button type="submit" class="button secondary" [disabled]="!selectedDogId() || !destinationCode || interactionsDisabled()">Stage move</button>
+        @if (selectedDogId(); as id) { <a [routerLink]="['/demo/dogs', id]">Open selected dog profile</a> }
+      </form>
+      @if (destinationLocation(); as destination) {
+        <div class="destination-context" aria-live="polite">
+          <strong>{{ destination.code }} · {{ destination.display_name }}</strong>
+          <p>{{ committedOccupancy(destination.code) }} saved residents · {{ destination.residents.length }} preview residents · Nominal capacity {{ destination.capacity }}</p>
+          <p>After staging the selected dog: {{ projectedOccupancy(destination) }} residents.</p>
+          <p>Preview residents: @for (dog of destination.residents; track dog.id; let last = $last) { {{ dog.name }}{{ last ? '' : ', ' }} } @empty { None }</p>
+        </div>
+      }
+      <p class="move-hint">Select a dog on the map or use the controls above. On desktop, you can also drag it to any enclosure or puppy area. Nominal capacity is informational.</p>
+      @if (changes().length || hasUndo()) {
+        <div class="draft-summary">
+          <div><strong>Preview · {{ changes().length }} pending {{ changes().length === 1 ? 'move' : 'moves' }}</strong>
+            <ul>@for (move of changes(); track move.dog_id) { <li>{{ move.dog_name }}: {{ move.source_code }} → {{ move.destination_code }}</li> }</ul>
+          </div>
+          <div class="draft-actions">
+            <button class="button quiet" type="button" [disabled]="interactionsDisabled() || !hasUndo()" (click)="undo()">Undo</button>
+            <button class="button quiet" type="button" [disabled]="interactionsDisabled()" (click)="discardDraft()">Discard</button>
+            <button class="button primary" type="button" [disabled]="interactionsDisabled() || !changes().length" (click)="openReview()">Review {{ changes().length }} {{ changes().length === 1 ? 'move' : 'moves' }}</button>
+          </div>
+        </div>
+      }
+    }
+    @if (feedback()) { <p class="housing-feedback" role="status">{{ feedback() }}</p> }
+    @if (errorMessage()) { <p class="housing-error" role="alert">{{ errorMessage() }}</p> }
+    @if (phase() === 'session' || (!canEdit() && snapshot.housing_edit.reason === 'workspace_required' && phase() === 'idle')) { <button data-housing-recovery class="button secondary" type="button" (click)="restoreSession()">Restore demo session</button> }
+    @if (phase() === 'conflict' || phase() === 'unknown') { <button data-housing-recovery class="button secondary" type="button" (click)="reloadHousing()">Reload housing</button> }
+    @if (phase() === 'reloading') { <p role="status">Reloading saved housing…</p> }
+    @if (phase() === 'saving' && !reviewOpen()) { <p role="status">Saving housing moves… Closing the review does not cancel a submitted save.</p> }
+  </section>
+}
 
 <ht-map-legend [layer]="activeLayer" />
 
@@ -78,16 +141,18 @@
       </div>
     }
     @case ('ready') {
+      @let snapshot = preview() ?? state.data;
+      @let mapLayout = layout() ?? state.layout;
       <section class="snapshot-strip" aria-label="Map snapshot summary">
-        <div><strong>{{ state.data.summary.resident_dogs }}</strong><span>Resident dogs</span></div>
-        <div><strong>{{ state.data.summary.occupied_locations }}</strong><span>Occupied locations</span></div>
-        <div><strong>{{ state.data.summary.unavailable_dogs }}</strong><span>Unavailable</span></div>
-        <p>Snapshot · {{ (state.data.selected_date + 'T12:00:00Z') | date: 'longDate':'UTC' }}</p>
+        <div><strong>{{ snapshot.summary.resident_dogs }}</strong><span>Resident dogs</span></div>
+        <div><strong>{{ snapshot.summary.occupied_locations }}</strong><span>{{ draft().size ? 'Preview occupied locations' : 'Occupied locations' }}</span></div>
+        <div><strong>{{ snapshot.summary.unavailable_dogs }}</strong><span>Unavailable</span></div>
+        <p>{{ draft().size ? 'Preview' : 'Snapshot' }} · {{ (snapshot.selected_date + 'T12:00:00Z') | date: 'longDate':'UTC' }}</p>
       </section>
 
-      @if (highlightedDog(state.data); as match) {
+      @if (highlightedDog(snapshot); as match) {
         <div class="search-announcement" aria-live="polite">
-          <span><strong>{{ match.dog.name }}</strong> is in {{ match.location.code }}.</span>
+          <span><strong>{{ match.dog.name }}</strong> is in {{ match.location.code }}{{ draft().size ? ' in this preview' : '' }}.</span>
           <span>Its enclosure is highlighted below.</span>
         </div>
       } @else if (searchNotFound) {
@@ -96,7 +161,7 @@
         </div>
       }
 
-      @if (state.data.summary.resident_dogs === 0) {
+      @if (snapshot.summary.resident_dogs === 0) {
         <div class="empty-state">
           <h2>No resident dogs on this date</h2>
           <p>The kennel topology is still shown below; no effective housing assignments resolved.</p>
@@ -105,14 +170,17 @@
 
       @if (activeView === 'ground') {
         <ht-ground-map
-          [blocks]="state.layout.blocks"
-          [puppyAreas]="state.layout.puppyAreas"
+          [blocks]="mapLayout.blocks"
+          [puppyAreas]="mapLayout.puppyAreas"
           [layer]="activeLayer"
           [highlightedDogId]="highlightedDogId"
+          [moveMode]="moveMode()" [selectedDogId]="selectedDogId()" [pendingDogIds]="pendingDogIds()"
+          [affectedLocationCodes]="affectedLocationCodes()" [interactionsDisabled]="interactionsDisabled()"
+          (dogSelected)="selectDog($event)" (dogDropped)="stage($event)"
         />
       } @else {
       <div class="kennel-canvas" [attr.data-layer]="activeLayer">
-        @for (block of state.layout.blocks; track block.zone) {
+        @for (block of mapLayout.blocks; track block.zone) {
           <section
             class="kennel-block"
             [attr.data-zone]="block.zone"
@@ -139,6 +207,9 @@
                         [location]="location"
                         [layer]="activeLayer"
                         [highlightedDogId]="highlightedDogId"
+                        [moveMode]="moveMode()" [selectedDogId]="selectedDogId()" [pendingDogIds]="pendingDogIds()"
+                        [affectedLocationCodes]="affectedLocationCodes()" [interactionsDisabled]="interactionsDisabled()"
+                        (dogSelected)="selectDog($event)" (dogDropped)="stage($event)"
                       />
                     }
                   </div>
@@ -157,11 +228,14 @@
             <span>Dated residents by building</span>
           </header>
           <div class="puppy-grid" aria-label="Puppy buildings">
-            @for (location of state.layout.puppyAreas; track location.id) {
+            @for (location of mapLayout.puppyAreas; track location.id) {
               <ht-kennel-location-card
                 [location]="location"
                 [layer]="activeLayer"
                 [highlightedDogId]="highlightedDogId"
+                [moveMode]="moveMode()" [selectedDogId]="selectedDogId()" [pendingDogIds]="pendingDogIds()"
+                [affectedLocationCodes]="affectedLocationCodes()" [interactionsDisabled]="interactionsDisabled()"
+                (dogSelected)="selectDog($event)" (dogDropped)="stage($event)"
               />
             }
           </div>
@@ -170,4 +244,11 @@
       }
     }
   }
+}
+
+@if (reviewOpen()) {
+  <ht-housing-move-review [effectiveDate]="committed()!.selected_date" [changes]="changes()" [locations]="affectedLocations()" [saving]="phase() === 'saving'" (confirmed)="confirmMoves()" (cancelled)="reviewOpen.set(false)" />
+}
+@if (discardOpen()) {
+  <ht-housing-discard-dialog [uncertain]="phase() === 'saving' || phase() === 'unknown'" (decided)="resolveDiscard($event)" />
 }
