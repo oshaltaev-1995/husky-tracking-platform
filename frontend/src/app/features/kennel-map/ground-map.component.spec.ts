@@ -158,4 +158,53 @@ describe('Ground map viewport', () => {
     expect(viewport.scrollLeft).toBe(148);
     expect(viewport.scrollTop).toBe(40);
   });
+
+  it('centers the found link inside the map before revealing and focusing it in the browser', () => {
+    const link = document.createElement('a');
+    link.id = 'map-dog-puppy-last';
+    link.href = '/demo/dogs/puppy-last';
+    board.append(link);
+    Object.defineProperties(viewport, {
+      clientLeft: { value: 2 },
+      clientTop: { value: 3 },
+    });
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue(new DOMRect(10, 100, 505, 405));
+    vi.spyOn(link, 'getBoundingClientRect').mockReturnValue(new DOMRect(700, 650, 100, 30));
+    const order: string[] = [];
+    let behavior: ScrollBehavior | undefined;
+    link.scrollIntoView = vi.fn((options?: boolean | ScrollIntoViewOptions) => {
+      if (typeof options === 'object') behavior = options.behavior;
+      expect(viewport.scrollLeft).toBeCloseTo(487.5);
+      expect(viewport.scrollTop).toBeCloseTo(361.5);
+      order.push('reveal link');
+    });
+    const originalFocus = link.focus.bind(link);
+    const focus = vi.spyOn(link, 'focus').mockImplementation((options) => {
+      order.push('focus link');
+      originalFocus(options);
+    });
+
+    fixture.componentInstance.revealDog('puppy-last');
+    expect(order).toEqual(['reveal link', 'focus link']);
+    expect(behavior).toBe('instant');
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(document.activeElement).toBe(link);
+  });
+
+  it('silently preserves a found position when switching views and ignores links outside its viewport', () => {
+    const link = document.createElement('a');
+    link.id = 'map-dog-highlighted';
+    link.href = '/demo/dogs/highlighted';
+    board.append(link);
+    link.scrollIntoView = vi.fn();
+    const focus = vi.spyOn(link, 'focus');
+    fixture.componentInstance.revealDog('highlighted', false);
+    expect(link.scrollIntoView).not.toHaveBeenCalled();
+    expect(focus).not.toHaveBeenCalled();
+
+    fixture.nativeElement.append(link);
+    fixture.componentInstance.revealDog('highlighted');
+    expect(link.scrollIntoView).not.toHaveBeenCalled();
+    expect(focus).not.toHaveBeenCalled();
+  });
 });

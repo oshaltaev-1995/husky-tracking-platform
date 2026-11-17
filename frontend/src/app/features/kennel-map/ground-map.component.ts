@@ -143,7 +143,8 @@ export class GroundMapComponent {
     viewport.scrollLeft += (dog.left + dog.right) / 2 - (view.left + viewport.clientLeft + viewport.clientWidth / 2);
     viewport.scrollTop += (dog.top + dog.bottom) / 2 - (view.top + viewport.clientTop + viewport.clientHeight / 2);
     if (focus) {
-      viewport.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+      // Reveal the focused link in the browser as well as the map's scroll area.
+      link.scrollIntoView?.({ block: 'center', inline: 'nearest', behavior: 'instant' });
       link.focus({ preventScroll: true });
     }
   }

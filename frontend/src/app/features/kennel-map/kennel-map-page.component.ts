@@ -3,13 +3,17 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  afterNextRender,
+  AfterRenderRef,
+  DestroyRef,
   ElementRef,
+  Injector,
   inject,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import {
   BehaviorSubject,
   catchError,
@@ -63,9 +67,12 @@ export class KennelMapPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly ground = viewChild(GroundMapComponent);
   private readonly requestedDate = new BehaviorSubject(DEFAULT_DATE);
+  private pendingReveal: AfterRenderRef | null = null;
 
   protected selectedDate = DEFAULT_DATE;
   protected activeLayer: KennelMapLayer = 'default';
@@ -95,6 +102,10 @@ export class KennelMapPageComponent {
   );
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.cancelReveal());
+    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event instanceof NavigationStart) this.cancelReveal();
+    });
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const rawDate = params.get('date');
       const rawLayer = params.get('layer');
@@ -142,7 +153,10 @@ export class KennelMapPageComponent {
   }
 
   protected selectView(view: MapView): void {
-    if (view !== this.activeView) this.updateUrl({ view });
+    if (view !== this.activeView) {
+      this.cancelReveal();
+      this.updateUrl({ view });
+    }
   }
 
   protected retry(): void {
@@ -151,6 +165,7 @@ export class KennelMapPageComponent {
   }
 
   protected invalidateSearch(): void {
+    this.cancelReveal();
     this.highlightedDogId = null;
     this.searchNotFound = false;
   }
@@ -160,6 +175,7 @@ export class KennelMapPageComponent {
   }
 
   protected findDog(snapshot: KennelMapSnapshot): void {
+    this.cancelReveal();
     const query = this.searchTerm.trim().toLocaleLowerCase();
     if (!query) {
       this.invalidateSearch();
@@ -174,18 +190,28 @@ export class KennelMapPageComponent {
     this.searchNotFound = !dog;
     if (dog) {
       this.searchTerm = dog.name;
-      const ground = this.ground();
-      if (this.activeView === 'ground') {
-        ground?.revealDog(dog.id);
-      } else {
-        const element = this.host.nativeElement;
-        const link = element.ownerDocument.getElementById(`map-dog-${dog.id}`);
-        if (link && element.contains(link)) {
-          link.scrollIntoView?.({ block: 'center', inline: 'nearest' });
-          link.focus({ preventScroll: true });
+      const date = this.selectedDate;
+      const view = this.activeView;
+      this.pendingReveal = afterNextRender(() => {
+        this.pendingReveal = null;
+        if (this.highlightedDogId !== dog.id || this.selectedDate !== date || this.activeView !== view) return;
+        if (view === 'ground') {
+          this.ground()?.revealDog(dog.id);
+        } else {
+          const element = this.host.nativeElement;
+          const link = element.ownerDocument.getElementById(`map-dog-${dog.id}`);
+          if (link && element.contains(link)) {
+            link.scrollIntoView?.({ block: 'center', inline: 'nearest', behavior: 'instant' });
+            link.focus({ preventScroll: true });
+          }
         }
-      }
+      }, { injector: this.injector });
     }
+  }
+
+  private cancelReveal(): void {
+    this.pendingReveal?.destroy();
+    this.pendingReveal = null;
   }
 
   protected clearSearch(): void {

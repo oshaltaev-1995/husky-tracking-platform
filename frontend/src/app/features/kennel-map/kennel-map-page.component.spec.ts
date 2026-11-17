@@ -3,14 +3,17 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { NavigationEnd, provideRouter, Router } from '@angular/router';
 import { filter, firstValueFrom } from 'rxjs';
+import { vi } from 'vitest';
 
 import {
   KennelMapLocation,
   KennelMapResident,
   KennelMapSnapshot,
 } from '../../core/api/kennel-map.models';
+import { GroundMapComponent } from './ground-map.component';
 import { KennelMapPageComponent } from './kennel-map-page.component';
 
 const maple: KennelMapResident = {
@@ -157,6 +160,7 @@ function locationCodes(root: HTMLElement): string[] {
 
 describe('KennelMapPageComponent', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
+  afterEach(() => vi.restoreAllMocks());
 
   it('renders the canonical row topology, puppy areas, and profile links', async () => {
     const { fixture, root, http } = await setup();
@@ -699,5 +703,119 @@ describe('KennelMapPageComponent', () => {
     expect(root.querySelector('.search-announcement')).toBeNull();
     expect(root.querySelectorAll('ht-kennel-location-card').length).toBe(22);
     expect(root.querySelectorAll('a.resident-dog').length).toBe(0);
+  });
+
+  for (const view of ['overview', 'ground']) {
+    it(`reveals the ${view} result after the search announcement is rendered`, async () => {
+      const { fixture, root, http } = await setup(`/demo/kennel?view=${view}`);
+      http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush(snapshot);
+      await render(fixture);
+      const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+      const link = root.querySelector<HTMLAnchorElement>('#map-dog-taro-id')!;
+      const focus = vi.spyOn(link, 'focus');
+      const revealState: { message: string | null; highlighted: boolean; behavior?: ScrollBehavior }[] = [];
+      const scroll = vi.fn((options?: ScrollIntoViewOptions) => {
+        revealState.push({
+          message: root.querySelector('.search-announcement')?.textContent ?? null,
+          highlighted: link.classList.contains('highlighted'),
+          behavior: options?.behavior,
+        });
+      });
+      link.scrollIntoView = scroll;
+
+      search.value = 'Taro';
+      search.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      search.focus();
+      root.querySelector<HTMLFormElement>('.dog-finder')!.dispatchEvent(new Event('submit'));
+      expect(root.querySelector('.search-announcement')).toBeNull();
+      expect(scroll).not.toHaveBeenCalled();
+      expect(focus).not.toHaveBeenCalled();
+
+      await render(fixture);
+      expect(scroll).toHaveBeenCalledTimes(1);
+      expect(revealState[0].behavior).toBe('instant');
+      expect(revealState[0].message).toContain('Taro is in PUPPY-A');
+      expect(revealState[0].highlighted).toBe(true);
+      expect(focus).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(link);
+      http.expectNone((request) => request.url.includes('/kennel-map'));
+    });
+  }
+
+  for (const cancel of ['query change', 'Clear', 'date change', 'view change', 'route navigation', 'destroy']) {
+    it(`cancels a pending Ground search reveal after ${cancel}`, async () => {
+      const { fixture, root, router, http } = await setup('/demo/kennel?view=ground');
+      http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush(snapshot);
+      await render(fixture);
+      const ground = fixture.debugElement.query(By.directive(GroundMapComponent))
+        .componentInstance as GroundMapComponent;
+      const reveal = vi.spyOn(ground, 'revealDog');
+      const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+      search.value = 'Taro';
+      search.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      root.querySelector<HTMLFormElement>('.dog-finder')!.dispatchEvent(new Event('submit'));
+      expect(reveal).not.toHaveBeenCalled();
+
+      switch (cancel) {
+        case 'query change':
+          search.value = 'Different query';
+          search.dispatchEvent(new Event('input'));
+          break;
+        case 'Clear':
+          Array.from(root.querySelectorAll<HTMLButtonElement>('.dog-finder button'))
+            .find((control) => control.textContent.trim() === 'Clear')!.click();
+          break;
+        case 'date change': {
+          const date = root.querySelector<HTMLInputElement>('input[type="date"]')!;
+          date.value = '2026-01-14';
+          date.dispatchEvent(new Event('input'));
+          break;
+        }
+        case 'view change':
+          button(root, 'Map view', 'Overview').click();
+          break;
+        case 'route navigation':
+          await router.navigateByUrl('/demo/dogs/maple-id?date=2026-03-31');
+          break;
+        case 'destroy':
+          fixture.destroy();
+          break;
+      }
+      if (cancel === 'destroy') await fixture.whenStable();
+      else await render(fixture);
+      if (cancel === 'date change') {
+        http.expectOne('/api/v1/kennel-map?date=2026-01-14').flush({
+          ...snapshot,
+          selected_date: '2026-01-14',
+        });
+        await render(fixture);
+      }
+      expect(reveal).not.toHaveBeenCalled();
+      expect(document.activeElement?.id).not.toBe('map-dog-taro-id');
+    });
+  }
+
+  it('reveals only the latest search when another result replaces it before rendering', async () => {
+    const { fixture, root, http } = await setup('/demo/kennel?view=ground');
+    http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush(snapshot);
+    await render(fixture);
+    const ground = fixture.debugElement.query(By.directive(GroundMapComponent))
+      .componentInstance as GroundMapComponent;
+    const reveal = vi.spyOn(ground, 'revealDog');
+    const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+    const form = root.querySelector<HTMLFormElement>('.dog-finder')!;
+    search.value = 'Maple';
+    search.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('submit'));
+    search.value = 'Taro';
+    search.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('submit'));
+    expect(reveal).not.toHaveBeenCalled();
+    await render(fixture);
+    expect(reveal.mock.calls).toEqual([['taro-id']]);
+    expect(root.querySelector('.search-announcement')?.textContent).toContain('Taro is in PUPPY-A');
+    expect(document.activeElement?.id).toBe('map-dog-taro-id');
   });
 });

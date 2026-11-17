@@ -606,6 +606,14 @@ tablet, and mobile with real browser evidence.
 **Scope boundary:** no API, database, seed, demo clock, or checksum changes. No housing
 editing, print workflows, Training changes, or Operations Agent capabilities in P13A.
 
+**P13A-R1:** search reveal/focus runs after Angular renders the result announcement.
+Pending work is cancelled on a newer/cleared search, date/view changes, navigation,
+and destruction. Reveal uses the dog link and immediate scrolling, so both the map
+client area and browser window contain the result without a lingering smooth scroll.
+Local production-build regression evidence covers the last Puppy A/B resident at
+initial Fit and manual zoom, plus Overview at desktop, tablet, and mobile widths.
+Technical validation is separate from the owner's independent acceptance.
+
 **Later packages:** P13B–P13G remain planned and require separate authorization. Work
 such as workspace housing overrides, staged moves, A4 print views, and an opt-in demo
 Training Day is deferred. P14 Operations Agent is not part of this release.
