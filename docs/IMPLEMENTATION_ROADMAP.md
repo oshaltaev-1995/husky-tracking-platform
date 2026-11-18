@@ -658,9 +658,8 @@ document and rehearse invalidating temporary data with compatible code before ro
 
 ## P13C — Move Together UI
 
-**Status:** implemented locally for independent review. Final gate and browser evidence
-are reported with the package; implementation alone is not independent acceptance or
-production acceptance. The work starts from accepted P13B and preserves its API and
+**Status:** P13C and its R1 corrections accepted for local continuation to P13D.
+Production acceptance and rollout remain separate. The work starts from accepted P13B and preserves its API and
 schema head `b7e13a9d4c20`.
 
 **Behavior:** View is the default. Overview and Ground share one committed snapshot,
@@ -688,15 +687,42 @@ checksum. Mark unavailable hardware/browser engines or other missing evidence NO
 contract, migration, seed, workload rule, or production change. No Swap, multi-select,
 automatic moves, print/PDF, or Agent. See `P13C_MOVE_TOGETHER.md`.
 
-**Later packages:** P13D–P13G remain planned and require separate authorization. A4 map
-printing, Dog Summary, an opt-in demo Training Day, and P14 Operations Agent remain
-outside P13C.
+**Later packages:** P13D was authorized separately below. Dog Summary, an opt-in demo
+Training Day, and P14 Operations Agent remain outside P13C.
 
-**P13C-R1:** local corrections for independent review address consistent save-result
+**P13C-R1:** accepted for local continuation. Corrections address consistent save-result
 announcements, keyboard access to the entire scrollable Review, and Discard focus
 ownership during delayed save failures. Before/after evidence and fresh regression
 results belong to the R1 review bundle. No backend/schema, occupancy rule, workspace
-authorization, or deployment change; P13C acceptance and P13D remain separate decisions.
+authorization, or deployment change. This acceptance authorizes local P13D only.
+
+## P13D — Kennel Map print
+
+**Status:** implemented locally for independent review; gate, browser and actual PDF
+evidence belongs to the package report. No deployment is authorized.
+
+One Print map action in either map view opens the same frozen committed snapshot/layer
+projection. The read-only output preserves all locations, complete resident lists,
+paired rows/aisles and separate puppy buildings. Pending moves and unresolved housing
+operations block printing without saving/discarding anything. Historical snapshots are
+printable. Date/reset/session invalidation closes the print context.
+
+The feature uses ordinary HTML/CSS browser printing, A4 landscape at 100% with 10mm
+margins, readable text and native multi-page overflow. Preview and print share the same
+document; no backend PDF API, new persistence or heavy dependency is introduced. Tokens,
+revisions, IDs and API URLs never appear in the printed document. Browser afterprint
+does not mean the user saved a PDF.
+
+Acceptance includes per-location text/roster checks in real PDFs, page size/count,
+every-page visual review, keyboard preview, workspace and historical contexts, five
+layers, high occupancy, and compact Move/R1 visibility regression. Physical print-dialog
+checks are distinguished from headless rendering; unavailable hardware/engines are
+reported explicitly.
+
+Small directly related non-blocking corrections are included and reported within the
+authorized stage. Mandatory gates remain unchanged and are consolidated at the end;
+data/isolation/persistence/core-flow or required-output blockers stop progression.
+P13E–P13G and P14 remain unauthorized and are not started here.
 
 ## Completion discipline
 

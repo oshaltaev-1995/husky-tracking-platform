@@ -126,6 +126,30 @@ Public activity UUIDs appear in routes; integer keys remain internal. A stale re
 returns a stable `plan_changed` conflict. The eligibility projection loads dogs and
 their histories in bounded select-in queries rather than per-profile calls.
 
+## Kennel Map print projection
+
+Map printing is a frontend-only read projection of the last coherent committed API
+snapshot and selected visual layer. Opening the preview creates no request, workspace,
+day or mutation. The projection is detached from both the API object and unsaved Move
+draft and remains fixed for that preview. Housing operations with pending or uncertain
+results must be resolved before opening it; historical read-only snapshots need no
+editing precondition. Date/session/reset invalidation closes it.
+
+A feature-local preview host is attached directly under body so scoped print media
+rules can hide the application without clipping a descendant document or leaving its
+screen layout as blank pages. The document itself is shared between preview and print,
+uses named A4-landscape pages, text labels and natural table pagination. Print styling
+is active only while this context exists; ordinary browser printing outside it is not
+globally intercepted or hidden. Lifecycle cleanup restores title, listeners, body
+classes and appropriate focus. No event claims that a PDF was saved.
+If afterprint is absent, a preview-local recovery guard requires an observed window
+blur/return-focus sequence and explicitly inactive print media before restoring controls;
+focus alone and the return value of print never remove the document or prove saving.
+
+Printed data includes names and dated housing/layer context, never preconditions,
+revision values, cookie data, technical IDs or API URLs. There is no server-side PDF
+generator, image capture pipeline or duplicate housing computation.
+
 ## Demo clock
 
 `Settings` validates season start/end/reference values and `DemoClock` is the only

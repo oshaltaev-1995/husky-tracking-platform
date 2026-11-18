@@ -1,0 +1,21 @@
+<div class="print-preview-shell">
+  <section class="print-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="kennel-print-preview-title" aria-describedby="kennel-print-preview-description">
+    <header class="print-preview-toolbar">
+      <h2 id="kennel-print-preview-title">Kennel Map print preview</h2>
+      <p id="kennel-print-preview-description">A4 landscape · Snapshot {{ projection().snapshotDate }} · {{ projection().layerLabel }} layer. Use 100% scale and turn off browser headers and footers.</p>
+    </header>
+    <div #paper class="print-preview-content" tabindex="0" role="region" aria-label="Kennel Map print document">
+      <ht-kennel-print-document [projection]="projection()" />
+    </div>
+    <footer class="print-preview-footer">
+      <div class="print-preview-announcements">
+        @if (printStatus()) { <p role="status">{{ printStatus() }}</p> }
+        @if (printError()) { <p class="print-preview-error" role="alert">{{ printError() }}</p> }
+      </div>
+      <div class="print-preview-actions">
+        <button class="button secondary" type="button" [disabled]="requestingPrint() || nativePrinting()" (click)="close()">Close</button>
+        <button class="button primary" type="button" [disabled]="!ready() || requestingPrint() || nativePrinting()" (click)="print()">Print / Save as PDF</button>
+      </div>
+    </footer>
+  </section>
+</div>

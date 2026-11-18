@@ -73,13 +73,20 @@ teams remain intentions; only Daily Entry
 Dashboard. See
 [`docs/IMPLEMENTATION_ROADMAP.md`](docs/IMPLEMENTATION_ROADMAP.md).
 
-P13C's Move Together UI is implemented locally for independent review; this does not
-describe a production deployment. Select a dog and destination or drag it into an
+P13C and R1 are accepted for local continuation; this does not describe a production
+deployment. Select a dog and destination or drag it into an
 occupied enclosure, review the local preview, and confirm one batch. Cancel review
 keeps the draft; Discard clears it without a request. Reset removes only that visitor's
 temporary placements. Historical housing, saved plans/teams, and actual workload remain
 unchanged. See [`docs/P13C_MOVE_TOGETHER.md`](docs/P13C_MOVE_TOGETHER.md) for editing,
 error recovery, navigation, and validation boundaries.
+
+P13D adds a local-review Print map workspace: one frozen committed snapshot and layer,
+shared by Overview/Ground, with an accessible preview and ordinary browser Print / Save
+as PDF. Canonical output targets one A4 landscape sheet; larger rosters continue on
+additional readable pages. Pending/unresolved housing states block printing. Opening,
+closing or repeating print makes no API request or mutation. P13E and later packages
+remain separate and are not started by this implementation.
 
 ## Demo time
 

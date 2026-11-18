@@ -18,6 +18,12 @@
   </label>
 </header>
 
+<div class="map-print-action">
+  <button type="button" class="button secondary" [disabled]="!!printUnavailableReason()"
+    [attr.aria-describedby]="printUnavailableReason() ? 'kennel-print-unavailable' : null" (click)="openPrint()">Print map</button>
+  @if (printUnavailableReason(); as reason) { <p id="kennel-print-unavailable">{{ reason }}</p> }
+</div>
+
 <section class="map-toolbar surface" aria-label="Kennel map controls">
   <div class="view-control" role="group" aria-label="Map view">
     <button type="button" [attr.aria-pressed]="activeView === 'overview'" (click)="selectView('overview')">Overview</button>

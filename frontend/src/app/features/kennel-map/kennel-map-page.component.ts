@@ -47,6 +47,8 @@ import { HousingMoveDraft, affectedHousing, pendingMoves, previewHousing, stageM
 import { HousingNavigationGuardState } from './housing-navigation.guard';
 import { HousingDiscardDialogComponent } from './housing-discard-dialog.component';
 import { HousingMoveReviewComponent } from './housing-move-review.component';
+import { KennelMapPrintService } from './kennel-map-print.service';
+import { projectKennelPrint } from './kennel-print-projection';
 
 const DEFAULT_DATE = '2026-03-31';
 const SEASON_START = '2025-12-01';
@@ -75,6 +77,7 @@ interface HighlightedDog {
   ],
   templateUrl: './kennel-map-page.component.html',
   styleUrl: './kennel-map-page.component.scss',
+  providers: [KennelMapPrintService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class KennelMapPageComponent {
@@ -87,6 +90,8 @@ export class KennelMapPageComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly ground = viewChild(GroundMapComponent);
   private readonly requestedDate = new BehaviorSubject(DEFAULT_DATE);
+  private readonly printService = inject(KennelMapPrintService);
+  private readonly snapshotLoading = signal(true);
   private readonly session = inject(DemoSessionService);
   private readonly navigation = inject(HousingNavigationGuardState);
   private contextEpoch = 0;
@@ -114,6 +119,15 @@ export class KennelMapPageComponent {
   protected readonly phase = signal<'idle' | 'saving' | 'conflict' | 'session' | 'unknown' | 'reloading' | 'resetting'>('idle');
   protected readonly feedback = signal('');
   protected readonly errorMessage = signal('');
+  protected readonly printUnavailableReason = computed(() => {
+    if (this.snapshotLoading() || !this.committed() || this.committed()?.selected_date !== this.selectedDate) {
+      return 'Wait for the selected housing snapshot to load before printing.';
+    }
+    if (this.phase() !== 'idle') return 'Resolve the current housing operation or reload housing before printing.';
+    if (this.draft().size) return 'Save or discard the pending housing moves before printing.';
+    if (this.reviewOpen() || this.discardOpen() || this.printService.isOpen()) return 'Close the current dialog before opening print preview.';
+    return null;
+  });
   protected readonly canEdit = computed(() => {
     const snapshot = this.committed();
     const edit = snapshot?.housing_edit;
@@ -141,12 +155,17 @@ export class KennelMapPageComponent {
   protected readonly state$ = this.requestedDate.pipe(
     switchMap((date) => {
       const epoch = this.contextEpoch;
+      this.snapshotLoading.set(true);
       return this.mapService.getSnapshot(date).pipe(
-        tap((data) => { if (this.isCurrent(epoch) && date === this.selectedDate) this.committed.set(data); }),
+        tap((data) => {
+          if (this.isCurrent(epoch) && date === this.selectedDate) {
+            this.acceptSnapshot(data);
+          }
+        }),
         map((data) => ({ kind: 'ready' as const, data, layout: kennelMapLayout(data) })),
         startWith({ kind: 'loading' as const }),
         catchError(() => {
-          if (this.isCurrent(epoch)) this.committed.set(null);
+          if (this.isCurrent(epoch)) { this.committed.set(null); this.snapshotLoading.set(false); }
           this.invalidateSearch();
           return of({ kind: 'error' as const });
         }),
@@ -159,6 +178,7 @@ export class KennelMapPageComponent {
     const registration = { date: () => this.selectedDate, leave: () => this.canLeave() };
     this.navigation.current = registration;
     this.destroyRef.onDestroy(() => {
+      this.printService.close(false);
       this.destroyed = true;
       this.contextEpoch++;
       this.cancelReveal();
@@ -166,6 +186,7 @@ export class KennelMapPageComponent {
       if (this.navigation.current === registration) this.navigation.current = null;
     });
     this.session.resetReviewOpened$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.printService.close(false);
       this.reviewOpen.set(false);
       this.resolveDiscard(false);
     });
@@ -237,6 +258,13 @@ export class KennelMapPageComponent {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { date }, queryParamsHandling: 'merge' }).then(() => {
       input.value = this.selectedDate;
     });
+  }
+
+  protected openPrint(): void {
+    const snapshot = this.committed();
+    if (!snapshot || this.printUnavailableReason()) return;
+    this.cancelReveal();
+    this.printService.open(projectKennelPrint(snapshot, this.activeLayer));
   }
 
   /** Both router leave and same-component date guards use this one application dialog. */
@@ -335,7 +363,7 @@ export class KennelMapPageComponent {
     this.mapService.moveDogs(payload).pipe(timeout(20000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         if (!this.isCurrent(epoch)) return;
-        this.committed.set(data);
+        this.acceptSnapshot(data);
         this.clearDraft();
         this.reviewOpen.set(false);
         this.phase.set('idle');
@@ -379,7 +407,7 @@ export class KennelMapPageComponent {
       if (!this.isCurrent(epoch)) return EMPTY;
       return this.mapService.getSnapshot(this.selectedDate);
     }), timeout(20000), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => { if (this.isCurrent(epoch)) { this.committed.set(data); this.phase.set('idle'); this.errorMessage.set(''); this.feedback.set('Demo session restored. Select dogs and review a new draft.'); } },
+      next: (data) => { if (this.isCurrent(epoch)) { this.acceptSnapshot(data); this.phase.set('idle'); this.errorMessage.set(''); this.feedback.set('Demo session restored. Select dogs and review a new draft.'); } },
       error: () => { if (this.isCurrent(epoch)) { this.sessionInitializationEpoch = null; this.phase.set('session'); this.errorMessage.set('The demo session could not be restored. Try again.'); } },
     });
   }
@@ -390,12 +418,16 @@ export class KennelMapPageComponent {
     this.errorMessage.set('');
     const epoch = this.contextEpoch;
     this.mapService.getSnapshot(this.selectedDate).pipe(timeout(20000), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => { if (this.isCurrent(epoch)) { this.committed.set(data); this.phase.set('idle'); this.errorMessage.set(''); this.feedback.set('Saved housing reloaded. Select dogs to start a new preview.'); } },
+      next: (data) => { if (this.isCurrent(epoch)) { this.acceptSnapshot(data); this.phase.set('idle'); this.errorMessage.set(''); this.feedback.set('Saved housing reloaded. Select dogs to start a new preview.'); } },
       error: () => { if (this.isCurrent(epoch)) { this.phase.set('unknown'); this.errorMessage.set('Housing could not be reloaded. Retry loading before editing.'); } },
     });
   }
 
   private isCurrent(epoch: number): boolean { return !this.destroyed && epoch === this.contextEpoch; }
+  private acceptSnapshot(data: KennelMapSnapshot): void {
+    this.committed.set(data);
+    this.snapshotLoading.set(false);
+  }
   private focusControl(selector: string): void {
     this.cancelReveal();
     const epoch = this.contextEpoch;
@@ -412,6 +444,7 @@ export class KennelMapPageComponent {
   protected projectedOccupancy(location: KennelMapLocation): number { return location.residents.length + (location.residents.some((dog) => dog.id === this.selectedDogId()) ? 0 : 1); }
   private clearDraft(): void { this.draft.set(new Map()); this.undoStack = []; this.hasUndo.set(false); this.selectedDogId.set(null); this.destinationCode = ''; this.cancelReveal(); }
   private invalidateEditing(): void {
+    this.printService.close(false);
     this.contextEpoch++;
     this.sessionInitializationEpoch = null;
     this.reviewOpen.set(false);

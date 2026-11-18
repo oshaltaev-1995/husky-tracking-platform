@@ -1,0 +1,36 @@
+// A named page affects only the dedicated document, never normal browser printing.
+@page husky-kennel-map {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+body.ht-kennel-print-open {
+  overflow: hidden;
+}
+
+@media print {
+  body.ht-kennel-print-open {
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body.ht-kennel-print-open > :not(ht-kennel-print-preview) {
+    display: none !important;
+  }
+
+  body.ht-kennel-print-open > ht-kennel-print-preview {
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    page: husky-kennel-map;
+  }
+}

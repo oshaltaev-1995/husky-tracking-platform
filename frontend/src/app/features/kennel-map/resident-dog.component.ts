@@ -6,12 +6,7 @@ import {
   KennelMapLayer,
   KennelMapResident,
 } from '../../core/api/kennel-map.models';
-
-interface ResidentPresentation {
-  marker: string;
-  label: string;
-  tone: string;
-}
+import { mapResidentPresentation } from './kennel-map-presentation';
 
 @Component({
   selector: 'ht-resident-dog',
@@ -99,46 +94,7 @@ export class ResidentDogComponent {
     this.dragging.set(false);
   }
 
-  protected readonly presentation = computed<ResidentPresentation>(() => {
-    const dog = this.resident();
-    switch (this.layer()) {
-      case 'gender':
-        return {
-          marker: dog.sex === 'female' ? 'F' : 'M',
-          label: dog.sex === 'female' ? 'Female' : 'Male',
-          tone: dog.sex,
-        };
-      case 'neutered':
-        return dog.is_neutered
-          ? {
-              marker: 'N',
-              label: dog.sex === 'female' ? 'Spayed' : 'Neutered',
-              tone: 'neutered',
-            }
-          : { marker: 'I', label: 'Intact', tone: 'intact' };
-      case 'class':
-        return {
-          marker: dog.dog_class?.slice(0, 1).toUpperCase() ?? '?',
-          label: this.title(dog.dog_class ?? 'Class not recorded'),
-          tone: dog.dog_class ?? 'unknown',
-        };
-      case 'unavailable':
-        return {
-          marker: this.statusMarker(dog.availability),
-          label: this.title(dog.availability ?? 'Status not recorded'),
-          tone: dog.availability ?? 'unknown',
-        };
-      default:
-        return {
-          marker: dog.availability === 'available' ? '' : this.statusMarker(dog.availability),
-          label:
-            dog.availability === 'available'
-              ? `${this.title(dog.dog_class ?? 'Class not recorded')} · ${this.title(dog.sex)}`
-              : this.title(dog.availability ?? 'Status not recorded'),
-          tone: dog.availability === 'available' ? 'default' : (dog.availability ?? 'unknown'),
-        };
-    }
-  });
+  protected readonly presentation = computed(() => mapResidentPresentation(this.resident(), this.layer()));
 
   protected ariaLabel(): string {
     const dog = this.resident();
@@ -151,13 +107,4 @@ export class ResidentDogComponent {
     return `Select ${dog.name} to move. ${this.presentation().label}. Preview housing ${dog.housing_code}.${pending}`;
   }
 
-  private statusMarker(status: string | null): string {
-    return { injured: 'I', rest: 'R', restricted: 'X', retired: 'T', available: 'A' }[
-      status ?? ''
-    ] ?? '?';
-  }
-
-  private title(value: string): string {
-    return value.slice(0, 1).toUpperCase() + value.slice(1).replaceAll('_', ' ');
-  }
 }

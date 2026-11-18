@@ -65,6 +65,10 @@ These instructions apply to the entire repository.
   Stale, expired, and unconfirmed request outcomes require reload/reconciliation,
   never automatic replay. Reset/session replacement invalidates old drafts. Dirty
   navigation must be confirmed, and an in-flight unsubscribe is not a server rollback.
+- Kennel Map printing uses one frozen projection of the loaded committed snapshot and
+  selected layer, never a pending preview. Dirty or unresolved housing states block
+  application printing. The feature-local print preview uses browser HTML/CSS printing,
+  excludes technical identifiers/tokens, and closes on date/session/reset invalidation.
 - Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.
@@ -134,3 +138,13 @@ date boundaries, relational invariants, and eligibility rules.
 The authoritative work sequence and acceptance criteria are in
 `docs/IMPLEMENTATION_ROADMAP.md`. Do not begin a later package casually when completing
 an earlier one.
+
+## Package review discipline
+
+Within an already authorized package, include small non-blocking fixes directly related
+to its result and list their reason and verification in the report. Do not open a
+separate revision package solely for that polish. Stop before the next stage when data,
+isolation, persistence, a core workflow, or a required result is broken or incomplete;
+authorization for later packages is still required. Consolidate the mandatory quality
+gates into one final run; repeat affected checks only after concrete changes or failures.
+This scheduling rule does not remove or weaken any gate above.

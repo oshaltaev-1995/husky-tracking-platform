@@ -1,5 +1,8 @@
 @use '../../../styles/mixins' as mixins;
 
+.map-print-action { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
+.map-print-action p { margin: 0; color: var(--text-secondary); font-size: var(--font-label); }
+
 .housing-tools { padding: var(--space-4); margin-bottom: var(--space-4); }
 .housing-heading { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: var(--space-3); }
 .housing-heading h2 { font-size: var(--font-section-title); margin: 0 0 var(--space-2); }
