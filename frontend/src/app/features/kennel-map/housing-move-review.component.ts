@@ -36,7 +36,7 @@ export class HousingMoveReviewComponent implements AfterViewInit, OnDestroy {
 
   private readonly document = inject(DOCUMENT);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly cancelButton = viewChild.required<ElementRef<HTMLButtonElement>>('cancelButton');
+  private readonly reviewBody = viewChild.required<ElementRef<HTMLElement>>('reviewBody');
   private returnFocus: HTMLElement | null = null;
   private destroyed = false;
   private hadDialogOpen = false;
@@ -53,7 +53,7 @@ export class HousingMoveReviewComponent implements AfterViewInit, OnDestroy {
     this.hadDialogOpen = this.document.body.classList.contains('dialog-open');
     this.document.body.classList.add('dialog-open');
     queueMicrotask(() => {
-      if (!this.destroyed) this.cancelButton().nativeElement.focus();
+      if (!this.destroyed) this.reviewBody().nativeElement.focus({ preventScroll: true });
     });
   }
 
@@ -78,10 +78,17 @@ export class HousingMoveReviewComponent implements AfterViewInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   protected trapFocus(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
-    if (keyboardEvent.key !== 'Tab') return;
-    const focusable = Array.from(this.host.nativeElement.querySelectorAll<HTMLButtonElement>(
-      '.review-dialog button:not([disabled])',
-    ));
+    if (keyboardEvent.key !== 'Tab' || keyboardEvent.altKey || keyboardEvent.ctrlKey || keyboardEvent.metaKey) return;
+    const dialog = this.host.nativeElement.querySelector<HTMLElement>('.review-dialog');
+    if (!dialog) return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button, a[href], input, select, textarea, [tabindex]',
+    )).filter((element) => {
+      const style = this.document.defaultView?.getComputedStyle(element);
+      return element.tabIndex >= 0 && !element.matches(':disabled') &&
+        !element.closest('[hidden], [inert]') &&
+        style?.display !== 'none' && style?.visibility !== 'hidden';
+    });
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     if (!first || !last) {
@@ -89,10 +96,10 @@ export class HousingMoveReviewComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const current = this.document.activeElement;
-    if (keyboardEvent.shiftKey && (current === first || !this.host.nativeElement.contains(current))) {
+    if (keyboardEvent.shiftKey && (current === first || !dialog.contains(current))) {
       keyboardEvent.preventDefault();
       last.focus();
-    } else if (!keyboardEvent.shiftKey && (current === last || !this.host.nativeElement.contains(current))) {
+    } else if (!keyboardEvent.shiftKey && (current === last || !dialog.contains(current))) {
       keyboardEvent.preventDefault();
       first.focus();
     }

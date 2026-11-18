@@ -692,6 +692,12 @@ automatic moves, print/PDF, or Agent. See `P13C_MOVE_TOGETHER.md`.
 printing, Dog Summary, an opt-in demo Training Day, and P14 Operations Agent remain
 outside P13C.
 
+**P13C-R1:** local corrections for independent review address consistent save-result
+announcements, keyboard access to the entire scrollable Review, and Discard focus
+ownership during delayed save failures. Before/after evidence and fresh regression
+results belong to the R1 review bundle. No backend/schema, occupancy rule, workspace
+authorization, or deployment change; P13C acceptance and P13D remain separate decisions.
+
 ## Completion discipline
 
 Each package updates this roadmap only when evidence changes scope. It must include a

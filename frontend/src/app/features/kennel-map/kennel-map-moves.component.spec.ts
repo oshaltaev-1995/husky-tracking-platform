@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@a
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
+import { vi } from 'vitest';
 
 import { DemoSessionService } from '../../core/api/demo-session.service';
 import {
@@ -213,8 +214,41 @@ function confirm(root: HTMLElement, http: HttpTestingController): TestRequest {
   return http.expectOne('/api/v1/kennel-map/moves');
 }
 
+function savedHousing(): KennelMapSnapshot {
+  const reply = snapshot();
+  reply.locations[0].residents = reply.locations[0].residents.filter((dog) => dog.id !== ATLAS);
+  reply.locations[3].residents.push(dog(ATLAS, 'Atlas', 'PUPPY-A'));
+  reply.housing_edit.revision = 1;
+  reply.housing_edit.precondition = 'test-only-committed-precondition';
+  return reply;
+}
+
+function noFalseNoWriteClaims(root: HTMLElement): void {
+  const falseClaim = /housing has not been saved|no housing moves (?:were|will be) sent|save (?:was|has been) cancel(?:l)?ed|changes were rolled back/i;
+  const announcements = Array.from(
+    root.querySelectorAll('[role="status"], [role="alert"], [aria-live]'),
+    (region) => region.textContent,
+  ).join(' ');
+  expect(root.textContent ?? '').not.toMatch(falseClaim);
+  expect(announcements).not.toMatch(falseClaim);
+}
+
+async function pendingDiscard(context: Awaited<ReturnType<typeof prepared>>): Promise<HTMLElement> {
+  control(context.root.querySelector('[role="dialog"]')!, 'Close review').click();
+  await render(context.fixture);
+  const done = control(context.root, 'Done moving');
+  done.focus();
+  done.click();
+  await pendingNavigation(context.fixture);
+  const dialog = context.root.querySelector<HTMLElement>('[role="dialog"]')!;
+  expect(dialog.textContent).toContain('Discard housing changes?');
+  expect(context.root.ownerDocument.activeElement).toBe(control(dialog, 'Keep editing'));
+  return dialog;
+}
+
 describe('Kennel Map Move Together', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
+  afterEach(() => vi.useRealTimers());
 
   it('starts in View and accepts the server editing context with revision zero', async () => {
     const { fixture, root, http } = await setup();
@@ -421,7 +455,7 @@ describe('Kennel Map Move Together', () => {
     const dialog = root.querySelector<HTMLElement>('[role="dialog"]')!;
     expect(dialog.getAttribute('aria-modal')).toBe('true');
     expect(dialog.contains(root.ownerDocument.activeElement)).toBe(true);
-    const actions = Array.from(dialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])'));
+    const actions = Array.from(dialog.querySelectorAll<HTMLElement>('[tabindex="0"], button:not([disabled])'));
     actions.at(-1)!.focus();
     actions.at(-1)!.dispatchEvent(new KeyboardEvent('keydown', {
       key: 'Tab', bubbles: true, cancelable: true,
@@ -515,6 +549,7 @@ describe('Kennel Map Move Together', () => {
       moves: [{ dog_id: ATLAS, destination_code: 'PUPPY-A' }],
     });
     expect(submit.disabled).toBe(true);
+    noFalseNoWriteClaims(root);
     const reply = snapshot();
     reply.housing_edit.revision = 7;
     reply.housing_edit.precondition = 'test-only-next-precondition';
@@ -557,6 +592,7 @@ describe('Kennel Map Move Together', () => {
       await render(fixture);
       expect(root.querySelector('[role="alert"]')).not.toBeNull();
       expect(root.textContent).not.toContain('Housing moves saved');
+      noFalseNoWriteClaims(root);
       noMoves(http);
       http.expectNone('/api/v1/demo/session');
       if ([401, 409, 500, 0].includes(code)) {
@@ -639,6 +675,30 @@ describe('Kennel Map Move Together', () => {
     noMoves(http);
   });
 
+  it('clears obsolete reset and reload announcements when either result is unconfirmed', async () => {
+    const { fixture, root, http } = await prepared();
+    TestBed.inject(DemoSessionService).reset().subscribe({ error: () => undefined });
+    await render(fixture);
+    expect(root.textContent).toContain('Resetting your demo');
+    http.expectOne('/api/v1/demo/reset').flush({}, { status: 503, statusText: 'Unavailable' });
+    await render(fixture);
+    expect(root.textContent).toContain('Reset could not be confirmed');
+    expect(root.textContent).not.toContain('Resetting your demo');
+    noFalseNoWriteClaims(root);
+    control(root, 'Reload housing').click();
+    await render(fixture);
+    expect(root.textContent).not.toContain('Reset could not be confirmed');
+    http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush({}, {
+      status: 503, statusText: 'Unavailable',
+    });
+    await render(fixture);
+    expect(root.textContent).toContain('Housing could not be reloaded');
+    expect(root.textContent).not.toContain('Saved housing reloaded');
+    expect(root.textContent).not.toContain('Resetting your demo');
+    noFalseNoWriteClaims(root);
+    noMoves(http);
+  });
+
   it('rejects an ordinary reload response after the workspace session is replaced', async () => {
     const { fixture, root, http } = await prepared();
     confirm(root, http).flush({ detail: { code: 'housing_changed', message: 'Stale preview' } }, {
@@ -660,6 +720,147 @@ describe('Kennel Map Move Together', () => {
     if (entry) expect(entry.disabled).toBe(true);
     expect(root.querySelectorAll('select:not([disabled])').length).toBe(0);
     noMoves(http);
+  });
+
+  for (const outcome of ['network', 'timeout', 'server'] as const) {
+    it(`announces only a pending or unknown save outcome after ${outcome}, then reconciles without replay`, async () => {
+      const { fixture, root, http } = await prepared();
+      expect(root.textContent).toContain('Housing has not been saved');
+      if (outcome === 'timeout') {
+        vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      }
+      const request = confirm(root, http);
+      await render(fixture);
+      noFalseNoWriteClaims(root);
+      expect(root.textContent).not.toContain('Housing moves saved');
+
+      if (outcome === 'network') request.error(new ProgressEvent('error'));
+      if (outcome === 'server') {
+        request.flush('upstream unavailable', { status: 503, statusText: 'Unavailable' });
+      }
+      if (outcome === 'timeout') {
+        // Exercise the component's actual RxJS timeout, not an injected TimeoutError.
+        vi.advanceTimersByTime(20_001);
+        expect(request.cancelled).toBe(true);
+        vi.useRealTimers();
+      }
+      await render(fixture);
+      noFalseNoWriteClaims(root);
+      expect(root.querySelector('[role="alert"]')?.textContent).toContain('not be confirmed');
+      expect(root.querySelector('[role="alert"]')?.textContent).toContain('may have reached the server');
+      expect(root.textContent).not.toContain('Housing moves saved');
+      noMoves(http);
+
+      control(root, 'Reload housing').click();
+      await render(fixture);
+      noFalseNoWriteClaims(root);
+      http.expectOne('/api/v1/kennel-map?date=2026-03-31').flush(savedHousing());
+      await render(fixture);
+      noFalseNoWriteClaims(root);
+      expect(residents(root, 'PUPPY-A')).toContain('Atlas');
+      expect(root.querySelector('.draft-summary')).toBeNull();
+      noMoves(http);
+    });
+  }
+
+  for (const outcome of ['network', 'timeout', 'server'] as const) {
+    it(`keeps Discard focus and preserves the draft when ${outcome} arrives before Keep editing`, async () => {
+      const context = await prepared();
+      const { fixture, root, http } = context;
+      if (outcome === 'timeout') {
+        vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      }
+      const request = confirm(root, http);
+      await render(fixture);
+      const dialog = await pendingDiscard(context);
+      if (outcome === 'network') request.error(new ProgressEvent('error'));
+      if (outcome === 'server') {
+        request.flush('upstream unavailable', { status: 503, statusText: 'Unavailable' });
+      }
+      if (outcome === 'timeout') {
+        vi.advanceTimersByTime(20_001);
+        expect(request.cancelled).toBe(true);
+        vi.useRealTimers();
+      }
+      await render(fixture);
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      const keep = control(dialog, 'Keep editing');
+      const discard = control(dialog, 'Discard changes');
+      expect(document.activeElement).toBe(keep);
+      keep.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+      expect(document.activeElement).toBe(discard);
+      discard.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+      expect(document.activeElement).toBe(keep);
+
+      // The trap also recovers if an external script or browser puts focus outside.
+      const recovery = control(root, 'Reload housing');
+      recovery.focus();
+      recovery.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+      expect(document.activeElement).toBe(keep);
+      const active = document.activeElement as HTMLButtonElement;
+      active.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      active.click(); // DOM unit tests need to supply the native Enter activation.
+      await render(fixture);
+      expect(root.querySelector('[role="dialog"]')).toBeNull();
+      expect(residents(root, 'PUPPY-A')).toContain('Atlas');
+      expect(root.querySelector('.draft-summary')?.textContent).toContain('1 pending move');
+      http.expectNone('/api/v1/kennel-map?date=2026-03-31');
+      noMoves(http);
+      noFalseNoWriteClaims(root);
+      expect(document.activeElement).toBe(control(root, 'Done moving'));
+    });
+  }
+
+  for (const decision of ['Escape', 'Discard changes'] as const) {
+    it(`retains the intended ${decision} action after an error arrives in Discard`, async () => {
+      const context = await prepared();
+      const { fixture, root, http } = context;
+      const request = confirm(root, http);
+      await render(fixture);
+      const dialog = await pendingDiscard(context);
+      request.error(new ProgressEvent('error'));
+      await render(fixture);
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      if (decision === 'Escape') {
+        control(dialog, 'Keep editing').dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'Escape', bubbles: true, cancelable: true,
+        }));
+      } else {
+        control(dialog, decision).click();
+      }
+      await render(fixture);
+      expect(root.querySelector('[role="dialog"]')).toBeNull();
+      expect(residents(root, decision === 'Escape' ? 'PUPPY-A' : 'A1-01')).toContain('Atlas');
+      if (decision === 'Discard changes') {
+        expect(control(root, 'Move dogs').disabled).toBe(true);
+        expect(root.ownerDocument.activeElement).toBe(control(root, 'Reload housing'));
+      }
+      http.expectNone('/api/v1/kennel-map?date=2026-03-31');
+      noMoves(http);
+      noFalseNoWriteClaims(root);
+    });
+  }
+
+  it('keeps Discard focus on a successful response without misclassifying it as a focus-error path', async () => {
+    const context = await prepared();
+    const { fixture, root, http } = context;
+    const request = confirm(root, http);
+    await render(fixture);
+    const dialog = await pendingDiscard(context);
+    request.flush(savedHousing());
+    await render(fixture);
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).toBe(control(dialog, 'Keep editing'));
+    expect(root.textContent).toContain('Housing moves saved');
+    noFalseNoWriteClaims(root);
+    control(dialog, 'Keep editing').click();
+    await render(fixture);
+    expect(root.querySelector('[role="dialog"]')).toBeNull();
+    expect(residents(root, 'PUPPY-A')).toContain('Atlas');
+    expect(root.querySelector('.draft-summary')).toBeNull();
+    noMoves(http);
+    http.expectNone('/api/v1/kennel-map?date=2026-03-31');
+    noFalseNoWriteClaims(root);
   });
 
   it('does not apply a late save to a profile opened after explicitly discarding its pending context', async () => {

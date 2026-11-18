@@ -60,7 +60,11 @@ describe('Housing move review', () => {
     expect(fixture.nativeElement.querySelectorAll('.resident-roster li').length).toBe(8);
     expect(text).toContain('Aurora With A Long Test Name');
     expect(confirm).not.toHaveBeenCalled();
-    expect(document.activeElement).toBe(buttons()[0]);
+    const body = fixture.nativeElement.querySelector('.review-body') as HTMLElement;
+    expect(body.getAttribute('role')).toBe('region');
+    expect(body.getAttribute('aria-label')).toBe('Housing move details and resulting residents');
+    expect(body.tabIndex).toBe(0);
+    expect(document.activeElement).toBe(body);
   });
 
   it('cancels without confirming, supports Escape, and restores the original trigger', async () => {
@@ -79,18 +83,48 @@ describe('Housing move review', () => {
     expect(document.body.classList.contains('dialog-open')).toBe(false);
   });
 
-  it('contains keyboard focus at both ends of the dialog', async () => {
+  it('includes the scrollable content in the complete modal focus cycle', async () => {
     await setup();
     const [cancel, confirm] = buttons();
+    const body = fixture.nativeElement.querySelector('.review-body') as HTMLElement;
     confirm.focus();
     const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
     document.dispatchEvent(tab);
     expect(tab.defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(cancel);
+    expect(document.activeElement).toBe(body);
     const previous = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
     document.dispatchEvent(previous);
     expect(previous.defaultPrevented).toBe(true);
     expect(document.activeElement).toBe(confirm);
+    body.focus();
+    const onward = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    body.dispatchEvent(onward);
+    expect(onward.defaultPrevented).toBe(false);
+    cancel.focus();
+    const backToBody = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    cancel.dispatchEvent(backToBody);
+    expect(backToBody.defaultPrevented).toBe(false);
+  });
+
+  it('leaves native keyboard scrolling available and recovers focus from outside the modal', async () => {
+    await setup();
+    const body = fixture.nativeElement.querySelector('.review-body') as HTMLElement;
+    for (const key of ['PageDown', 'End', 'ArrowDown', 'Home']) {
+      const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+      body.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(document.activeElement).toBe(body);
+    }
+    trigger.focus();
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    trigger.dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(body);
+    trigger.focus();
+    const previous = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    trigger.dispatchEvent(previous);
+    expect(previous.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(buttons()[1]);
   });
 
   it('emits once for rapid confirmation and can close while the save continues', async () => {
@@ -108,6 +142,10 @@ describe('Housing move review', () => {
     expect(buttons()[0].disabled).toBe(false);
     expect(buttons()[0].textContent).toContain('Close review');
     expect(fixture.nativeElement.textContent).toContain('The save continues if you close this review.');
+    const body = fixture.nativeElement.querySelector('.review-body') as HTMLElement;
+    body.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    expect(document.activeElement).toBe(buttons()[0]);
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(cancel).toHaveBeenCalledTimes(1);
     fixture.componentRef.setInput('saving', false);

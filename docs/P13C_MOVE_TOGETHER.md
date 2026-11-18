@@ -107,6 +107,31 @@ focus restoration. Selections, destinations, Undo, Review, Confirm, and Cancel w
 without a mouse. Destruction and cancelled navigation clear stale drag/focus callbacks
 and event subscriptions; normal map links remain available in View mode.
 
+### P13C-R1 — status and dialog corrections
+
+The independent P13C review requested three narrow frontend corrections. They are
+implemented locally for a new independent acceptance; this does not authorize P13D
+or a rollout.
+
+- Confirm replaces the pre-send preview announcement with a saving status. Failed
+  requests clear that status before showing their result, so an uncertain outcome
+  never also claims that nothing was saved. Recovery, reset, and context changes
+  clear obsolete announcements. Generic Discard feedback describes the preview,
+  without making a claim about whether a previous rejected request was transmitted.
+- Review starts focus at the top of its named, focusable content region. That region
+  participates in the actual Tab cycle with Cancel and Confirm. Native scrolling
+  keys can reach every move and final resident roster without leaving the dialog.
+- Save callbacks do not move focus behind an open Review or Discard. Discard traps
+  focus even if another element is focused unexpectedly, while retaining the user's
+  unresolved choice and draft. Keep editing/Escape never activates recovery. An
+  explicit same-page exit that removes its original trigger focuses the available
+  recovery action, without issuing a GET until the user activates it.
+
+The review package records before/after browser evidence, including response loss
+after a real commit, keyboard-only scrolling, delayed errors with Discard still open,
+and a successful response as a separate negative control. Backend/schema and the
+accepted free-occupancy model are unchanged.
+
 ## Verification and scope
 
 Package evidence must include unit/component/API-client results and the actual built

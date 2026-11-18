@@ -8,7 +8,7 @@
     <h2 id="housing-review-title">Review housing moves</h2>
     <p>{{ (effectiveDate() + 'T12:00:00Z') | date: 'EEEE, d MMMM y':'UTC' }}</p>
   </header>
-  <div class="review-body">
+  <div #reviewBody class="review-body" tabindex="0" role="region" aria-label="Housing move details and resulting residents">
     <p id="housing-review-consequence" class="consequence">Confirm applies these moves together to your demo workspace only. Existing residents stay in place. Plans, teams, actual work and dog status remain unchanged.</p>
     @if (saving()) { <p class="save-progress" role="status">The save continues if you close this review.</p> }
     <section aria-labelledby="housing-review-changes">

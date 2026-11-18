@@ -172,11 +172,13 @@ export class KennelMapPageComponent {
     this.session.resetStarted$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.invalidateEditing();
       this.phase.set('resetting');
+      this.errorMessage.set('');
       this.feedback.set('Resetting your demo. Pending housing previews have been discarded.');
     });
     this.session.resetCompleted$.pipe(takeUntilDestroyed()).subscribe(() => this.reloadHousing());
     this.session.resetFailed$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.phase.set('unknown');
+      this.feedback.set('');
       this.errorMessage.set('Reset could not be confirmed. Reload housing before editing.');
     });
     this.session.replaced$.pipe(takeUntilDestroyed()).subscribe(() => {
@@ -211,6 +213,7 @@ export class KennelMapPageComponent {
         this.committed.set(null);
         this.moveMode.set(false);
         this.phase.set('idle');
+        this.errorMessage.set('');
         this.invalidateSearch();
         this.requestedDate.next(nextDate);
       }
@@ -270,6 +273,10 @@ export class KennelMapPageComponent {
         this.phase.set('unknown');
         this.errorMessage.set('The save may still complete. Reload housing before editing again.');
       }
+      if (this.phase() === 'unknown' || this.phase() === 'session' || this.phase() === 'conflict') {
+        // Done moving replaces the dialog's original trigger; recovery is now the available target.
+        this.focusControl('[data-housing-recovery]');
+      }
     }
   }
 
@@ -308,7 +315,8 @@ export class KennelMapPageComponent {
   protected discardDraft(): void {
     if (this.interactionsDisabled()) return;
     this.clearDraft();
-    this.feedback.set('Preview discarded. No housing moves were sent.');
+    this.errorMessage.set('');
+    this.feedback.set('Preview discarded.');
   }
 
   protected openReview(): void {
@@ -322,6 +330,7 @@ export class KennelMapPageComponent {
       moves: this.changes().map((move) => ({ dog_id: move.dog_id, destination_code: move.destination_code })) };
     const epoch = this.contextEpoch;
     this.phase.set('saving');
+    this.feedback.set('Saving housing moves…');
     this.errorMessage.set('');
     this.mapService.moveDogs(payload).pipe(timeout(20000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
@@ -336,6 +345,7 @@ export class KennelMapPageComponent {
       error: (error: unknown) => {
         if (!this.isCurrent(epoch)) return;
         this.reviewOpen.set(false);
+        this.feedback.set('');
         const status = error instanceof HttpErrorResponse ? error.status : 0;
         if (status === 401) {
           this.phase.set('session');
@@ -361,6 +371,7 @@ export class KennelMapPageComponent {
     if (this.phase() !== 'session' && !(this.phase() === 'idle' && this.committed()?.housing_edit.reason === 'workspace_required')) return;
     this.invalidateEditing();
     this.phase.set('reloading');
+    this.errorMessage.set('');
     const epoch = this.contextEpoch;
     this.sessionInitializationEpoch = epoch;
     this.session.reinitialize().pipe(switchMap(() => {
@@ -376,6 +387,7 @@ export class KennelMapPageComponent {
   protected reloadHousing(): void {
     this.invalidateEditing();
     this.phase.set('reloading');
+    this.errorMessage.set('');
     const epoch = this.contextEpoch;
     this.mapService.getSnapshot(this.selectedDate).pipe(timeout(20000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => { if (this.isCurrent(epoch)) { this.committed.set(data); this.phase.set('idle'); this.errorMessage.set(''); this.feedback.set('Saved housing reloaded. Select dogs to start a new preview.'); } },
@@ -389,14 +401,23 @@ export class KennelMapPageComponent {
     const epoch = this.contextEpoch;
     this.pendingReveal = afterNextRender(() => {
       this.pendingReveal = null;
-      if (this.isCurrent(epoch)) this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus();
+      // An asynchronous result never owns focus while a user decision is open.
+      if (this.isCurrent(epoch) && !this.discardOpen() && !this.reviewOpen()) {
+        this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus();
+      }
     }, { injector: this.injector });
   }
   protected destinationLocation(): KennelMapLocation | undefined { return this.preview()?.locations.find((location) => location.code === this.destinationCode); }
   protected committedOccupancy(code: string): number { return this.committed()?.locations.find((location) => location.code === code)?.residents.length ?? 0; }
   protected projectedOccupancy(location: KennelMapLocation): number { return location.residents.length + (location.residents.some((dog) => dog.id === this.selectedDogId()) ? 0 : 1); }
   private clearDraft(): void { this.draft.set(new Map()); this.undoStack = []; this.hasUndo.set(false); this.selectedDogId.set(null); this.destinationCode = ''; this.cancelReveal(); }
-  private invalidateEditing(): void { this.contextEpoch++; this.sessionInitializationEpoch = null; this.reviewOpen.set(false); this.clearDraft(); }
+  private invalidateEditing(): void {
+    this.contextEpoch++;
+    this.sessionInitializationEpoch = null;
+    this.reviewOpen.set(false);
+    this.feedback.set('');
+    this.clearDraft();
+  }
 
   protected selectLayer(layer: KennelMapLayer): void {
     this.updateUrl({ layer });
