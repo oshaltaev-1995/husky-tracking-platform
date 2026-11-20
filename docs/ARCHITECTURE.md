@@ -138,13 +138,29 @@ editing precondition. Date/session/reset invalidation closes it.
 A feature-local preview host is attached directly under body so scoped print media
 rules can hide the application without clipping a descendant document or leaving its
 screen layout as blank pages. The document itself is shared between preview and print,
-uses named A4-landscape pages, text labels and natural table pagination. Print styling
+uses named A4-landscape pages and the HT Ground composition: Zone A left, Zone B right,
+main path between them, paired enclosure rows/service aisles, and puppy buildings below.
+Resident cards and legend use the existing map tone tokens with text/markers. User
+background/color print preferences remain authoritative; borders and words carry the
+same information without color. Print styling
 is active only while this context exists; ordinary browser printing outside it is not
 globally intercepted or hidden. Lifecycle cleanup restores title, listeners, body
 classes and appropriate focus. No event claims that a PDF was saved.
 If afterprint is absent, a preview-local recovery guard requires an observed window
 blur/return-focus sequence and explicitly inactive print media before restoring controls;
 focus alone and the return value of print never remove the document or prove saving.
+The preview owns a print-media change listener, so leaving print media re-evaluates that
+same guard even if focus returned before media ended and afterprint never arrived. The
+listener is removed on destruction; it does not intercept the browser Print shortcut.
+
+The frozen display projection retains every resident and splits each location's ordered
+roster into disjoint spatial/continuation slices. A conservative estimated text-line
+budget (six for an adult cell, ten for a puppy building, at the fixed 9/10pt typography)
+keeps the spatial sheet readable. This is a page-layout budget, independent of nominal
+capacity and eligibility. Remaining/long names appear once in explicitly coded
+continuation tables with repeating headers, never as hidden or abbreviated residents.
+Canonical 50-dog snapshots fit one spatial A4 landscape sheet at 100%; larger rosters
+may use additional sheets. There is one automatic print flow, without a map/report mode.
 
 Printed data includes names and dated housing/layer context, never preconditions,
 revision values, cookie data, technical IDs or API URLs. There is no server-side PDF

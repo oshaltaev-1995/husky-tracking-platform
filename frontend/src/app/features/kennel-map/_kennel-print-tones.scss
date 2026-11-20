@@ -1,0 +1,62 @@
+@use 'sass:list';
+
+// Reuse the interactive map's semantic hues without changing its presentation.
+// Each pair is the existing foreground token followed by its quiet surface token.
+$_resident-palettes: (
+  default: (brand-strong, surface-brand-soft),
+  female: (map-gender-female, map-gender-female-soft),
+  male: (map-gender-male, map-gender-male-soft),
+  intact: (map-intact, map-intact-soft),
+  neutered: (map-neutered, map-neutered-soft),
+  puppy: (class-puppy, class-puppy-soft),
+  junior: (class-junior, class-junior-soft),
+  training: (class-training, class-training-soft),
+  standard: (class-standard, class-standard-soft),
+  available: (class-standard, class-standard-soft),
+  injured: (danger, danger-soft),
+  rest: (warning, warning-soft),
+  restricted: (archived, archived-soft),
+  retired: (disabled, disabled-soft),
+  unknown: (text-secondary, surface-soft),
+);
+
+// Include once in the print document stylesheet, after its layout rules.
+// Layout owns border widths, padding and font sizes; this mixin owns only tones.
+// Native print preferences take priority: do not request exact color reproduction.
+@mixin resident-tones {
+  .printed-resident[data-tone],
+  .print-legend [data-tone] {
+    --kennel-print-tone: var(--text-secondary);
+    --kennel-print-soft: var(--surface-soft);
+    // The Junior/Intact map hues need darker ink on their pale surfaces at 9 pt.
+    --kennel-print-ink: color-mix(in srgb, var(--kennel-print-tone) 80%, var(--text-primary));
+
+    color: var(--text-primary);
+    border-color: var(--kennel-print-tone);
+    background-color: var(--kennel-print-soft);
+    print-color-adjust: economy;
+  }
+
+  @each $tone, $palette in $_resident-palettes {
+    .printed-resident[data-tone='#{$tone}'],
+    .print-legend [data-tone='#{$tone}'] {
+      --kennel-print-tone: var(--#{list.nth($palette, 1)});
+      --kennel-print-soft: var(--#{list.nth($palette, 2)});
+    }
+  }
+
+  .printed-resident[data-tone] > strong {
+    color: var(--text-primary);
+  }
+
+  .printed-resident[data-tone] .resident-detail {
+    color: var(--kennel-print-ink);
+  }
+
+  .printed-resident[data-tone] .resident-detail b,
+  .print-legend [data-tone] b {
+    color: var(--kennel-print-ink);
+    border-color: currentColor;
+    background-color: var(--surface-elevated);
+  }
+}

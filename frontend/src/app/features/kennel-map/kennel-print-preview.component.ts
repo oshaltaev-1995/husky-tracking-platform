@@ -44,9 +44,18 @@ export class KennelPrintPreviewComponent implements AfterViewInit, OnDestroy {
   private windowBlurred = false;
   private printBlurObserved = false;
   private printFocusReturned = false;
+  private printMedia: MediaQueryList | null = null;
+  private readonly printMediaChanged = (event: MediaQueryListEvent): void => {
+    if (!this.destroyed && !event.matches) this.reconcileReturnedFocus();
+  };
 
   ngAfterViewInit(): void {
     this.originalTitle = this.document.title;
+    const window = this.document.defaultView;
+    if (typeof window?.matchMedia === 'function') {
+      this.printMedia = window.matchMedia('print');
+      this.printMedia.addEventListener?.('change', this.printMediaChanged);
+    }
     // The same child document is already rendered; defer focus until this render ends.
     queueMicrotask(() => {
       if (this.destroyed) return;
@@ -57,6 +66,8 @@ export class KennelPrintPreviewComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.printMedia?.removeEventListener?.('change', this.printMediaChanged);
+    this.printMedia = null;
     this.restoreTitle();
   }
 

@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { KennelMapPrintService } from './kennel-map-print.service';
 import { KennelPrintProjection } from './kennel-print-projection';
 
+const residents = [{ id: 'test-only-identity', name: 'Atlas', marker: 'S', label: 'Standard', tone: 'standard' }];
 const projection: KennelPrintProjection = {
   snapshotDate: '2026-03-31',
   layer: 'default',
@@ -12,12 +13,12 @@ const projection: KennelPrintProjection = {
   legend: [{ label: 'Standard', marker: 'S', tone: 'standard' }],
   residentCount: 1,
   locationCount: 1,
-  groups: [{ label: 'Zone A', rows: [{ code: 'A1', lines: [0], locations: [{
+  groups: [{ code: 'A', label: 'Zone A', rows: [{ code: 'A1', locations: [{
     code: 'A1-01', displayName: 'Adult enclosure A1-01', occupancy: 1, nominalCapacity: 2,
-    residents: [{ id: 'test-only-identity', name: 'Atlas', marker: 'S', label: 'Standard', tone: 'standard' }],
+    residents, mapResidents: residents, continuationResidents: [], groupLabel: 'Zone A',
   }] }] }],
   puppyBuildings: [],
-  puppyLines: [0],
+  continuations: [],
 };
 
 describe('Kennel print preview lifecycle', () => {
@@ -65,6 +66,24 @@ describe('Kennel print preview lifecycle', () => {
       .find((button) => button.textContent.trim() === name);
     if (!result) throw new Error(`Missing preview action: ${name}`);
     return result;
+  }
+
+  function printMedia(initial: boolean) {
+    let matches = initial;
+    const listeners = new Set<(event: MediaQueryListEvent) => void>();
+    const media = {
+      get matches() { return matches; },
+      addEventListener: vi.fn((_type: string, callback: (event: MediaQueryListEvent) => void) => listeners.add(callback)),
+      removeEventListener: vi.fn((_type: string, callback: (event: MediaQueryListEvent) => void) => listeners.delete(callback)),
+    };
+    vi.stubGlobal('matchMedia', vi.fn(() => media));
+    return {
+      media, listeners,
+      change(next: boolean): void {
+        matches = next;
+        for (const callback of listeners) callback({ matches, media: 'print' } as MediaQueryListEvent);
+      },
+    };
   }
 
   it('attaches one dated document to body and makes content keyboard-readable before actions', async () => {
@@ -308,5 +327,128 @@ describe('Kennel print preview lifecycle', () => {
     expect(document.title).toBe('Current modal');
     expect(host.isConnected).toBe(true);
     expect(action(host, 'Close').disabled).toBe(false);
+  });
+
+  it('finishes keyboard printing when media ends after the observed focus return without another focus or afterprint', async () => {
+    const media = printMedia(true);
+    const nativePrint = vi.spyOn(window, 'print').mockImplementation(() => {
+      window.dispatchEvent(new Event('beforeprint'));
+      window.dispatchEvent(new Event('afterprint'));
+    });
+    const host = await open();
+    const documentNode = host.querySelector('ht-kennel-print-document');
+    window.dispatchEvent(new Event('beforeprint'));
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+    await settle();
+    expect(action(host, 'Close').disabled).toBe(true);
+    expect(document.title).toContain('2026-03-31');
+
+    // This is the only new event: no second window focus, afterprint, or button
+    // print() finally exists on this keyboard entry path.
+    media.change(false);
+    await settle();
+    expect(action(host, 'Close').disabled).toBe(false);
+    expect(action(host, 'Print / Save as PDF').disabled).toBe(false);
+    expect(document.title).toBe('Kennel Map · Husky Tracking Demo');
+    expect(host.textContent).toContain('Returned to print preview');
+    expect(host.textContent).not.toMatch(/PDF (?:was |is )?saved/i);
+    expect(host.querySelector('ht-kennel-print-document')).toBe(documentNode);
+    expect(service.isOpen()).toBe(true);
+    expect(nativePrint).not.toHaveBeenCalled();
+
+    action(host, 'Print / Save as PDF').click();
+    await settle();
+    expect(nativePrint).toHaveBeenCalledTimes(1);
+    expect(host.querySelector('ht-kennel-print-document')).toBe(documentNode);
+    action(host, 'Close').click();
+    await settle();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  for (const observed of ['neither', 'blur only', 'focus only'] as const) {
+    it(`keeps keyboard print locked on media end with ${observed} rather than a completed blur/return`, async () => {
+      const media = printMedia(true);
+      const host = await open();
+      window.dispatchEvent(new Event('beforeprint'));
+      if (observed === 'blur only') window.dispatchEvent(new Event('blur'));
+      if (observed === 'focus only') window.dispatchEvent(new Event('focus'));
+      media.change(false);
+      await settle();
+      expect(action(host, 'Close').disabled).toBe(true);
+      expect(action(host, 'Print / Save as PDF').disabled).toBe(true);
+      expect(document.title).toContain('2026-03-31');
+      window.dispatchEvent(new Event('afterprint'));
+      await settle();
+      expect(action(host, 'Close').disabled).toBe(false);
+    });
+  }
+
+  it('checks current print media and ignores a false event while the query still reports active printing', async () => {
+    const media = printMedia(true);
+    const host = await open();
+    window.dispatchEvent(new Event('beforeprint'));
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+    for (const callback of media.listeners) callback({ matches: false } as MediaQueryListEvent);
+    await settle();
+    expect(action(host, 'Close').disabled).toBe(true);
+    media.change(true);
+    await settle();
+    expect(action(host, 'Close').disabled).toBe(true);
+  });
+
+  it('does not steal a newer modal focus/title when a deferred print media change completes the old print', async () => {
+    const media = printMedia(true);
+    const host = await open();
+    window.dispatchEvent(new Event('beforeprint'));
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+    const other = document.createElement('section');
+    other.setAttribute('role', 'dialog');
+    other.setAttribute('aria-modal', 'true');
+    const currentAction = document.createElement('button');
+    other.append(currentAction);
+    document.body.append(other);
+    extras.push(other);
+    currentAction.focus();
+    document.title = 'Newer modal';
+    media.change(false);
+    await settle();
+    expect(action(host, 'Close').disabled).toBe(false);
+    expect(document.activeElement).toBe(currentAction);
+    expect(document.title).toBe('Newer modal');
+    expect(host.isConnected).toBe(true);
+  });
+
+  it('removes its media listener on context close and ignores an already queued callback after destruction', async () => {
+    const media = printMedia(true);
+    const host = await open();
+    expect(media.listeners.size).toBe(1);
+    expect(media.media.addEventListener.mock.calls[0][0]).toBe('change');
+    expect(typeof media.media.addEventListener.mock.calls[0][1]).toBe('function');
+    window.dispatchEvent(new Event('beforeprint'));
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+    const queued = Array.from(media.listeners)[0];
+    service.close(false);
+    await settle();
+    expect(media.listeners.size).toBe(0);
+    expect(media.media.removeEventListener).toHaveBeenCalledWith('change', queued);
+    document.title = 'Current route';
+    const currentAction = document.createElement('button');
+    document.body.append(currentAction);
+    extras.push(currentAction);
+    currentAction.focus();
+    media.change(false);
+    queued({ matches: false } as MediaQueryListEvent);
+    await settle();
+    expect(document.title).toBe('Current route');
+    expect(document.activeElement).toBe(currentAction);
+    expect(host.isConnected).toBe(false);
+    expect(document.body.classList.contains('ht-kennel-print-open')).toBe(false);
+    service.open(projection);
+    await settle();
+    expect(media.listeners.size).toBe(1);
   });
 });

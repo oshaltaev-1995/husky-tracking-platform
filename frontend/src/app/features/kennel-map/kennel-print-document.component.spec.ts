@@ -5,6 +5,19 @@ import { projectKennelPrint } from './kennel-print-projection';
 import { printSnapshot } from './kennel-print-test-data';
 
 describe('Kennel map print document', () => {
+  it('keeps the Ground zone/row/path/puppy composition rather than stacking full-width rosters', () => {
+    const fixture = TestBed.createComponent(KennelPrintDocumentComponent);
+    fixture.componentRef.setInput('projection', projectKennelPrint(printSnapshot(), 'gender'));
+    fixture.detectChanges();
+    const document = fixture.nativeElement as HTMLElement;
+    const grounds = document.querySelector('.print-adult-grounds')!;
+    expect(Array.from(grounds.children).map((child) => child.getAttribute('data-print-zone') ?? child.textContent?.trim())).toEqual(['A', 'Main path', 'B']);
+    expect(Array.from(grounds.querySelectorAll('[data-print-row]')).map((row) => row.getAttribute('data-print-row'))).toEqual(['A1','A2','B1','B2']);
+    expect(document.querySelectorAll('.print-service-aisle').length).toBe(2);
+    expect(Array.from(document.querySelector('.print-buildings')!.querySelectorAll('[data-print-location]')).map((location) => location.getAttribute('data-print-location'))).toEqual(['PUPPY-A','PUPPY-B']);
+    expect(document.querySelector('.print-legend [data-tone="female"]')?.textContent).toContain('Female');
+    expect(document.querySelector('.printed-resident')?.getAttribute('data-tone')).toBe('female');
+  });
   it('renders one noninteractive text roster for every location without session metadata or dog IDs', () => {
     const snapshot = printSnapshot();
     const fixture = TestBed.createComponent(KennelPrintDocumentComponent);
@@ -27,7 +40,7 @@ describe('Kennel map print document', () => {
     expect(document.textContent).toContain('Fictional demo data');
   });
 
-  it('renders empty sources and complete crowded rosters as native continuation-capable table rows', () => {
+  it('keeps spatial empty locations and each crowded resident once across explicit continuations', () => {
     const snapshot = printSnapshot();
     const allDogs = snapshot.locations.flatMap((location) => location.residents);
     snapshot.locations.forEach((location) => location.residents = []);
@@ -40,9 +53,12 @@ describe('Kennel map print document', () => {
     expect(document.querySelectorAll('.printed-resident').length).toBe(50);
     expect(document.querySelectorAll('[data-print-roster="A1-01"] .printed-resident').length).toBe(50);
     expect(document.querySelectorAll('.print-empty').length).toBe(21);
-    const firstTable = document.querySelector('.housing-row')!;
-    expect(firstTable.querySelectorAll('thead th').length).toBe(5);
-    expect(firstTable.querySelectorAll('tbody tr').length).toBe(50);
+    const table = document.querySelector('[data-print-continuation="A1-01"]')!;
+    expect(table.querySelector('thead')?.textContent).toContain('A1-01');
+    expect(table.querySelector('thead')?.textContent).toContain('Continued residents');
+    expect(document.querySelector('[data-print-location="A1-01"]')?.textContent).toContain('Roster continues');
+    const names = Array.from(document.querySelectorAll('.printed-resident > strong')).map((name) => name.textContent);
+    expect(new Set(names).size).toBe(50);
     expect(document.textContent).not.toContain('+N');
   });
 
@@ -56,7 +72,7 @@ describe('Kennel map print document', () => {
     fixture.componentRef.setInput('projection', projection);
     fixture.detectChanges();
     const document = fixture.nativeElement as HTMLElement;
-    expect(document.querySelector('.printed-resident > strong')?.textContent).toBe(name);
+    expect(Array.from(document.querySelectorAll('.printed-resident > strong')).some((element) => element.textContent === name)).toBe(true);
     expect(document.querySelectorAll('script').length).toBe(0);
     expect(document.textContent).not.toContain('Later live change');
     expect(document.textContent).toContain('Female');

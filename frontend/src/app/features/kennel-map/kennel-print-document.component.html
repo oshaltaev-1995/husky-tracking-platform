@@ -1,82 +1,78 @@
 <article class="kennel-print-document" aria-label="Dated kennel map document">
-  <header class="print-heading">
-    <div><p>Husky Tracking</p><h1>Kennel Map</h1></div>
-    <dl>
-      <div><dt>Snapshot date</dt><dd>{{ (projection().snapshotDate + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</dd></div>
-      <div><dt>Layer</dt><dd>{{ projection().layerLabel }}</dd></div>
-    </dl>
-  </header>
-
-  <div class="print-legend" role="note" aria-label="Selected layer legend">
-    <strong>Legend</strong>
-    @for (item of projection().legend; track item.label) {
-      <span><b>{{ item.marker }}</b> {{ item.label }}</span>
-    }
-  </div>
-  <p class="print-summary">{{ projection().residentCount | countLabel:'resident' }} · {{ projection().locationCount | countLabel:'location' }} · Occupancy reflects this saved snapshot; nominal capacity is informational.</p>
-
-  @for (group of projection().groups; track group.label) {
-    <section class="print-zone" [attr.aria-label]="group.label">
-      <h2>{{ group.label }} <span>Adult enclosures</span></h2>
-      @for (row of group.rows; track row.code; let last = $last) {
-        <table class="housing-row" [attr.aria-label]="'Row ' + row.code + ' residents'">
-          <caption>Row {{ row.code }}</caption>
-          <thead>
-            <tr>
-              @for (location of row.locations; track location.code) {
-                <th scope="col" [attr.data-print-location]="location.code">
-                  <strong>{{ location.code }}</strong> <span class="location-name">{{ location.displayName }}</span>
-                  <small>{{ location.occupancy | countLabel:'resident' }} · nominal {{ location.nominalCapacity }}</small>
-                </th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (line of row.lines; track line) {
-              <tr>
+  <div class="spatial-sheet">
+    <header class="print-heading">
+      <div><p>Husky Tracking</p><h1>Kennel Map</h1></div>
+      <dl>
+        <div><dt>Snapshot date</dt><dd>{{ (projection().snapshotDate + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</dd></div>
+        <div><dt>Layer</dt><dd>{{ projection().layerLabel }}</dd></div>
+      </dl>
+    </header>
+    <div class="print-legend" role="note" aria-label="Selected layer legend">
+      <strong>Legend</strong>
+      @for (item of projection().legend; track item.label) {
+        <span [attr.data-tone]="item.tone"><b>{{ item.marker }}</b> {{ item.label }}</span>
+      }
+    </div>
+    <p class="print-summary">{{ projection().residentCount | countLabel:'resident' }} · {{ projection().locationCount | countLabel:'location' }} · Saved housing snapshot · Nominal capacity is informational.</p>
+    <div class="print-adult-grounds">
+      @for (group of projection().groups; track group.code) {
+        <section class="print-zone" [attr.data-print-zone]="group.code" [attr.aria-label]="group.label">
+          <h2>{{ group.label }} <span>Adult housing</span></h2>
+          @for (row of group.rows; track row.code; let last = $last) {
+            <section class="print-row" [attr.data-print-row]="row.code" [attr.aria-label]="row.code">
+              <h3>{{ row.code }}</h3>
+              <div class="print-enclosures">
                 @for (location of row.locations; track location.code) {
-                  <td [attr.data-print-roster]="location.code">
-                    @if (location.residents[line]; as dog) {
-                      <span class="printed-resident" [attr.data-tone]="dog.tone"><strong>{{ dog.name }}</strong><span class="resident-detail">@if (dog.marker) { <b>{{ dog.marker }}</b> } {{ dog.label }}</span></span>
-                    } @else if (line === 0) { <span class="print-empty">Empty</span> }
-                  </td>
+                  <ng-container *ngTemplateOutlet="enclosure; context: { $implicit: location }" />
                 }
-              </tr>
+              </div>
+            </section>
+            @if (!last) { <p class="print-service-aisle">Service aisle</p> }
+          }
+        </section>
+        @if (!$last) { <div class="print-main-path"><span>Main path</span></div> }
+      }
+    </div>
+    <div class="print-puppy-connector"><span>Path to puppy buildings</span></div>
+    <section class="print-puppies" aria-label="Puppy buildings">
+      <h2>Puppy buildings <span>Separate housing off the main path</span></h2>
+      <div class="print-buildings">
+        @for (location of projection().puppyBuildings; track location.code) {
+          <ng-container *ngTemplateOutlet="enclosure; context: { $implicit: location }" />
+        }
+      </div>
+    </section>
+    <footer class="print-disclosure">Fictional demo data · Current saved demo workspace on the snapshot date.</footer>
+  </div>
+  @if (projection().continuations.length) {
+    <section class="print-continuations" aria-label="Continued housing rosters">
+      <h2>Housing roster continuations</h2>
+      <p>Additional residents from the spatial map. Each dog appears once in this document.</p>
+      @for (location of projection().continuations; track location.code) {
+        <table class="print-continuation-table" [attr.data-print-continuation]="location.code">
+          <thead><tr><th scope="col"><strong>{{ location.code }}</strong> · {{ location.groupLabel }} · Continued residents <span>({{ location.occupancy | countLabel:'resident' }} in total)</span></th></tr></thead>
+          <tbody>
+            @for (dog of location.continuationResidents; track dog.id) {
+              <tr><td [attr.data-print-roster]="location.code"><ng-container *ngTemplateOutlet="resident; context: { $implicit: dog }" /></td></tr>
             }
           </tbody>
         </table>
-        @if (!last) { <p class="print-aisle">Service aisle</p> }
       }
     </section>
   }
-
-  <section class="print-puppies" aria-label="Puppy buildings">
-    <h2>Puppy buildings <span>Separate buildings</span></h2>
-    <table class="housing-row puppy-row" aria-label="Puppy building residents">
-      <thead>
-        <tr>
-          @for (location of projection().puppyBuildings; track location.code) {
-            <th scope="col" [attr.data-print-location]="location.code">
-              <strong>{{ location.code }}</strong> <span class="location-name">{{ location.displayName }}</span>
-              <small>{{ location.occupancy | countLabel:'resident' }} · nominal {{ location.nominalCapacity }}</small>
-            </th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for (line of projection().puppyLines; track line) {
-          <tr>
-            @for (location of projection().puppyBuildings; track location.code) {
-              <td [attr.data-print-roster]="location.code">
-                @if (location.residents[line]; as dog) {
-                  <span class="printed-resident" [attr.data-tone]="dog.tone"><strong>{{ dog.name }}</strong><span class="resident-detail">@if (dog.marker) { <b>{{ dog.marker }}</b> } {{ dog.label }}</span></span>
-                } @else if (line === 0) { <span class="print-empty">Empty</span> }
-              </td>
-            }
-          </tr>
-        }
-      </tbody>
-    </table>
-  </section>
-  <footer class="print-disclosure">Fictional demo data · Saved housing from the selected demo view. Temporary workspace changes apply only to that demo session.</footer>
 </article>
+<ng-template #enclosure let-location>
+  <article class="print-enclosure" [attr.data-print-location]="location.code">
+    <header><strong>{{ location.code }}</strong><small>{{ location.occupancy | countLabel:'resident' }}</small></header>
+    <div class="print-roster" [attr.data-print-roster]="location.code">
+      @for (dog of location.mapResidents; track dog.id) {
+        <ng-container *ngTemplateOutlet="resident; context: { $implicit: dog }" />
+      }
+      @if (!location.occupancy) { <span class="print-empty">Empty</span> }
+      @if (location.continuationResidents.length) { <p class="print-continued-note">Roster continues · {{ location.code }}</p> }
+    </div>
+  </article>
+</ng-template>
+<ng-template #resident let-dog>
+  <span class="printed-resident" [attr.data-tone]="dog.tone"><strong>{{ dog.name }}</strong><span class="resident-detail">@if (dog.marker) { <b>{{ dog.marker }}</b> } {{ dog.label }}</span></span>
+</ng-template>

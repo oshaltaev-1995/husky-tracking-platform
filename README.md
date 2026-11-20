@@ -83,8 +83,11 @@ error recovery, navigation, and validation boundaries.
 
 P13D adds a local-review Print map workspace: one frozen committed snapshot and layer,
 shared by Overview/Ground, with an accessible preview and ordinary browser Print / Save
-as PDF. Canonical output targets one A4 landscape sheet; larger rosters continue on
-additional readable pages. Pending/unresolved housing states block printing. Opening,
+as PDF. The spatial sheet retains Ground's A/B adjacency, paths, puppy buildings and
+selected-layer colors/legend. Canonical output targets one A4 landscape sheet; larger
+rosters continue with explicit location headers and every full name exactly once.
+Color supplements text and borders; browser print preferences still apply.
+Pending/unresolved housing states block printing. Opening,
 closing or repeating print makes no API request or mutation. P13E and later packages
 remain separate and are not started by this implementation.
 

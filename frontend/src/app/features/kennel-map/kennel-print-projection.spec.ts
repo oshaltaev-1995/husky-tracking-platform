@@ -25,8 +25,8 @@ describe('Committed kennel print projection', () => {
     const empty = projectKennelPrint(snapshot, 'default');
     expect(empty.residentCount).toBe(0);
     expect(empty.locationCount).toBe(22);
-    expect(empty.groups.flatMap((group) => group.rows).every((row) => row.lines.length === 1)).toBe(true);
-    expect(empty.puppyLines).toEqual([0]);
+    expect(empty.continuations).toEqual([]);
+    expect(empty.puppyBuildings.every((location) => !location.mapResidents.length)).toBe(true);
   });
 
   it('uses the selected committed date and housing without retaining any editing context', () => {
@@ -51,7 +51,8 @@ describe('Committed kennel print projection', () => {
     const projection = projectKennelPrint(snapshot, 'gender');
     const first = projection.groups[0].rows[0].locations[0];
     expect(Object.isFrozen(projection)).toBe(true);
-    expect(Object.isFrozen(projection.groups[0].rows[0].lines)).toBe(true);
+    expect(Object.isFrozen(first.mapResidents)).toBe(true);
+    expect(Object.isFrozen(first.continuationResidents)).toBe(true);
     expect(Object.isFrozen(first.residents[0])).toBe(true);
     expect(Object.isFrozen(first.residents)).toBe(true);
     expect(() => Object.defineProperty(first.residents[0], 'name', { value: 'Changed' })).toThrow();
@@ -78,8 +79,11 @@ describe('Committed kennel print projection', () => {
     expect(projection.puppyBuildings[0].nominalCapacity).toBe(5);
     expect(projection.puppyBuildings[0].residents[0].name).toBe(snapshot.locations[20].residents[0].name);
     expect(projection.residentCount).toBe(50);
-    expect(projection.groups[0].rows[0].lines.length).toBe(4);
-    expect(projection.puppyLines.length).toBe(33);
+    const locations = allLocations(snapshot);
+    const rendered = locations.flatMap((location) => [...location.mapResidents, ...location.continuationResidents]);
+    expect(rendered.map((dog) => dog.id).sort()).toEqual(allDogs.map((dog) => dog.id).sort());
+    expect(new Set(rendered.map((dog) => dog.id)).size).toBe(50);
+    expect(projection.continuations.length).toBeGreaterThan(0);
   });
 
   it('has no fixed resident or page limit for an extreme concentrated roster', () => {
@@ -88,7 +92,8 @@ describe('Committed kennel print projection', () => {
     snapshot.locations.forEach((location) => location.residents = []);
     snapshot.locations[0].residents = allDogs;
     const projection = projectKennelPrint(snapshot, 'default');
-    expect(projection.groups[0].rows[0].lines.length).toBe(50);
+    expect(projection.continuations[0].code).toBe('A1-01');
+    expect(projection.continuations[0].continuationResidents.length).toBeGreaterThan(0);
     expect(allLocations(snapshot).flatMap((location) => location.residents).length).toBe(50);
     expect(allLocations(snapshot).filter((location) => !location.residents.length).length).toBe(21);
   });

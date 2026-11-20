@@ -1,47 +1,66 @@
-:host {
-  display: block;
-  box-sizing: border-box;
-  width: 277mm;
-  max-width: none;
-  color: var(--text-primary);
-  background: var(--surface-elevated);
-  font-size: 9pt;
-  line-height: 1.2;
-  page: husky-kennel-map;
-}
+@use 'kennel-print-tones' as print-tones;
 
+:host { display: block; box-sizing: border-box; width: 277mm; max-width: none; color: var(--text-primary); background: var(--surface-elevated); font-size: 9pt; line-height: 1.15; page: husky-kennel-map; }
 .kennel-print-document { width: 100%; }
-.print-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 5mm; margin-bottom: 1mm; padding-bottom: 1mm; border-bottom: .4mm solid var(--brand-strong); break-after: avoid; }
-.print-heading p { margin: 0 0 .8mm; color: var(--brand-strong); font-size: 10pt; font-weight: 750; }
+.spatial-sheet { break-inside: avoid; }
+.print-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 5mm; margin-bottom: 1.5mm; padding-bottom: 1.5mm; border-bottom: .4mm solid var(--brand-strong); }
+.print-heading p { margin: 0 0 1mm; color: var(--brand-strong); font-size: 10pt; font-weight: 750; }
 .print-heading h1 { margin: 0; font-size: 20pt; line-height: 1; }
 .print-heading dl { display: flex; gap: 8mm; margin: 0; }
 .print-heading dt { color: var(--text-secondary); font-size: 9pt; }
 .print-heading dd { margin: .7mm 0 0; font-size: 11pt; font-weight: 750; }
-.print-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1mm 3mm; font-size: 9pt; break-after: avoid; }
+.print-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 1mm 2mm; font-size: 9pt; }
 .print-legend > strong { margin-right: 1mm; }
-.print-legend b, .resident-detail b { font-weight: 800; }
-.print-legend b { border: .2mm solid currentColor; border-radius: 1mm; padding: 0 .8mm; }
-.print-summary { margin: 1mm 0; font-size: 9pt; break-after: avoid; }
-.print-zone, .print-puppies { margin: 0 0 .6mm; break-inside: auto; }
-h2 { display: flex; align-items: baseline; gap: 3mm; margin: .8mm 0 .5mm; font-size: 11pt; line-height: 1.15; break-after: avoid; }
+.print-legend > span { display: inline-flex; align-items: center; gap: 1mm; padding: .5mm 1mm; border: .2mm solid; border-radius: 1mm; }
+.print-legend b { border: .2mm solid currentColor; padding: 0 .7mm; border-radius: .5mm; }
+.print-summary { margin: 1.5mm 0; font-size: 9pt; }
+.print-adult-grounds { display: grid; grid-template-columns: minmax(0, 1fr) 9mm minmax(0, 1fr); align-items: stretch; }
+.print-zone { min-width: 0; padding: 1mm; border: .3mm solid var(--kennel-wall-strong); border-radius: 1.5mm; background: var(--kennel-ground-soft); }
+h2 { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; margin: 0 0 1mm; color: var(--brand-strong); font-size: 11pt; line-height: 1.2; }
 h2 span { color: var(--text-secondary); font-size: 9pt; font-weight: 500; }
-.housing-row { width: 100%; table-layout: fixed; border-collapse: collapse; break-inside: auto; }
-.housing-row caption { padding: 0 1mm; border: .2mm solid var(--kennel-wall-strong); border-bottom: 0; color: var(--text-primary); background: var(--kennel-ground-soft); text-align: left; font-size: 9pt; font-weight: 750; break-after: avoid; }
-.housing-row thead { display: table-header-group; }
-.housing-row tbody { break-inside: auto; }
-.housing-row tr { break-inside: avoid; }
-.housing-row th, .housing-row td { padding: .18mm 1mm; border: .2mm solid var(--kennel-wall-strong); vertical-align: top; text-align: left; overflow-wrap: anywhere; }
-.housing-row th { padding-block: .35mm; font-weight: 500; background: var(--surface-soft); }
-.housing-row th > strong { margin-right: 1mm; font-size: 10pt; font-weight: 800; }
-.location-name { font-size: 9pt; }
-.housing-row th small { display: block; margin-top: .25mm; color: var(--text-secondary); font-size: 9pt; font-weight: 500; }
-.printed-resident { display: block; min-width: 0; line-height: 1.25; }
-.printed-resident > strong { font-size: 10pt; font-weight: 750; }
-.resident-detail { margin-left: 1.5mm; color: var(--text-secondary); font-size: 9pt; }
+.print-row { min-width: 0; }
+.print-row h3 { margin: 0; border: .2mm solid var(--brand-strong); padding: .7mm 1mm; color: var(--brand-strong); background: var(--surface-brand-soft); font-size: 9pt; line-height: 1; }
+.print-enclosures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1mm; padding-top: 1mm; align-items: stretch; }
+.print-enclosure { min-width: 0; border: .25mm solid var(--kennel-wall-strong); border-radius: 1mm; padding: 1mm; background: var(--surface-card); overflow-wrap: anywhere; }
+.print-enclosure > header { padding-bottom: .4mm; margin-bottom: .4mm; border-bottom: .2mm solid var(--border-strong); }
+.print-enclosure header > strong { display: block; font-size: 10pt; line-height: 1.1; }
+.print-enclosure small { display: block; margin-top: .5mm; color: var(--text-secondary); font-size: 9pt; line-height: 1.15; }
+.print-roster { display: grid; align-content: start; gap: .5mm; }
+.printed-resident { display: block; min-width: 0; padding: .35mm; border: .2mm solid; border-inline-start-width: .7mm; border-radius: .7mm; line-height: 1.1; overflow-wrap: anywhere; break-inside: avoid; }
+.printed-resident > strong { display: inline; font-size: 10pt; font-weight: 750; }
+.resident-detail { display: inline; margin-left: .7mm; font-size: 9pt; }
+.resident-detail b { display: inline-block; margin-right: .35mm; padding: 0 .35mm; border: .15mm solid currentColor; border-radius: .5mm; font-weight: 800; line-height: 1; }
 .print-empty { color: var(--text-secondary); font-size: 9pt; font-style: italic; }
-.print-aisle { margin: 0; border-inline: .2mm solid var(--kennel-wall-strong); padding: .15mm 0; color: var(--text-secondary); text-align: center; font-size: 9pt; letter-spacing: .04em; break-after: avoid; }
-.print-disclosure { margin-top: 1mm; padding-top: 1mm; border-top: .2mm solid var(--border-strong); color: var(--text-secondary); font-size: 9pt; break-inside: avoid; }
-
-@media print {
-  :host { margin: 0; }
+.print-continued-note { margin: 0; color: var(--text-secondary); font-size: 9pt; line-height: 1.1; }
+.print-main-path, .print-service-aisle, .print-puppy-connector { color: var(--text-secondary); font-size: 9pt; background: var(--kennel-aisle); }
+.print-main-path { display: grid; place-items: center; margin-inline: 1.5mm; border-inline: .2mm dashed var(--kennel-wall-strong); }
+.print-main-path span { writing-mode: vertical-rl; }
+.print-service-aisle { margin: .7mm 0; padding: .8mm 0; border-block: .2mm dashed var(--kennel-wall-strong); text-align: center; }
+/* Keep opposing rows and aisles aligned when one side needs more wrapped lines. */
+@supports (grid-template-rows: subgrid) {
+  .print-adult-grounds { grid-template-rows: repeat(4, auto); }
+  .print-zone, .print-main-path { grid-row: 1 / -1; }
+  .print-zone { display: grid; grid-template-rows: subgrid; }
 }
+.print-puppy-connector { width: 55mm; margin: 0 auto; padding: .6mm 0; border-inline: .2mm dashed var(--kennel-wall-strong); text-align: center; }
+.print-puppies { width: 145mm; margin: 0 auto; padding: 1mm; border: .3mm solid var(--kennel-wall-strong); border-radius: 1.5mm; background: var(--kennel-ground-soft); }
+.print-puppies h2 { display: block; }
+.print-puppies h2 span { margin-left: 2mm; }
+.print-buildings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9mm; }
+.print-buildings .printed-resident { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1.5mm; }
+.print-buildings .resident-detail { margin: 0; }
+.print-disclosure { margin-top: 1.5mm; padding-top: .7mm; border-top: .2mm solid var(--border-strong); color: var(--text-secondary); font-size: 9pt; }
+.print-continuations { break-before: page; margin-top: 4mm; }
+.print-continuations > p { margin: 0 0 3mm; }
+.print-continuation-table { width: 100%; margin-bottom: 4mm; border-collapse: collapse; table-layout: fixed; }
+.print-continuation-table thead { display: table-header-group; }
+.print-continuation-table th { border: .25mm solid var(--kennel-wall-strong); padding: 2mm; text-align: left; font-size: 9pt; background: var(--surface-soft); }
+.print-continuation-table th strong { font-size: 10pt; }
+.print-continuation-table th span { font-weight: 500; }
+.print-continuation-table tr { break-inside: avoid; }
+.print-continuation-table td { border: .25mm solid var(--kennel-wall-strong); padding: 1mm; }
+.print-continuation-table .printed-resident { display: grid; grid-template-columns: minmax(0, 1fr) 55mm; gap: 4mm; padding: 1mm; }
+.print-continuation-table .resident-detail { margin: 0; }
+
+@include print-tones.resident-tones;
+@media print { :host { margin: 0; } }

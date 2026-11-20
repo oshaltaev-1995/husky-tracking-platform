@@ -698,8 +698,10 @@ authorization, or deployment change. This acceptance authorizes local P13D only.
 
 ## P13D — Kennel Map print
 
-**Status:** implemented locally for independent review; gate, browser and actual PDF
-evidence belongs to the package report. No deployment is authorized.
+**Status:** the original P13D technical foundation is accepted for local continuation.
+The separately authorized spatial/color refinement and keyboard print follow-up are
+implemented locally for independent review; their fresh gates/browser/PDF evidence
+belongs to the refinement report. This is not deployment or P13E authorization.
 
 One Print map action in either map view opens the same frozen committed snapshot/layer
 projection. The read-only output preserves all locations, complete resident lists,
@@ -708,10 +710,18 @@ operations block printing without saving/discarding anything. Historical snapsho
 printable. Date/reset/session invalidation closes the print context.
 
 The feature uses ordinary HTML/CSS browser printing, A4 landscape at 100% with 10mm
-margins, readable text and native multi-page overflow. Preview and print share the same
+margins, readable text and the same spatial composition as HT Ground. Zone A/B sit
+beside each other with a main path, paired rows/service aisles and separate puppy
+buildings below. Cards/legend reuse the five existing layer palettes; text and borders
+remain readable without background printing. Conservative text budgets move remaining
+names into explicit coded continuations, without omission or duplication and without
+using nominal capacity as a limit. Preview and print share the same
 document; no backend PDF API, new persistence or heavy dependency is introduced. Tokens,
 revisions, IDs and API URLs never appear in the printed document. Browser afterprint
-does not mean the user saved a PDF.
+does not mean the user saved a PDF. Preview-local print-media changes re-evaluate the
+existing observed-blur/return-focus recovery guard; no timeout unlock or global shortcut
+interception is added. Native acceptance is reported separately from synthetic event
+tests and headless PDF output, including any NOT VERIFIED sequence.
 
 Acceptance includes per-location text/roster checks in real PDFs, page size/count,
 every-page visual review, keyboard preview, workspace and historical contexts, five
