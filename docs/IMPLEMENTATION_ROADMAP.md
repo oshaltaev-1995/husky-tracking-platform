@@ -698,10 +698,9 @@ authorization, or deployment change. This acceptance authorizes local P13D only.
 
 ## P13D — Kennel Map print
 
-**Status:** the original P13D technical foundation is accepted for local continuation.
-The separately authorized spatial/color refinement and keyboard print follow-up are
-implemented locally for independent review; their fresh gates/browser/PDF evidence
-belongs to the refinement report. This is not deployment or P13E authorization.
+**Status:** spatial/color refinement and the keyboard lifecycle code on `efc710b`
+are accepted for local continuation. P13E separately authorizes Dog Summary and the small
+continuation-code wrapping polish. This is not deployment authorization.
 
 One Print map action in either map view opens the same frozen committed snapshot/layer
 projection. The read-only output preserves all locations, complete resident lists,
@@ -732,7 +731,37 @@ reported explicitly.
 Small directly related non-blocking corrections are included and reported within the
 authorized stage. Mandatory gates remain unchanged and are consolidated at the end;
 data/isolation/persistence/core-flow or required-output blockers stop progression.
-P13E–P13G and P14 remain unauthorized and are not started here.
+P13F–P13G and P14 remain unauthorized and are not started here.
+
+## P13E — One-page Dog Summary
+
+**Status:** implemented locally, pending independent review; no push, merge, tag or
+production deployment. P13F is not started.
+
+Print summary is available from the shared header of every successfully loaded Dog
+Profile tab. A detached immutable projection uses the existing four-GET bundle, checks
+identity/reference-date coherence, and preserves backend-derived state and actual Work
+metrics. Opening, closing and repeated printing require no additional bundle request
+or mutation. Route/reset/session invalidation cannot reuse a stale dog's document.
+
+The preview and one-page A4 portrait document share HTML, with 10mm margins and minimum
+9pt type. Full identity, portrait/fallback, separate state fields, current/last housing,
+archive date/reason, parents and four grandparents, and actual season metrics remain
+readable. History is limited to three dated starts (not future events); temporary
+workspace housing is explicitly separate. Notes use a documented 260-character excerpt
+with a visible shortening notice. Null and zero work remain distinct.
+
+The accepted Map lifecycle is shared narrowly, including title/focus/media-change
+recovery and late-callback guards. Portrait load/decode/failure is bounded before normal
+Print readiness. Map landscape → Summary portrait → Map landscape stays isolated.
+Only the location code in Map continuation notices is kept together.
+
+Acceptance evidence includes all 60 canonical profile PDFs with independent API-to-PDF
+checks, representative/fallback/long-name fixtures, housing/actual UI workspace tests,
+no print requests, keyboard and 1440/768/390 responsive checks, final gates and checksum.
+Native Save → Cmd+P → Cancel is NOT VERIFIED: one bounded native-tool attempt found a
+locked Mac. Physical phone and additional browser engine are NOT RUN. Unit/synthetic
+and headless-PDF evidence do not replace that native check.
 
 ## Completion discipline
 

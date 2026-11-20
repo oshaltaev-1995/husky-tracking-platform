@@ -64,3 +64,5 @@ h2 span { color: var(--text-secondary); font-size: 9pt; font-weight: 500; }
 
 @include print-tones.resident-tones;
 @media print { :host { margin: 0; } }
+
+.continuation-code { white-space: nowrap; }

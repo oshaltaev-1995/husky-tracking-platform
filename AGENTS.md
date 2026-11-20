@@ -69,6 +69,12 @@ These instructions apply to the entire repository.
   selected layer, never a pending preview. Dirty or unresolved housing states block
   application printing. The feature-local print preview uses browser HTML/CSS printing,
   excludes technical identifiers/tokens, and closes on date/session/reset invalidation.
+- Dog Summary printing uses one completed Profile/Pedigree/Work/History bundle,
+  detached and checked for matching dog identity/reference dates. Preview and print
+  share one read-only A4 portrait document; opening/repeating/closing never refetches
+  the bundle or creates workspace state. Reset/session/route invalidation closes it.
+  Preserve full core fields, actual-work truth, temporary housing provenance, and the
+  bounded three-event/260-character summary policy; full records stay in the profile.
 - Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.

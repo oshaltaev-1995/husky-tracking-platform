@@ -69,7 +69,7 @@
         <ng-container *ngTemplateOutlet="resident; context: { $implicit: dog }" />
       }
       @if (!location.occupancy) { <span class="print-empty">Empty</span> }
-      @if (location.continuationResidents.length) { <p class="print-continued-note">Roster continues · {{ location.code }}</p> }
+      @if (location.continuationResidents.length) { <p class="print-continued-note">Roster continues · <span class="continuation-code">{{ location.code }}</span></p> }
     </div>
   </article>
 </ng-template>

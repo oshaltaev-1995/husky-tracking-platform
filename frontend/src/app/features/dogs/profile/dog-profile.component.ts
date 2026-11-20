@@ -1,10 +1,13 @@
-import { AsyncPipe, DatePipe, TitleCasePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, DOCUMENT, TitleCasePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
+import { catchError, distinctUntilChanged, map, merge, of, startWith, Subject, switchMap, tap } from 'rxjs';
 
+import { DemoSessionService } from '../../../core/api/demo-session.service';
+import { DogSummaryPrintService } from './dog-summary-print.service';
+import { DogSummaryProjection, projectDogSummary } from './dog-summary-projection';
 import { DogsService } from '../../../core/api/dogs.service';
 import { DogMediaComponent } from '../../../shared/dog-media/dog-media.component';
 import { HistoryComponent } from './history.component';
@@ -28,6 +31,7 @@ type ProfileTab = 'profile' | 'pedigree' | 'work' | 'history';
     TitleCasePipe,
     WorkComponent,
   ],
+  providers: [DogSummaryPrintService],
   templateUrl: './dog-profile.component.html',
   styleUrl: './dog-profile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +39,53 @@ type ProfileTab = 'profile' | 'pedigree' | 'work' | 'history';
 export class DogProfileComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly dogs = inject(DogsService);
+  private readonly session = inject(DemoSessionService);
+  private readonly document = inject(DOCUMENT);
+  protected readonly summaryPrint = inject(DogSummaryPrintService);
+  private readonly context = new Subject<'reload' | 'invalidate'>();
+
+  constructor() {
+    this.session.resetReviewOpened$.pipe(takeUntilDestroyed()).subscribe(() => this.summaryPrint.close(false));
+    this.session.resetStarted$.pipe(takeUntilDestroyed()).subscribe(() => this.invalidateContext());
+    this.session.resetCompleted$.pipe(takeUntilDestroyed()).subscribe(() => this.context.next('reload'));
+    this.session.replaced$.pipe(takeUntilDestroyed()).subscribe(() => this.invalidateContext());
+    effect((onCleanup) => {
+      const expiresAt = this.session.session()?.expires_at;
+      if (!expiresAt) return;
+      // Wall-clock time is used only for cookie expiry, never for domain values.
+      const remaining = new Date(expiresAt).getTime() - Date.now();
+      if (!Number.isFinite(remaining)) return;
+      if (remaining <= 0) { this.invalidateContext(); return; }
+      const timeout = setTimeout(() => this.invalidateContext(), remaining);
+      onCleanup(() => clearTimeout(timeout));
+    });
+  }
+
+  private invalidateContext(): void {
+    this.summaryPrint.close(false);
+    this.context.next('invalidate');
+  }
+
+  protected reloadProfile(): void {
+    const session = this.session.session();
+    if (session && new Date(session.expires_at).getTime() <= Date.now()) {
+      // Explicit recovery returns through the existing route session guard; print
+      // itself never creates/replaces a workspace or replays a mutable request.
+      this.document.defaultView?.location.reload();
+      return;
+    }
+    this.context.next('reload');
+  }
+
+  protected printSummary(projection: DogSummaryProjection): void {
+    const session = this.session.session();
+    if (session && new Date(session.expires_at).getTime() <= Date.now()) {
+      this.invalidateContext();
+      return;
+    }
+    this.summaryPrint.open(projection);
+  }
+
   protected readonly tabs: ProfileTab[] = ['profile', 'pedigree', 'work', 'history'];
   protected readonly profileOrigin = toSignal(
     this.route.queryParamMap.pipe(
@@ -53,15 +104,24 @@ export class DogProfileComponent {
   protected readonly state$ = this.route.paramMap.pipe(
     map((params) => params.get('dogId') ?? ''),
     distinctUntilChanged(),
-    switchMap((id) =>
-      this.dogs.getProfileBundle(id).pipe(
-        map((data) => ({ kind: 'ready' as const, data })),
-        startWith({ kind: 'loading' as const }),
-        catchError((error: HttpErrorResponse) =>
-          of({ kind: error.status === 404 || error.status === 422 ? ('not-found' as const) : ('error' as const) }),
-        ),
-      ),
-    ),
+    tap(() => this.summaryPrint.close(false)),
+    switchMap((id) => merge(of('reload' as const), this.context).pipe(
+      switchMap((action) => {
+        this.summaryPrint.close(false);
+        if (action === 'invalidate') return of({ kind: 'context-changed' as const });
+        return this.dogs.getProfileBundle(id).pipe(
+          map((data) => {
+            const summary = projectDogSummary(data);
+            if (data.profile.id !== id || !summary) throw new Error('Inconsistent profile sections');
+            return { kind: 'ready' as const, data, summary };
+          }),
+          startWith({ kind: 'loading' as const }),
+          catchError((error: HttpErrorResponse) =>
+            of({ kind: error.status === 404 || error.status === 422 ? ('not-found' as const) : ('error' as const) }),
+          ),
+        );
+      }),
+    )),
   );
 
   protected tabLabel(tab: ProfileTab) {

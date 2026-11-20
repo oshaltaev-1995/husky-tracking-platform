@@ -1,0 +1,72 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+  width: 190mm;
+  max-width: none;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  font-size: 9pt;
+  line-height: 1.25;
+  page: husky-dog-summary;
+}
+
+.dog-summary { width: 100%; }
+.summary-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 5mm;
+  margin-bottom: 3mm;
+  padding-bottom: 2mm;
+  border-bottom: .5mm solid var(--brand-strong);
+}
+.brand { margin: 0 0 .8mm; color: var(--brand-strong); font-size: 12pt; font-weight: 750; }
+.document-kind { margin: 0; font-size: 11pt; font-weight: 650; }
+.snapshot { text-align: right; }
+.snapshot span, .snapshot time { display: block; }
+.snapshot span { color: var(--text-secondary); }
+.snapshot time { margin-top: .8mm; font-size: 10pt; font-weight: 700; }
+.identity { display: grid; grid-template-columns: 36mm minmax(0, 1fr); gap: 5mm; align-items: start; }
+.portrait { width: 36mm; aspect-ratio: 3 / 4; }
+.portrait ht-dog-media { display: block; width: 100%; }
+.identity-details { min-width: 0; }
+h1 { margin: 0 0 2mm; font-size: 22pt; line-height: 1.12; font-weight: 750; overflow-wrap: anywhere; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5mm 5mm; margin: 0; }
+.facts > div { min-width: 0; }
+dt { color: var(--text-secondary); font-size: 9pt; }
+dd { margin: .5mm 0 0; font-weight: 650; overflow-wrap: anywhere; }
+dd small { display: block; margin-top: .3mm; color: var(--text-secondary); font-size: 9pt; font-weight: 400; }
+.summary-section { margin-top: 2.5mm; break-inside: avoid; }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; margin-bottom: 1.2mm; }
+h2 { margin: 0; color: var(--brand-strong); font-size: 11pt; line-height: 1.2; }
+.section-context { margin: 0; color: var(--text-secondary); font-size: 9pt; }
+.state-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 2mm 3mm; border: .25mm solid var(--border-strong); border-radius: 1.5mm; background: var(--surface-soft); }
+.state-extra { margin-top: 1.5mm; }
+.archive-record, .workspace-record { margin: 1.5mm 0 0; padding: 1mm 2mm; border-inline-start: .7mm solid var(--border-strong); background: var(--surface-soft); overflow-wrap: anywhere; }
+.archive-record strong, .workspace-record strong { margin-right: 1mm; }
+.pedigree { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5mm; }
+.family-line { min-width: 0; padding: 1.5mm 3mm; border: .25mm solid var(--border-strong); border-radius: 1.5mm; }
+.family-line h3 { margin: 0 0 1mm; color: var(--text-secondary); font-size: 9pt; font-weight: 650; }
+.family-line dl { margin: 0; }
+.family-line dl > div { margin-top: 1mm; }
+.family-line dl > div:first-child { margin-top: 0; }
+.family-line .parent dd { font-size: 10pt; }
+.family-counts { margin: 1mm 0 0; color: var(--text-secondary); }
+.work-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5mm 4mm; margin: 0; padding: 2mm 3mm; border-block: .25mm solid var(--border-strong); }
+.work-summary > div { min-width: 0; }
+.work-summary dd { font-size: 10pt; }
+.work-summary .distance dd, .work-summary .starts dd { font-size: 14pt; line-height: 1.15; }
+.empty-work { margin: 1.5mm 0 0; color: var(--text-secondary); }
+.history-list { margin: 0; padding: 0; list-style: none; }
+.history-list li { display: grid; grid-template-columns: 25mm 27mm minmax(0, 1fr); gap: 2mm; padding: .8mm 0; border-top: .2mm solid var(--border); }
+.history-list time, .history-list span { color: var(--text-secondary); }
+.history-list strong { font-weight: 650; overflow-wrap: anywhere; }
+.history-empty { margin: 0; color: var(--text-secondary); }
+.notes { margin: 0; overflow-wrap: anywhere; }
+.note-disclosure { margin: 1mm 0 0; color: var(--text-secondary); }
+.summary-footer { margin-top: 3mm; padding-top: 1.5mm; border-top: .25mm solid var(--border-strong); color: var(--text-secondary); }
+.summary-footer p { margin: 0; }
+
+@media print {
+  :host { margin: 0; }
+}

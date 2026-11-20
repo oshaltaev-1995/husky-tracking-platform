@@ -159,12 +159,59 @@ budget (six for an adult cell, ten for a puppy building, at the fixed 9/10pt typ
 keeps the spatial sheet readable. This is a page-layout budget, independent of nominal
 capacity and eligibility. Remaining/long names appear once in explicitly coded
 continuation tables with repeating headers, never as hidden or abbreviated residents.
+Only the short continuation location code is nowrap; continuation words and full names
+retain their wrapping behavior.
 Canonical 50-dog snapshots fit one spatial A4 landscape sheet at 100%; larger rosters
 may use additional sheets. There is one automatic print flow, without a map/report mode.
 
 Printed data includes names and dated housing/layer context, never preconditions,
 revision values, cookie data, technical IDs or API URLs. There is no server-side PDF
 generator, image capture pipeline or duplicate housing computation.
+
+## Dog Summary print projection
+
+P13E adds a frontend-only document from one completed `getProfileBundle()` subscription
+(profile, pedigree, work, history). Those four existing GETs are not a transactional
+snapshot. The display-only, deeply frozen projection checks dog identities, available
+reference dates and known workspace-placement consistency before acceptance. It copies
+no technical identity except the canonical portrait key. Domain dates come from the
+backend; calendar formatting anchors them at UTC midnight, independent of host timezone
+or today. Work values are copied from the same actual-ledger summary as the Work tab;
+plans never contribute. No new API, schema, ledger or persisted summary exists.
+
+A shared-profile-header action works from every tab without refetching the bundle.
+Route changes cancel the old load; Reset/session replacement/known expiry close the
+preview and invalidate printable state. Reset completion reloads the profile; an expired
+session requires explicit recovery through the existing route guard. A late bundle or
+portrait callback cannot replace a newer context. Print itself never creates a workspace,
+materializes a day, calls Reset, writes state, logs notes, or stores its projection.
+
+The document preserves full core identity, separate lifecycle/class/availability,
+recorded capabilities, effective current or clearly labelled last housing, archive data,
+parents and four grandparents, and per-dog actual season metrics. Temporary workspace
+housing is a separate row, never a canonical history event. Up to three history starts
+on/before the state date are sorted newest-first; equal dates use Availability, Class,
+Lifecycle, Housing, then full value. Notes normalize whitespace and use at most 260
+characters including an ellipsis, at a word boundary (an overlong single token is
+bounded); shortened notes are explicitly labelled. Null work averages/dates and missing
+relations remain “Not recorded”; zero starts/distance remain zero.
+
+One document component supplies preview and selectable HTML/CSS print output. A named
+A4 portrait page with 10mm margins and minimum 9pt type is body-scoped independently of
+the Map's landscape page. The existing DogMedia portrait is awaited through load/decode
+or fallback; an 8-second preparation bound renders the normal placeholder if necessary.
+Regular registry media remains lazy. Preview initially focuses its scrollable paper,
+contains keyboard focus, and has explicit Print / Save as PDF and Close actions.
+The small shared `PrintPreviewLifecycle` retains P13D's observed-blur/focus/media recovery,
+title ownership and destruction guards for both documents. Hosts remain feature-owned;
+there is no universal export framework or browser shortcut interception. Browser-native
+printing initiated before image preparation cannot be deferred by `beforeprint`; normal
+Print is enabled only after preparation. No event asserts a file was saved.
+
+P13D spatial/color work is accepted; P13E is local and pending independent review.
+The exact native Save → Cmd+P → Cancel sequence remains NOT VERIFIED because the single
+bounded P13E system-tool attempt found macOS locked. Headless PDF and synthetic lifecycle
+checks are separate evidence. P13F and release/deployment work are outside this package.
 
 ## Demo clock
 

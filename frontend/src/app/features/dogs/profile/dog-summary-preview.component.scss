@@ -1,0 +1,31 @@
+@use '../../../../styles/mixins' as mixins;
+
+:host { position: fixed; inset: 0; z-index: 120; display: block; min-width: 0; }
+.print-preview-shell { display: grid; width: 100%; height: 100%; min-width: 0; place-items: center; padding: var(--space-4); background: rgb(13 29 27 / 54%); }
+.print-preview-dialog { display: flex; flex-direction: column; width: min(56rem, 100%); max-width: 100%; max-height: calc(100dvh - 2rem); min-width: 0; overflow: hidden; border: 1px solid var(--border-strong); border-radius: var(--radius-panel); background: var(--surface-elevated); box-shadow: var(--shadow-raised); }
+.print-preview-toolbar, .print-preview-footer { flex: none; padding: var(--space-4) var(--space-5); }
+.print-preview-toolbar { border-bottom: 1px solid var(--border); }
+.print-preview-toolbar h2 { margin: 0 0 var(--space-2); font-size: 1.2rem; }
+.print-preview-toolbar p { margin: 0; max-width: 70ch; color: var(--text-secondary); font-size: var(--font-label); line-height: 1.5; }
+.print-preview-content { flex: 1 1 auto; min-height: 0; min-width: 0; max-width: 100%; overflow: auto; overscroll-behavior: contain; padding: var(--space-4); background: var(--surface-soft); }
+.print-preview-content:focus-visible { outline: var(--focus-ring-width) solid var(--focus); outline-offset: calc(var(--focus-ring-width) * -1); }
+.print-preview-content ht-dog-summary-document { box-shadow: var(--shadow-raised); }
+.print-preview-footer { border-top: 1px solid var(--border); }
+.print-preview-announcements p { margin: 0 0 var(--space-3); font-size: var(--font-label); line-height: 1.5; }
+.print-preview-error { color: var(--danger); }
+.print-preview-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); }
+
+@include mixins.phone {
+  .print-preview-shell { padding: var(--space-2); }
+  .print-preview-dialog { max-height: calc(100dvh - 1rem); }
+  .print-preview-toolbar, .print-preview-footer { padding: var(--space-3); }
+  .print-preview-content { padding: var(--space-2); }
+  .print-preview-actions > button { flex: 1 1 auto; }
+}
+
+@media print {
+  :host { display: block; position: static; inset: auto; z-index: auto; width: auto; height: auto; }
+  .print-preview-shell, .print-preview-dialog, .print-preview-content { display: block; position: static; width: auto; height: auto; min-height: 0; max-height: none; max-width: none; overflow: visible; padding: 0; margin: 0; border: 0; border-radius: 0; background: #fff; box-shadow: none; }
+  .print-preview-toolbar, .print-preview-footer { display: none !important; }
+  .print-preview-content ht-dog-summary-document { box-shadow: none; }
+}

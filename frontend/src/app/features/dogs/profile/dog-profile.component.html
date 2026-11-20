@@ -4,6 +4,9 @@
     @case ('not-found') {
       <section class="not-found" role="alert"><p class="eyebrow">Record not found</p><h1>This dog profile is unavailable.</h1><p>The link may be malformed or the record may not exist in this demo dataset.</p><a class="button primary" [routerLink]="profileOrigin() === 'archive' ? '/demo/archive' : '/demo/dogs'">Return to {{ profileOrigin() === 'archive' ? 'Archive' : 'Dogs' }}</a></section>
     }
+    @case ('context-changed') {
+      <section class="not-found" role="alert"><h1>Reload this dog profile</h1><p>Your demo session or workspace changed. Reload to view a fresh set of profile details before printing.</p><button class="button secondary" type="button" (click)="reloadProfile()">Reload profile</button></section>
+    }
     @case ('error') {
       <section class="not-found" role="alert"><p class="eyebrow">Connection issue</p><h1>We could not load this profile.</h1><p>Check the demo API, then reload this page.</p><a class="button secondary" [routerLink]="profileOrigin() === 'archive' ? '/demo/archive' : '/demo/dogs'">Return to {{ profileOrigin() === 'archive' ? 'Archive' : 'Dogs' }}</a></section>
     }
@@ -12,6 +15,7 @@
       <header class="profile-header" [class.archived]="state.data.profile.state.lifecycle === 'archived'">
         <div class="profile-media"><ht-dog-media [name]="state.data.profile.name" [photoKey]="state.data.profile.photo_key" size="profile" /></div>
         <div class="profile-identity">
+          <div class="profile-actions"><button class="button secondary" type="button" [disabled]="summaryPrint.isOpen()" (click)="printSummary(state.summary)">Print summary</button></div>
           <div class="identity-flags"><span class="lifecycle-badge">{{ state.data.profile.state.lifecycle | titlecase }}</span>@if (state.data.profile.state.availability) { <span class="status-badge" [attr.data-status]="state.data.profile.state.availability">{{ state.data.profile.state.availability | titlecase }}</span> }</div>
           <p class="eyebrow">{{ state.data.profile.litter_code ? state.data.profile.litter_code + '-litter' : 'Foundation dog' }}</p>
           <h1>{{ state.data.profile.name }}</h1>

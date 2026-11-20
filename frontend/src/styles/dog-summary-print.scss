@@ -1,0 +1,17 @@
+// Named and body-scoped: ordinary printing and Kennel Map retain their own page geometry.
+@page husky-dog-summary { size: A4 portrait; margin: 10mm; }
+body.ht-dog-summary-open { overflow: hidden; }
+@media print {
+  body.ht-dog-summary-open {
+    width: auto !important; min-width: 0 !important; height: auto !important;
+    min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+    overflow: visible !important; background: #fff !important;
+  }
+  body.ht-dog-summary-open > :not(ht-dog-summary-preview) { display: none !important; }
+  body.ht-dog-summary-open > ht-dog-summary-preview {
+    display: block !important; position: static !important; width: auto !important;
+    height: auto !important; min-height: 0 !important; overflow: visible !important;
+    page: husky-dog-summary;
+  }
+  body.ht-dog-summary-open ht-dog-summary-document .dog-media .dog-media-fallback small { font-size: 9pt; }
+}

@@ -1,0 +1,90 @@
+<article class="dog-summary" aria-label="Dog Summary document">
+  <header class="summary-heading">
+    <div><p class="brand">Husky Tracking</p><p class="document-kind">Dog Summary</p></div>
+    <div class="snapshot"><span>State as of</span><time [attr.datetime]="projection().snapshotDate">{{ calendarInstant(projection().snapshotDate) | date: 'd MMMM yyyy' : 'UTC' }}</time></div>
+  </header>
+
+  <section class="identity" aria-label="Identity">
+    <div class="portrait"><ht-dog-media [name]="projection().name" [photoKey]="projection().photoKey" size="profile" /></div>
+    <div class="identity-details">
+      <h1>{{ projection().name }}</h1>
+      <dl class="facts">
+        <div><dt>Date of birth</dt><dd>{{ calendarInstant(projection().birthDate) | date: 'd MMM yyyy' : 'UTC' }}</dd></div>
+        <div><dt>Age at state date</dt><dd>{{ projection().ageLabel }}</dd></div>
+        <div><dt>Sex</dt><dd>{{ projection().sex }}</dd></div>
+        <div><dt>Neuter status</dt><dd>{{ projection().neuterLabel }}@if (projection().neuteredOn; as date) {<small>{{ calendarInstant(date) | date: 'd MMM yyyy' : 'UTC' }}</small>}</dd></div>
+        <div><dt>Litter</dt><dd>{{ projection().litterCode ? projection().litterCode + '-litter' : 'Not recorded' }}</dd></div>
+        <div><dt>Litter birth date</dt><dd>{{ projection().litterBirthDate ? (calendarInstant(projection().litterBirthDate) | date: 'd MMM yyyy' : 'UTC') : 'Not recorded' }}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="summary-section" aria-label="Operational state">
+    <div class="section-title"><h2>Operational state</h2></div>
+    <dl class="facts state-grid">
+      <div><dt>Lifecycle</dt><dd>{{ projection().lifecycle }}</dd></div>
+      <div><dt>Operational class</dt><dd>{{ projection().operationalClass || 'Not recorded' }}@if (projection().classIsHistorical) {<small>Last assigned class</small>}</dd></div>
+      <div><dt>Availability</dt><dd>{{ projection().availability || 'Not recorded' }}</dd></div>
+    </dl>
+    <dl class="facts state-extra">
+      <div><dt>{{ projection().housing?.label || 'Last known housing' }}</dt><dd>{{ projection().housing?.code || 'Not recorded' }}@if (projection().housing; as housing) {<small>{{ housing.displayName }}</small>}</dd></div>
+      <div><dt>Recorded capabilities</dt><dd>{{ projection().capabilities.length ? projection().capabilities.join(' · ') : 'None recorded' }}</dd></div>
+    </dl>
+    @if (projection().archive; as archive) {<p class="archive-record"><strong>Archived {{ calendarInstant(archive.date) | date: 'd MMM yyyy' : 'UTC' }}</strong>· {{ archive.reason }}</p>}
+  </section>
+
+  <section class="summary-section" aria-label="Pedigree">
+    <div class="section-title"><h2>Pedigree</h2><p class="section-context">Parents and grandparents</p></div>
+    <div class="pedigree">
+      <section class="family-line" aria-label="Maternal line">
+        <h3>Maternal line</h3>
+        <dl>
+          <div class="parent"><dt>Mother</dt><dd>{{ projection().pedigree.mother || 'Not recorded' }}</dd></div>
+          <div><dt>Maternal grandmother</dt><dd>{{ projection().pedigree.maternalGrandmother || 'Not recorded' }}</dd></div>
+          <div><dt>Maternal grandfather</dt><dd>{{ projection().pedigree.maternalGrandfather || 'Not recorded' }}</dd></div>
+        </dl>
+      </section>
+      <section class="family-line" aria-label="Paternal line">
+        <h3>Paternal line</h3>
+        <dl>
+          <div class="parent"><dt>Father</dt><dd>{{ projection().pedigree.father || 'Not recorded' }}</dd></div>
+          <div><dt>Paternal grandmother</dt><dd>{{ projection().pedigree.paternalGrandmother || 'Not recorded' }}</dd></div>
+          <div><dt>Paternal grandfather</dt><dd>{{ projection().pedigree.paternalGrandfather || 'Not recorded' }}</dd></div>
+        </dl>
+      </section>
+    </div>
+    <p class="family-counts">Recorded littermates: {{ projection().pedigree.littermates }} · Recorded offspring: {{ projection().pedigree.offspring }}</p>
+  </section>
+
+  <section class="summary-section" aria-label="Actual work">
+    <div class="section-title"><h2>Actual work · this dog</h2><p class="section-context">{{ calendarInstant(projection().work.seasonStart) | date: 'd MMM yyyy' : 'UTC' }} – {{ calendarInstant(projection().work.seasonEnd) | date: 'd MMM yyyy' : 'UTC' }}</p></div>
+    <dl class="work-summary">
+      <div class="distance"><dt>Total distance</dt><dd>{{ projection().work.totalKm | number: '1.0-2' }} km</dd></div>
+      <div class="starts"><dt>Dog starts</dt><dd>{{ projection().work.starts }}</dd></div>
+      <div><dt>Last work date</dt><dd>{{ projection().work.lastWorkDate ? (calendarInstant(projection().work.lastWorkDate) | date: 'd MMM yyyy' : 'UTC') : 'Not recorded' }}</dd></div>
+      <div><dt>5 km starts</dt><dd>{{ projection().work.starts5km }}</dd></div>
+      <div><dt>10 km starts</dt><dd>{{ projection().work.starts10km }}</dd></div>
+      <div><dt>Average km / start</dt><dd>{{ projection().work.averageKmPerStart === null ? 'Not recorded' : (projection().work.averageKmPerStart | number: '1.0-2') }}</dd></div>
+    </dl>
+    @if (projection().work.starts === 0) {<p class="empty-work">0 starts recorded in this season.</p>}
+  </section>
+
+  <section class="summary-section" aria-label="Recent history">
+    <div class="section-title"><h2>Recent history</h2><p class="section-context">Up to three latest known changes</p></div>
+    @if (projection().history.length) {
+      <ul class="history-list">
+        @for (event of projection().history; track $index) {<li><time [attr.datetime]="event.date">{{ calendarInstant(event.date) | date: 'd MMM yyyy' : 'UTC' }}</time><span>{{ event.kind }}</span><strong>{{ event.value }}</strong></li>}
+      </ul>
+    } @else {<p class="history-empty">No dated changes recorded.</p>}
+    @if (projection().workspaceHousing; as placement) {<p class="workspace-record"><strong>Temporary demo housing</strong>{{ placement.code }} · {{ placement.displayName }} · {{ calendarInstant(placement.date) | date: 'd MMM yyyy' : 'UTC' }}. Workspace change, separate from canonical history.</p>}
+  </section>
+
+  @if (projection().notes; as notes) {
+    <section class="summary-section" aria-label="Note excerpt">
+      <div class="section-title"><h2>Note excerpt</h2></div>
+      <p class="notes">{{ notes.text }}</p>
+      @if (notes.shortened) {<p class="note-disclosure">Shortened for this summary. Full note in Dog Profile.</p>}
+    </section>
+  }
+  <footer class="summary-footer"><p>Fictional demo data · Summary only. Full details, work records and history are available in Dog Profile.</p></footer>
+</article>

@@ -1,0 +1,21 @@
+<div class="print-preview-shell">
+  <section class="print-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="dog-summary-preview-title" aria-describedby="dog-summary-preview-description">
+    <header class="print-preview-toolbar">
+      <h2 id="dog-summary-preview-title">Dog Summary print preview</h2>
+      <p id="dog-summary-preview-description">One page · A4 portrait · Snapshot {{ projection().snapshotDate }}. Use 100% scale and turn off browser headers and footers.</p>
+    </header>
+    <div #paper class="print-preview-content" tabindex="0" role="region" aria-label="Dog Summary print document">
+      <ht-dog-summary-document [projection]="projection()" />
+    </div>
+    <footer class="print-preview-footer">
+      <div class="print-preview-announcements">
+        @if (printStatus()) { <p role="status">{{ printStatus() }}</p> }
+        @if (printError()) { <p class="print-preview-error" role="alert">{{ printError() }}</p> }
+      </div>
+      <div class="print-preview-actions">
+        <button class="button secondary" type="button" [disabled]="requestingPrint() || nativePrinting()" (click)="close()">Close</button>
+        <button class="button primary" type="button" [disabled]="!ready() || requestingPrint() || nativePrinting()" (click)="print()">Print / Save as PDF</button>
+      </div>
+    </footer>
+  </section>
+</div>

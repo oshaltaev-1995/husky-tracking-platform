@@ -1,9 +1,13 @@
+import { vi } from 'vitest';
+import { provideHttpClient } from '@angular/common/http';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
 
 import { DogProfileBundle } from '../../../core/api/dogs.models';
+import { DemoSessionService } from '../../../core/api/demo-session.service';
+import { DogMediaComponent } from '../../../shared/dog-media/dog-media.component';
 import { DogsService } from '../../../core/api/dogs.service';
 import { DogProfileComponent } from './dog-profile.component';
 
@@ -109,11 +113,12 @@ describe('DogProfileComponent', () => {
   const params = new BehaviorSubject(convertToParamMap({ dogId: id }));
   const query = new BehaviorSubject(convertToParamMap({}));
 
-  async function setup(getProfileBundle = () => of(bundle)) {
+  async function setup(getProfileBundle: (dogId: string) => Observable<DogProfileBundle> = () => of(bundle)) {
     await TestBed.configureTestingModule({
       imports: [DogProfileComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         { provide: ActivatedRoute, useValue: { paramMap: params, queryParamMap: query } },
         { provide: DogsService, useValue: { getProfileBundle } },
       ],
@@ -258,4 +263,100 @@ describe('DogProfileComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.work-list article').length).toBe(5);
   });
+  it('opens a detached summary from every tab without additional bundle requests or writes', async () => {
+    vi.spyOn(DogMediaComponent.prototype, 'whenReady').mockResolvedValue();
+    const getBundle = vi.fn(() => of(bundle));
+    const fixture = await setup(getBundle);
+    for (const tab of ['profile', 'pedigree', 'work', 'history']) {
+      query.next(convertToParamMap({ tab, from: 'archive' }));
+      fixture.detectChanges();
+      (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const preview = document.querySelector('ht-dog-summary-preview')!;
+      expect(preview.textContent).toContain('Dog Summary');
+      expect(preview.textContent).toContain('Aurora');
+      expect(preview.querySelector('h1')?.textContent).toContain('Aurora');
+      const close = Array.from(preview.querySelectorAll('button')).find((button) => button.textContent?.trim() === 'Close')!;
+      close.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Back to Archive');
+    }
+    expect(getBundle).toHaveBeenCalledTimes(1);
+    vi.restoreAllMocks();
+  });
+
+  it('closes a previous preview on route change and ignores the old request after the new dog loads', async () => {
+    vi.spyOn(DogMediaComponent.prototype, 'whenReady').mockResolvedValue();
+    const first = new Subject<DogProfileBundle>();
+    const second = new Subject<DogProfileBundle>();
+    const fixture = await setup((dogId) => dogId === id ? first : second);
+    first.next(bundle);
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(document.querySelector('ht-dog-summary-preview')).not.toBeNull();
+    params.next(convertToParamMap({ dogId: relativeId }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.profile-actions button')).toBeNull();
+    expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+    first.next(bundle);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Loading dog profile');
+    const next = structuredClone(bundle);
+    next.profile.id = relativeId;
+    next.profile.name = 'Cedar';
+    next.profile.photo_key = null;
+    next.pedigree.dog_id = relativeId;
+    next.work.dog_id = relativeId;
+    next.history.dog_id = relativeId;
+    second.next(next);
+    first.next(bundle);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Cedar');
+    (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(document.querySelector('ht-dog-summary-document h1')?.textContent).toBe('Cedar');
+    vi.restoreAllMocks();
+  });
+
+  it('invalidates an open summary at Reset and replacement and reloads only a completed context', async () => {
+    vi.spyOn(DogMediaComponent.prototype, 'whenReady').mockResolvedValue();
+    const getBundle = vi.fn(() => of(bundle));
+    const fixture = await setup(getBundle);
+    const session = TestBed.inject(DemoSessionService);
+    (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    session.resetStarted$.next();
+    fixture.detectChanges();
+    expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Reload this dog profile');
+    expect(getBundle).toHaveBeenCalledTimes(1);
+    session.resetCompleted$.next();
+    fixture.detectChanges();
+    expect(getBundle).toHaveBeenCalledTimes(2);
+    (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    session.replaced$.next();
+    fixture.detectChanges();
+    expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.profile-actions button')).toBeNull();
+    expect(getBundle).toHaveBeenCalledTimes(2);
+    vi.restoreAllMocks();
+  });
+
+  it('closes a known expired session without making a print or session request', async () => {
+    const fixture = await setup();
+    const session = TestBed.inject(DemoSessionService);
+    session.session.set({ active: true, expires_at: '2000-01-01T00:00:00Z', ttl_hours: 24, ttl_seconds: 86400, created: false, replaced_expired: false });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Reload this dog profile');
+    expect(fixture.nativeElement.querySelector('.profile-actions button')).toBeNull();
+    expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+  });
+
 });

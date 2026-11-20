@@ -81,15 +81,27 @@ temporary placements. Historical housing, saved plans/teams, and actual workload
 unchanged. See [`docs/P13C_MOVE_TOGETHER.md`](docs/P13C_MOVE_TOGETHER.md) for editing,
 error recovery, navigation, and validation boundaries.
 
-P13D adds a local-review Print map workspace: one frozen committed snapshot and layer,
+P13D is accepted locally. Its Print map workspace uses one frozen committed snapshot and layer,
 shared by Overview/Ground, with an accessible preview and ordinary browser Print / Save
 as PDF. The spatial sheet retains Ground's A/B adjacency, paths, puppy buildings and
 selected-layer colors/legend. Canonical output targets one A4 landscape sheet; larger
 rosters continue with explicit location headers and every full name exactly once.
 Color supplements text and borders; browser print preferences still apply.
 Pending/unresolved housing states block printing. Opening,
-closing or repeating print makes no API request or mutation. P13E and later packages
-remain separate and are not started by this implementation.
+closing or repeating print makes no API request or mutation. Only continuation location
+codes are kept on one line; full names and the continuation words still wrap.
+
+P13E is implemented locally, pending independent review. **Print summary** in any Dog
+Profile tab opens one frozen, read-only Dog Summary from the already loaded profile,
+pedigree, actual work and history bundle. It targets one A4 portrait sheet at 100%, with
+10mm margins and text at least 9pt. Current/last housing, lifecycle/class/availability,
+six ancestors and actual per-dog work remain distinct. History is limited to three dated
+changes and notes to a 260-character excerpt; full records remain in the profile.
+Portrait readiness uses the same media contract and a bounded fallback. Print opens no
+API request or workspace and performs no mutation. Map and Summary share native-print
+lifecycle guards while retaining separate page geometry. Native Save → Cmd+P → Cancel
+remains NOT VERIFIED: the bounded P13E native attempt encountered a locked Mac.
+P13F and later packages are not started.
 
 ## Demo time
 
