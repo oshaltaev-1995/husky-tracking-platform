@@ -54,3 +54,17 @@ Final provider, transfer, mailbox, and log-retention facts are live-deployment
 acceptance items for P12B. P12A startup validation refuses placeholder controller,
 contact, and hosting-region values. The VPS/hosting location alone does not determine the
 controller's competent supervisory authority.
+
+## P14A technical boundary — no live AI processing
+
+The local Operations Agent foundation sends no inference requests and installs no
+public endpoint or network transport. No public Privacy claim of existing Groq or
+OpenRouter processing is appropriate yet. Tests use synthetic fixtures/fake HTTP only.
+`OPERATIONS_AGENT_FOUNDATION.md` records the prospective minimized fields, excluded
+notes/Contact/cookie/precondition/visitor data, account privacy checks and unverified
+provider region/retention for separately authorised P14B. No API keys/raw transcripts
+are included in logs, browser storage or review artifacts.
+
+Reset removes mutable workspace rows (including notes/housing changes), not its cookie,
+and does not extend the existing server expiry. The public notice uses runtime TTL
+metadata rather than a fixed-duration promise.

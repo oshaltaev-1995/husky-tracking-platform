@@ -853,6 +853,49 @@ historical. The canonical checksum, season, 60 portraits and plan/actual separat
 unchanged. Main/public-v1.2, push, tagging, deployment and production infrastructure are
 outside this local package; P14 is not started.
 
+## P14A — Read-only Operations Agent foundation
+
+**Status:** local foundation implemented; independent acceptance and P14B remain
+separate. No push, merge, tag, deployment, live inference or public agent UI/endpoint.
+The source base is accepted P13G `bdffe6f`; main/public-v1.2 remain protected.
+
+Includes strict immutable snapshot/tool/evidence/error DTOs; cookie-authorized dated
+snapshot under the shared workspace lock/HousingContext, with transaction/session
+closed before provider work; six closed read tools and existing-domain validation;
+trusted evidence/deep-link checks; provider-specific injected HTTP adapters and bounded
+single Groq Free → exact OpenRouter :free restart contracts. Default disabled, no
+live transport, no new dependencies/models/infrastructure/schema/seed. Tests use only
+fake HTTP, deterministic offline fixtures and a positively identified disposable PG.
+
+G-DOC-01: P13G demonstrated unchanged **Work.summary / actual-work metrics for all16
+dogs** after Apply, not equality of whole Work DTO histories/weekly arrays; historical
+archives are unchanged. G-PRIVACY-01 names ht_demo_session, notes/housing moves and the
+runtime lifetime; Reset clears mutable workspace data without deleting cookie or
+extending expiry. Public Privacy never creates a workspace and makes no premature
+AI-provider processing claim. Actual tests/limits and results belong to the P14A report.
+
+See `OPERATIONS_AGENT_FOUNDATION.md` for architecture, official sources, byte/time/tool
+budgets, refusal contracts, data minimization and Free-only future setup prerequisites.
+
+## P14B — Limited live agent and UI (not started)
+
+One bounded serial tool loop and Review operations for selected date UI, tool trace,
+server evidence, current-session/cancellation and real admission boundary. Needs owner
+API keys, verified Free accounts, current model/options/filter compatibility and a few
+explicitly authorised live checks. Update public Privacy for actual processing before
+exposure. No local model or paid route. Unavailable free routing gives a clear failure.
+
+## P14C — Quality and adversarial evaluation (not started)
+
+Approximately20–30 scenarios assessing model correctness, evidence, malicious inputs,
+fallback/quotas, accessibility and regressions. Fake HTTP contract tests in A do not
+establish model quality or live end-to-end success.
+
+## P14D — Presentation and final candidate acceptance (not started)
+
+Present the evaluated result and independent release candidate. Publication remains a
+separate final owner-authorized action; no automatic push/deploy/tag from these stages.
+
 ## Completion discipline
 
 Each package updates this roadmap only when evidence changes scope. It must include a

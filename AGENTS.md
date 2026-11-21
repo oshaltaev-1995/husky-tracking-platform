@@ -103,6 +103,16 @@ These instructions apply to the entire repository.
   use actual `WorkSession`/`WorkParticipation` rows only. Planned/not-run work is never
   counted, weeks run Monday–Sunday, and attention rules normalize by eligible days and
   class peers rather than comparing Puppy/Junior dogs with working adults.
+- Operations Agent P14A is a disabled, local read-only foundation, without a public
+  endpoint, live model transport or automatic loop. Capture one bounded frozen snapshot
+  under the existing cookie-authorized workspace lock and shared HousingContext; close
+  the transaction/Session before any provider wait. Tools never materialize or write.
+  Recheck session/expiry/Reset/cancellation before fallback and final output. Keep private
+  context, notes, cookies, preconditions and keys out of provider data/logs. Reuse existing
+  eligibility, actual-work and lineup rules; evidence is server-created. Groq Free and
+  exact OpenRouter `:free` contracts permit one bounded switch, zero-price/privacy filters
+  and no paid bypass. P14A tests use fake HTTP only, even if keys exist in the environment;
+  live accounts/loop/UI and actual provider Privacy belong to separately authorized P14B.
 - Dashboard is the fixed-reference `/demo/dashboard` operational home. Its projection must
   compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
   services; do not persist dashboard totals or create alternate KPI/attention rules.

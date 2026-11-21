@@ -129,8 +129,20 @@ Training Day proposal/Apply to the existing solver rate limit and keeps status/e
 feedback visible beside the review controls. Its release evidence covers the public-v1.2
 schema upgrade, isolated backup restore, and compatible workspace-draining rollback;
 readiness belongs to the final report, not a deployment claim. Main/public-v1.2 remain
-unchanged. Push, release tagging and deployment require separate authorization; P14 is
-not started.
+unchanged. Push, release tagging and deployment require separate authorization.
+
+P14A adds a disabled, local-only Operations Agent foundation: a frozen cookie-authorized
+read snapshot, six read tools, deterministic evidence checks, and fake-transport-tested
+Groq Free → exact OpenRouter `:free` routing contracts. No agent endpoint, UI, live
+inference, new schema or model download is included. `AGENT_ENABLED=false` by default;
+existing keys do not authorize network calls. See
+[`OPERATIONS_AGENT_FOUNDATION.md`](docs/OPERATIONS_AGENT_FOUNDATION.md) for the explicit
+P14B live/account/privacy gates. Offline checks: backend
+`python -m app.operations.evals` (no API keys, provider or database needed).
+
+QA clarification: the P13G pre/post-Training Day Apply comparison establishes unchanged
+**Work.summary / actual-work metrics for all 16 dogs**, not equality of full Work DTOs
+including history or weekly arrays. Historical accepted archives are not rewritten.
 
 ## Demo time
 

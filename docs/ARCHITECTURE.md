@@ -533,7 +533,8 @@ unsaved team preview, explicitly saved lineups and confirmed actual work remain 
 distinct states. Generate/Save in Team Builder and reviewed confirmation in Daily Entry
 are separate actions; plans and lineups never change analytics by themselves. Workspace
 Reset removes that visitor's example, teams and actual overlay and restores effective
-baseline reads. P13G adds the narrowly scoped release gate below; P14 is not started.
+baseline reads. P13G adds the narrowly scoped release gate below; the separately
+authorized P14A foundation is described in `OPERATIONS_AGENT_FOUNDATION.md`.
 
 #### P13 release boundary
 
@@ -560,6 +561,29 @@ The exact commands, stop conditions, image/volume identity checks, current publi
 boundary and operator consequences are in `P13_RELEASE_RUNBOOK.md`. Its rehearsal uses
 only task-owned synthetic databases. P13G itself makes no production, Caddy, DNS, SMTP,
 timer, main-branch or release-tag change.
+
+### Operations Agent foundation (P14A)
+
+`app/operations` is an in-process read-only foundation, not a second domain service,
+public endpoint or autonomous workflow. `SnapshotReader` requires the existing valid
+cookie-authorized workspace, locks it before domain reads, shares one HousingContext,
+and detaches a bounded frozen DTO before releasing its transaction/Session. It never
+materializes a day or flushes domain writes. All six tools use that same snapshot;
+actual planning workloads exclude the selected date/future. Eligibility, saved-lineup
+and distance rules reuse existing services/domain helpers, with dated evidence.
+Private workspace/expiry/reset binding never enters provider projection.
+
+Provider adapters build/parse bounded HTTP contracts only through injected transport.
+No live transport, route, inference, model dependency or conversation persistence is
+installed. `AGENT_ENABLED=false` and explicit application admission/current-context
+callbacks are mandatory. One Groq Free → exact OpenRouter :free switch preserves the
+snapshot, overall budgets and cancellation; it discards primary transcript on restart.
+Fixed endpoints, zero-price/privacy filters and terminal error classes cannot be
+changed by model/data. P14B still needs actual Free-account verification, a limited live
+loop/UI, deployment admission and accurate provider-processing Privacy before exposure.
+
+P13G QA wording is scoped to unchanged Work.summary / actual-work metrics of all16
+dogs after Training Day Apply, not entire Work DTO history/weekly-array equality.
 
 ### Team Builder
 
