@@ -5,10 +5,12 @@ demonstration built entirely from fictional data. Its core product loop is:
 
 **Kennel Map → Dog Profile → Daily Plan → Team Builder → Daily Entry → Analytics**
 
-The canonical production hostname is `huskytracking.com`. P12A prepares the repository
-for deployment; DNS, TLS, VPS, firewall, scheduler, backup, monitoring, and real SMTP
-configuration remain explicit P12B operator work. This repository is a new
-implementation, not a migration or copy of either reference project.
+The canonical production hostname is `huskytracking.com`; the agreed public release is
+`public-v1.2` (`bc8c91098e156411f40b39112a9e930e3a65904b`). P13A–F are accepted local
+work; P13G prepares a separate release candidate for independent review. It has not
+been pushed or deployed. See [`docs/P13_RELEASE_RUNBOOK.md`](docs/P13_RELEASE_RUNBOOK.md)
+for the reviewed upgrade/rollback procedure; P12B first-launch instructions are historical.
+This repository is an independent implementation, not a migration or copy of a reference.
 
 ## Product foundation through P12A
 
@@ -104,12 +106,12 @@ API request or workspace and performs no mutation. Map and Summary share native-
 lifecycle guards while retaining separate page geometry. The P13E native
 Save → Cmd+P → Cancel attempt was NOT VERIFIED because the Mac was locked. The bounded
 P13F check subsequently passed that exact sequence in native Chrome for Map, including
-usable preview controls after Cancel; native Dog Summary was not retested. Headless
+usable preview controls after Cancel; native Dog Summary was not retested in F. Headless
 PDFs do not establish native-dialog behavior. The E-UUID-01 follow-up accepts
 validated canonical, uppercase and hyphenless UUID links without removing identity,
 mixed-bundle or stale-response guards.
 
-P13F is implemented locally, pending independent review. **Try a training day** in
+P13F is accepted for local continuation on `0b3ef9f`. **Try a training day** in
 Daily Plan proposes 29 March 2026: four 5 km Training Loops at 09:00–10:00,
 10:30–11:30, 12:30–13:30 and 14:00–15:00. One deterministic, date-eligible pool of
 16 dogs repeats in all four groups: 64 planned participations, 20 planned km per dog
@@ -120,7 +122,15 @@ Daily Entry still needs its own reviewed actual confirmation. Manual 5/10 km pla
 remains available. Schema, canonical seed and season are unchanged; actual work continues
 in the existing ledger.
 Unknown save outcomes require an explicit current-day check rather than automatic
-retry. P13G/P14, push, release tagging and deployment are not part of this local work.
+retry.
+
+P13G is a local regression/release gate, pending independent release review. It adds
+Training Day proposal/Apply to the existing solver rate limit and keeps status/error
+feedback visible beside the review controls. Its release evidence covers the public-v1.2
+schema upgrade, isolated backup restore, and compatible workspace-draining rollback;
+readiness belongs to the final report, not a deployment claim. Main/public-v1.2 remain
+unchanged. Push, release tagging and deployment require separate authorization; P14 is
+not started.
 
 ## Demo time
 

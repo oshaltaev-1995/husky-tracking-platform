@@ -180,7 +180,9 @@ export class DailyPlanPageComponent {
       error: (error: HttpErrorResponse) => {
         if (!this.isTrainingCurrent(attempt, epoch, date)) return;
         this.trainingDayPhase.set('error');
-        this.trainingDayError.set(error.status === 401 || error.status === 403
+        this.trainingDayError.set(error.status === 429
+          ? 'Too many training-day requests. Please wait a moment, then choose Review again. No plan was submitted.'
+          : error.status === 401 || error.status === 403
           ? 'Your demo session is no longer valid. Reload this page, then review again.'
           : 'The training day could not be prepared. No plan was submitted. Try reviewing again.');
       },
@@ -212,7 +214,9 @@ export class DailyPlanPageComponent {
         if (!this.isTrainingCurrent(attempt, epoch, date)) return;
         if (error instanceof HttpErrorResponse && error.status >= 400 && error.status < 500 && error.status !== 408) {
           this.trainingDayPhase.set('rejected');
-          this.trainingDayError.set(this.errorMessage(error));
+          this.trainingDayError.set(error.status === 429
+            ? 'Too many training-day requests. Please wait a moment, then review again before applying. Nothing will be retried automatically.'
+            : this.errorMessage(error));
         } else {
           // A failed response does not prove that the server transaction failed.
           this.trainingDayPhase.set('unknown');

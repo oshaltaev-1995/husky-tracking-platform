@@ -2,7 +2,7 @@
 
 .training-day-backdrop { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: var(--space-4); background: rgb(15 35 33 / 45%); }
 .training-day-dialog { display: flex; flex-direction: column; width: min(100%, 48rem); max-height: 92dvh; min-height: 0; overflow: hidden; }
-header, footer { padding: var(--space-5) var(--space-6); }
+header, footer { flex-shrink: 0; padding: var(--space-5) var(--space-6); }
 header { border-bottom: 1px solid var(--border); }
 header .eyebrow { margin: 0; }
 h2 { margin: var(--space-2) 0; font-size: var(--font-section-title); }
@@ -23,13 +23,18 @@ h3 { margin: 0 0 var(--space-3); font-size: var(--font-body); }
 .example-handoff { margin: var(--space-5) 0 0; padding: var(--space-4); border-inline-start: 3px solid var(--brand-strong); background: var(--surface-soft); line-height: 1.55; }
 .example-handoff strong { display: block; margin-bottom: var(--space-2); }
 .example-unavailable { padding: var(--space-4); border: 1px solid var(--border-strong); border-radius: var(--radius-control); }
-.message { margin: var(--space-4) 0 0; padding: var(--space-3); border-radius: var(--radius-control); color: var(--text-secondary); background: var(--surface-soft); line-height: 1.55; }
+.training-day-feedback { flex-shrink: 0; padding: var(--space-3) var(--space-6); border-top: 1px solid var(--border); overflow-wrap: anywhere; }
+.message { margin: 0; padding: var(--space-3); border-radius: var(--radius-control); color: var(--text-secondary); background: var(--surface-soft); font-size: var(--font-body); line-height: 1.45; }
+.message + .message { margin-top: var(--space-2); }
+.message p { margin: 0; }
+.message .reconciliation-note { margin-top: var(--space-2); color: var(--text-secondary); }
 .message.error { color: var(--danger); background: var(--danger-soft); }
 footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); border-top: 1px solid var(--border); }
 
 @include mixins.phone {
   .training-day-backdrop { padding: var(--space-2); }
   header, footer, .training-day-content { padding: var(--space-4); }
+  .training-day-feedback { padding: var(--space-2) var(--space-4); }
   .example-schedule li { grid-template-columns: 4.5rem minmax(0, 1fr); gap: var(--space-1) var(--space-3); }
   .example-schedule li > span:last-child { grid-column: 2; }
   .example-pool { grid-template-columns: minmax(0, 1fr); }

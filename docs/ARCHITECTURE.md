@@ -216,7 +216,7 @@ The accepted P13E evidence left the exact native Save → Cmd+P → Cancel seque
 NOT VERIFIED because the bounded system-tool attempt found macOS locked. P13F's single
 bounded native Chrome Map check subsequently passed: Save produced the review artifact
 `pdfs/native-map-save.pdf`, repeated Cmd+P opened print preview, and Cancel restored the
-usable application preview and title. Native Dog Summary was not retested. Headless PDF
+usable application preview and title. Native Dog Summary was not retested in F. Headless PDF
 and synthetic lifecycle checks remain separate evidence. P13F does not rewrite the shared
 print lifecycle.
 
@@ -484,7 +484,7 @@ eligible dogs explains the shortage and returns to Daily Plan.
 
 #### Opt-in Training Day
 
-P13F is implemented locally, pending independent review. Daily Plan's **Try a training
+P13F is accepted for local continuation at `0b3ef9f`. Daily Plan's **Try a training
 day** action proposes the fixed historical date `2026-03-29`; it does not change the
 selected day on opening or follow the machine calendar. Its four 5 km Training Loops
 use suggested windows 09:00–10:00, 10:30–11:30, 12:30–13:30 and 14:00–15:00. Existing
@@ -533,7 +533,33 @@ unsaved team preview, explicitly saved lineups and confirmed actual work remain 
 distinct states. Generate/Save in Team Builder and reviewed confirmation in Daily Entry
 are separate actions; plans and lineups never change analytics by themselves. Workspace
 Reset removes that visitor's example, teams and actual overlay and restores effective
-baseline reads. P13G/P14 and production release work remain outside this local package.
+baseline reads. P13G adds the narrowly scoped release gate below; P14 is not started.
+
+#### P13 release boundary
+
+The published base remains `public-v1.2` / `bc8c910`; accepted local P13A–F are not
+silently treated as deployed. P13G's candidate is pending independent release review.
+Training Day GET/Apply POST share the existing Nginx per-client solver zone with Team
+Builder Generate (10/minute, burst 6). Apply also retains the mutation limit. Query
+strings do not bypass the `$request_method:$uri` map; ordinary GET navigation is not
+added to that zone. Existing trusted-IP handling and safe JSON 429 remain unchanged.
+Review status/errors are kept visible outside the long roster scroll; unknown outcomes
+retain their meaning and never trigger automatic Apply replay.
+
+The additive P13B migration advances `5c82f32e5d8a` to `b7e13a9d4c20`. An ordinary
+upgrade migrates explicitly and preserves existing anonymous workspace data without
+reseed/reset. An application rollback needs more than retaining an old image: old code
+ignores housing overrides and cannot clear them through its Reset. The selected procedure
+fences Husky writers/maintenance, drains only temporary workspace graphs transactionally
+using compatible new code, verifies canonical checksum, then starts retained old images
+on the additive schema without downgrade. This intentionally invalidates temporary demo
+sessions; old anonymous code may create a fresh session rather than return 401. Old
+graphs/preconditions must not resurrect on re-upgrade.
+
+The exact commands, stop conditions, image/volume identity checks, current public ingress
+boundary and operator consequences are in `P13_RELEASE_RUNBOOK.md`. Its rehearsal uses
+only task-owned synthetic databases. P13G itself makes no production, Caddy, DNS, SMTP,
+timer, main-branch or release-tag change.
 
 ### Team Builder
 

@@ -1,10 +1,12 @@
 """Repository contracts for the VPS ingress and maintenance handoff."""
 
 import json
+import re
 import shutil
 import subprocess
 import uuid
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -223,6 +225,118 @@ def test_inner_nginx_limits_only_targeted_api_operations() -> None:
     assert "client_max_body_size 256k;" in config
     assert "set_real_ip_from 0.0.0.0/0" not in config
     assert "location /api/ {" in config
+
+
+def mapped_rate_key(
+    config: str, variable: str, method: str, request_target: str
+) -> str:
+    """Check the repository's simple map rules; real Nginx is tested separately.
+
+    In particular, require normalized $uri rather than query-bearing $request_uri.
+    Only literal/regex maps already used by these four zones are interpreted here.
+    """
+    mapping = re.search(
+        rf'map\s+("\$request_method:\$uri"|\$request_method)\s+'
+        rf"\${variable}\s*\{{([^}}]*)\}}",
+        config,
+    )
+    assert mapping is not None, f"Missing expected method/$uri map: {variable}"
+    source, body = mapping.groups()
+    key = (
+        f"{method}:{urlsplit(request_target).path}"
+        if source.startswith('"')
+        else method
+    )
+    default = None
+    for line in body.splitlines():
+        rule = re.fullmatch(r'\s*(~\S+|"[^"]+"|\w+)\s+([^;]+);\s*', line)
+        if rule is None:
+            assert not line.strip(), f"Unrecognized rate-map rule in {variable}"
+            continue
+        pattern, result = rule.groups()
+        assert result in {'""', "$binary_remote_addr"}
+        if pattern == "default":
+            default = result
+        elif (pattern.startswith("~") and re.search(pattern[1:], key)) or (
+            not pattern.startswith("~") and pattern.strip('"') == key
+        ):
+            return result
+    assert default == '""', f"Non-targeted requests must not be limited by {variable}"
+    return default
+
+
+@pytest.mark.parametrize(
+    ("method", "target", "limited_maps"),
+    [
+        ("GET", "/api/v1/training-day-example", {"team_generate"}),
+        ("GET", "/api/v1/training-day-example?review=1", {"team_generate"}),
+        ("POST", "/api/v1/training-day-example/apply", {"team_generate", "mutation"}),
+        (
+            "POST",
+            "/api/v1/training-day-example/apply?review=2",
+            {"team_generate", "mutation"},
+        ),
+        (
+            "POST",
+            "/api/v1/daily-plans/2026-03-29/activities/test/teams/generate",
+            {"team_generate", "mutation"},
+        ),
+        ("POST", "/api/v1/training-day-example", {"mutation"}),
+        ("GET", "/api/v1/training-day-example/apply", set()),
+        ("HEAD", "/api/v1/training-day-example", set()),
+        ("GET", "/api/v1/training-day-example/not-an-endpoint", set()),
+        ("GET", "/api/v1/kennel-map?date=2026-03-31", set()),
+        ("GET", "/api/v1/dogs/example-dog/work", set()),
+        ("GET", "/api/v1/daily-plans/2026-03-29", set()),
+        ("GET", "/api/v1/analytics/overview?from=2025-12-01&to=2026-03-31", set()),
+        ("GET", "/", set()),
+        ("GET", "/features", set()),
+        ("GET", "/media/dogs/example.webp?v=dog-media-v1", set()),
+        ("GET", "/main-example.js", set()),
+        ("GET", "/api/v1/demo/session", {"demo"}),
+        ("POST", "/api/v1/contact", {"contact", "mutation"}),
+    ],
+)
+def test_solver_limit_maps_only_the_expensive_methods_and_ignores_query_strings(
+    method: str, target: str, limited_maps: set[str]
+) -> None:
+    config = (REPOSITORY / "frontend/nginx.conf").read_text()
+    actual = {
+        name
+        for name in ("contact", "demo", "team_generate", "mutation")
+        if mapped_rate_key(config, f"{name}_rate_key", method, target)
+        == "$binary_remote_addr"
+    }
+    assert actual == limited_maps
+
+
+def test_solver_requests_share_existing_policy_and_safe_json_rejection() -> None:
+    config = (REPOSITORY / "frontend/nginx.conf").read_text()
+    assert len(re.findall(r"limit_req_zone[^;]+team_generate_per_client", config)) == 1
+    assert re.search(
+        r"limit_req_zone\s+\$team_generate_rate_key\s+"
+        r"zone=team_generate_per_client:10m\s+rate=10r/m;",
+        config,
+    )
+    assert re.search(
+        r"limit_req\s+zone=team_generate_per_client\s+burst=6\s+nodelay;",
+        config,
+    )
+    assert re.search(
+        r"limit_req\s+zone=mutations_per_client\s+burst=30\s+nodelay;",
+        config,
+    )
+    rejected = re.search(
+        r"location\s+@rate_limited\s*\{(.*?)^\s*\}", config, re.DOTALL | re.MULTILINE
+    )
+    assert rejected is not None
+    assert "default_type application/json;" in rejected[1]
+    body = re.search(r"return\s+429\s+'(.+)';", rejected[1])
+    assert body is not None
+    assert json.loads(body[1]) == {"detail": "Too many requests"}
+    assert "include /etc/nginx/trusted-proxy.conf;" in config
+    assert "real_ip_header X-Forwarded-For;" in config
+    assert "real_ip_recursive off;" in config
 
 
 def test_nginx_distinguishes_known_spa_routes_from_unknown_paths() -> None:

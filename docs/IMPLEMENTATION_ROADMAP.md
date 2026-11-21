@@ -731,7 +731,7 @@ reported explicitly.
 Small directly related non-blocking corrections are included and reported within the
 authorized stage. Mandatory gates remain unchanged and are consolidated at the end;
 data/isolation/persistence/core-flow or required-output blockers stop progression.
-P13F is authorized separately below; P13G and P14 remain unauthorized and unstarted.
+P13F and P13G are authorized separately below; P14 remains unauthorized and unstarted.
 
 ## P13E — One-page Dog Summary
 
@@ -775,8 +775,9 @@ profile regressions precede the Training Day implementation.
 
 ## P13F — Opt-in Training Day
 
-**Status:** implemented locally, pending independent review. No push, merge, tagging or
-deployment; `main` and `public-v1.2` remain protected. P13G and P14 are not started.
+**Status:** accepted for local continuation on
+`0b3ef9faccd990a858fa9ad9b20888bd5b544750`. No push, merge, tagging or deployment;
+`main` and `public-v1.2` remain protected. P13G is separately authorized below; P14 is not started.
 
 Daily Plan offers one explicitly reviewed example for 29 March 2026: four ordinary
 5 km Training activities at suggested windows 09:00–10:00, 10:30–11:30, 12:30–13:30 and
@@ -813,6 +814,44 @@ application title (`pdfs/native-map-save.pdf` in the review bundle). This does n
 to native Dog Summary, a physical phone or an additional browser engine; those were not
 retested. Final logs, UI flow, checksum/media/schema evidence and reproducible scripts
 belong to the P13F review bundle.
+
+## P13G — Regression and release gate
+
+**Status:** local candidate preparation, pending independent release review. This is
+not a production deployment or an assertion that all acceptance checks have passed;
+the final report records READY FOR RELEASE REVIEW or a concrete NO GO.
+
+The two accepted follow-ups are narrow: F-INGRESS-01 adds Training Day proposal GET and
+Apply POST to the existing 10/minute, burst-6 solver zone, retaining mutation limits,
+trusted-IP boundaries and unaffected ordinary GET navigation. F-STATUS-01 makes applying,
+reconciling, conflict, unknown and error feedback visible alongside review controls,
+independent of roster scroll position. Unknown/empty-read semantics and explicit new
+Review/Apply remain intact.
+
+The gate uses a production Angular/Nginx same-origin stack and positively identified
+disposable PostgreSQL. One integrated P13A–F UI flow plus targeted isolation/context/error
+checks accompanies the mandatory full source/config gates, bounded real-Nginx rate-limit
+checks, representative PDFs and precisely scoped native evidence. Prior accepted PDF
+corpora and the F native Map result are labelled prior evidence, not new G execution.
+One bounded G native Dog Summary Save → immediate Cmd+P → Cancel check passed in real
+Chrome/macOS, retaining usable preview controls, restoring the title and returning focus
+to Print summary after Close. Its saved baseline PDF is separate from headless actual-work
+Summary evidence. Physical-device coverage is not claimed.
+
+Release rehearsal starts from exact `public-v1.2` code/schema `5c82f32e5d8a`, preserves
+representative existing workspace state through upgrade to `b7e13a9d4c20`, restores a
+real custom-format backup into a separate database, and exercises compatible rollback
+and re-upgrade. New compatible code drains temporary workspace graphs while writers are
+fenced before old binaries run; there is no routine schema downgrade, reseed or image-only
+rollback claim. Old cookies may initialize fresh anonymous state but cannot restore their
+deleted graphs or old housing/Training Day preconditions.
+
+`P13_RELEASE_RUNBOOK.md` binds the future release to the accepted final commit, retained
+actual image identities and verified project/volume/schema, with concrete stop conditions
+and current public ingress paths. P12B staging/Basic Auth/first initialization are marked
+historical. The canonical checksum, season, 60 portraits and plan/actual separation remain
+unchanged. Main/public-v1.2, push, tagging, deployment and production infrastructure are
+outside this local package; P14 is not started.
 
 ## Completion discipline
 

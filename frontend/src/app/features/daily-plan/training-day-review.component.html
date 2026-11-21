@@ -42,14 +42,23 @@
           <p class="example-unavailable" role="status">{{ example.unavailable_reason || 'This example cannot be applied to the proposed date. Existing work will be kept.' }}</p>
         }
       }
+    </div>
+
+    @if (phase === 'applying' || phase === 'reconciling' || phase === 'unknown' || phase === 'rejected' || phase === 'error' || error) {
+      <section class="training-day-feedback" aria-label="Training day status">
       @if (phase === 'applying') { <p class="message" role="status">Creating the four planned activities. Please wait for the result.</p> }
       @if (phase === 'reconciling') { <p class="message" role="status">Reading the current day. This does not repeat the save request.</p> }
       @if (phase === 'unknown') {
-        <p class="message error" role="alert">The result could not be confirmed. The day may already be saved. Check its current state before reviewing again. Closing this review cannot cancel a request that reached the server.</p>
-        @if (reconciledEmpty) { <p class="supporting-copy">No saved plan is visible in that read. This does not prove an earlier request has stopped. A new review will check the day again before another explicit Apply.</p> }
+        <div class="message error" role="alert">
+          <p>The result could not be confirmed. The day may already be saved. Check its current state before reviewing again. Closing this review cannot cancel a request that reached the server.</p>
+          @if (reconciledEmpty) { <p class="reconciliation-note">No saved plan is visible in that read. This does not prove an earlier request has stopped. A new review will check the day again before another explicit Apply.</p> }
+        </div>
       }
       @if (error) { <p class="message error" role="alert">{{ error }}</p> }
-    </div>
+      @if (!error && phase === 'rejected') { <p class="message error" role="alert">This example could not be applied. Open the current day or review again.</p> }
+      @if (!error && phase === 'error') { <p class="message error" role="alert">This review could not be prepared. Try reviewing again.</p> }
+      </section>
+    }
 
     <footer>
       <button class="button quiet" type="button" [disabled]="pending" (click)="close()">{{ phase === 'unknown' ? 'Close review' : 'Cancel' }}</button>

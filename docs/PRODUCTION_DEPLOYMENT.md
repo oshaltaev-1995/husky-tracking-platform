@@ -1,9 +1,16 @@
 # Production deployment runbook
 
-This is the P12B operator runbook for `https://huskytracking.com`. P12B-2 staged the
-exact `bc6d248` release on the shared VPS behind `127.0.0.1:8081`; it did **not**
-connect Caddy or DNS. P12B-2.5 codifies the ingress and maintenance configuration in
-Git only. Do not confuse repository preparation with a live public launch.
+Husky Tracking is already public at `https://huskytracking.com`; the agreed public
+release base is `public-v1.2` / `bc8c91098e156411f40b39112a9e930e3a65904b`.
+For the next separately authorized P13 deployment, use
+[`P13_RELEASE_RUNBOOK.md`](P13_RELEASE_RUNBOOK.md), which covers the additive housing
+migration, retained images, workspace-compatible rollback and current acceptance gate.
+P13G is local preparation, not evidence of a new live release.
+
+The P12B staging/first-launch sections below are historical operator context. P12B-2
+staged `bc6d248` on loopback and P12B-2.5 codified ingress/maintenance before launch.
+Do not repeat first initialization, staging ingress, Basic Auth or temporary global
+noindex when updating the already published site.
 
 ## Architecture and trust boundary
 
@@ -24,7 +31,7 @@ project-private network. The staging-only `compose.staging.yml` publishes only
 `127.0.0.1:8081:80` and must not be included in the public invocation. The existing
 Kennel Operations network, volume, services, and Caddy configuration remain separate.
 
-Before ingress, create and verify the dedicated network with the reviewed subnet
+During the historical first ingress, the dedicated network was established with subnet
 `172.30.50.0/24`; set `TRUSTED_PROXY_CIDR` to that **actual** subnet. Only Caddy and
 the Husky frontend should join it. Nginx trusts `X-Forwarded-For` only from this
 subnet; direct loopback/Docker-bridge callers cannot choose a rate-limit identity by
@@ -81,10 +88,9 @@ invalidates all existing anonymous workspace cookies without exposing their valu
 
 On the VPS, run from `/opt/huskytracking`. Every command must use the explicit project
 and private environment file. Never use a directory-derived Compose project name.
-The currently installed P12B-2 VPS override is staging-only and must not be used for
-final public ingress: first carry its resource/log/PostgreSQL tuning into a reviewed
-host-specific override **without ports**, such as
-`/etc/huskytracking/compose.vps-runtime.yml`.
+The historical P12B-2 override was staging-only. Current public ingress uses the reviewed
+host-specific resource/log/PostgreSQL override **without ports** at
+`/etc/huskytracking/compose.vps-runtime.yml`; verify its actual identity before deployment.
 
 ```bash
 # Validate final public mode before changing containers. This must list zero ports.
@@ -144,15 +150,20 @@ does not replace existing data.
 
 ### Normal redeploy
 
+For the public-v1.2 → P13 candidate transition, the concrete procedure and compatible
+rollback in [`P13_RELEASE_RUNBOOK.md`](P13_RELEASE_RUNBOOK.md) take precedence over this
+general checklist. Existing temporary housing overrides make image-only rollback unsafe.
+
 1. Build/pull the intended immutable revision and retain the previous image/revision.
 2. Take a database backup when migration risk warrants it.
 3. Run `alembic upgrade head` as one explicit job.
 4. Restart backend/frontend, then wait for health and run smoke tests.
 5. Never reseed or reset during a normal redeploy.
 
-### P12B-3 transition from the current loopback staging stack
+### Historical P12B-3 transition from loopback staging
 
-This is a future live operation, **not** performed by P12B-2.5:
+This records the earlier first-launch procedure, not instructions to repeat on the
+current public site. It was not performed by the P12B-2.5 source-only package:
 
 1. Update `/opt/huskytracking` to the reviewed new Git commit; verify its SHA and
    preserve the private environment and separate PostgreSQL volume.
@@ -194,15 +205,16 @@ load justifies change. PostgreSQL memory, worker count, and total possible conne
 must be reviewed together. Correctness does not rely on process memory: workspace
 tokens, date locks, copied rows, and cleanup state are PostgreSQL-backed.
 
-## HTTPS, hostname and public proxy (P12B)
+## HTTPS, hostname and public proxy
 
-P12B must configure DNS and certificates, then preserve path/query for:
+The historical P12B first launch established DNS/certificates and redirects preserving
+path/query. Preserve those existing settings during P13:
 
 - `http://huskytracking.com/*` → `https://huskytracking.com/*`;
 - optionally `https://www.huskytracking.com/*` → `https://huskytracking.com/*`.
 
-Do not enable HSTS until certificate issuance and renewal, HTTP redirect, canonical
-HTTPS, and all chosen subdomains have passed acceptance. Do not add
+The original HSTS activation required certificate renewal, HTTP redirect, canonical
+HTTPS and chosen-subdomain acceptance. Do not add
 `includeSubDomains` or preload without a separate deliberate decision. Public firewall
 rules should expose only required web/administration ports—not 5432 or 8000.
 
@@ -213,11 +225,11 @@ shared-cacheable. Existing Caddy 2.8.4 has no rate-limit module; do not install 
 or a second public listener. Caddy owns TLS, HTTP→HTTPS, optional `www` redirect, and
 HSTS. Production Nginx returns the Angular bundle with `200` only for known route
 shapes; unknown paths keep the branded client-side Not Found view while returning
-`404`. During private pre-launch, protect the **entire** site including `/api`
+`404`. Historically, private pre-launch protected the **entire** site including `/api`
 with Caddy `basic_auth` and temporary global
 `X-Robots-Tag: noindex, nofollow, noarchive`. Do not add a second application auth
 layer or commit preview credentials. Do not alter the app's long-term SEO metadata for
-this temporary gate.
+that temporary gate. Do not restore it to the already public site as part of P13.
 
 The CSP keeps scripts, images, fonts, connections, and framing self-only. The sole
 `'unsafe-inline'` allowance is `style-src`, required by the current Angular component
@@ -226,9 +238,10 @@ Re-test the browser console whenever Angular/build behavior changes.
 
 Nginx transient shared-memory zones use the trusted client IP, never a cookie, email,
 or fingerprint. Initial limits are Contact POST 3/minute with burst 2; demo session
-GET/reset POST 10/minute with burst 6; Team Builder generate POST 10/minute with burst
-6; and a broad API POST/PUT/PATCH/DELETE limit of 1/second with burst 30. The general
-mutation limit also applies to those special endpoints. Excess requests return a small
+GET/reset POST 10/minute with burst 6; the shared solver zone covers Team Builder
+Generate POST, Training Day proposal GET and Apply POST at 10/minute with burst 6;
+and a broad API POST/PUT/PATCH/DELETE limit of 1/second with burst 30. The general
+mutation limit also applies to the POST operations above. Excess requests return a small
 JSON `429`; limits are operational starting points to tune after real traffic tests.
 Ordinary GET navigation, public pages, and static assets are not rate-limited. The
 256 KiB body ceiling, Contact honeypot, and backend field validation remain in place.
@@ -312,18 +325,19 @@ must alert/log but must not run heavy cleanup inside public requests.
 
 P12B-2 corrected the installed cleanup script on the VPS after a one-off run recreated
 **only the new Husky** PostgreSQL container. That server-only correction is now in Git.
-At P12B-3, update `/opt/huskytracking` to this commit, install the version-controlled
-systemd units, `systemctl daemon-reload`, manually test both services, and only then
-resume their timers. Do not preserve the old `/usr/local/sbin` variants as undocumented
+The historical P12B-3 procedure updated `/opt/huskytracking`, installed version-controlled
+systemd units, ran `systemctl daemon-reload`, tested both services and then resumed
+their timers. Do not preserve the old `/usr/local/sbin` variants as undocumented
 drift. The new scripts intentionally use the base production Compose file alone for
 maintenance: `--no-deps`/`exec` prevent dependency orchestration, regardless of the
 active staging or ingress overlay.
 
 Container/application logs contain request ID, method, path, status, and duration—not
-query strings, cookies, workspace tokens, Contact bodies, note text, or secrets. P12B
-must configure actual journald/Docker rotation and retention; start with 14–30 days and
-adjust to policy/capacity. Monitor HTTP liveness/readiness, Docker health, database,
-cleanup exit status, certificate renewal, disk space, memory, and backup jobs. Database,
+query strings, cookies, workspace tokens, Contact bodies, note text, or secrets. Current
+bounded Docker/journal behavior is described above; 14–30 days was an initial P12B
+planning range, not a guaranteed retention duration. Monitor HTTP liveness/readiness,
+Docker health, database, cleanup exit status, certificate renewal, disk space, memory,
+and backup jobs. Database,
 logs, and backups share finite VPS disk even though workspace expiry bounds app growth.
 
 ## Backup, restore and rollback
@@ -348,7 +362,10 @@ deploying it. Back up before risky migrations. Alembic downgrade is not an autom
 production rollback: downgrades can discard data, and forward-fix plus restore is often
 safer. Document the decision per release; do not promise zero-downtime rollback.
 
-## Go-live checklist (P12B)
+## Historical first-launch checklist (P12B)
+
+Unchecked historical boxes are not a fresh audit of the currently public installation.
+Use the P13 runbook and accepted release report for the next upgrade's stop/go decision.
 
 - [ ] VPS capacity and supported OS reviewed; Docker/Compose patched.
 - [ ] Private `.env.production` populated with generated secrets and real privacy data.

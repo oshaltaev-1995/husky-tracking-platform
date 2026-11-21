@@ -485,6 +485,47 @@ describe('DailyPlanPageComponent', () => {
     http.expectNone('/api/v1/training-day-example/apply');
   });
 
+  it('explains a preview rate limit in the persistent feedback area without retrying or submitting a plan', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    button(fixture, 'Try a training day').click();
+    http.expectOne('/api/v1/training-day-example').flush({ detail: 'Rate limited' }, { status: 429, statusText: 'Too Many Requests' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const feedback = fixture.nativeElement.querySelector('.training-day-feedback') as HTMLElement;
+    expect(feedback.querySelector('[role="alert"]')?.textContent).toContain('Too many training-day requests');
+    expect(feedback.textContent).toContain('No plan was submitted');
+    expect(fixture.nativeElement.querySelector('.training-day-content').contains(feedback)).toBe(false);
+    expect(button(fixture, 'Cancel').disabled).toBe(false);
+    expect(button(fixture, 'Review again').disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('ht-training-day-review .primary')).toBeNull();
+    http.expectNone('/api/v1/training-day-example');
+    http.expectNone('/api/v1/training-day-example/apply');
+  });
+
+  it('handles Apply 429 as a definite rejection and requires a fresh review instead of automatically retrying POST', async () => {
+    const { fixture, http } = await preparedTrainingDay();
+    button(fixture, 'Apply training day').click();
+    http.expectOne('/api/v1/training-day-example/apply').flush({ detail: 'Rate limited' }, { status: 429, statusText: 'Too Many Requests' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const feedback = fixture.nativeElement.querySelector('.training-day-feedback') as HTMLElement;
+    expect(feedback.querySelector('[role="alert"]')?.textContent).toContain('Too many training-day requests');
+    expect(feedback.textContent).toContain('Nothing will be retried automatically');
+    expect(button(fixture, 'Open current day').disabled).toBe(false);
+    expect(button(fixture, 'Review again').disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('ht-training-day-review .primary')).toBeNull();
+    http.expectNone('/api/v1/training-day-example/apply');
+    button(fixture, 'Review again').click();
+    http.expectOne('/api/v1/training-day-example').flush({ ...trainingProposal(), precondition: 'fresh-rate-limit-review' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(button(fixture, 'Apply training day').disabled).toBe(false);
+    http.expectNone('/api/v1/training-day-example/apply');
+  });
+
   it('treats a lost Apply response as unknown and reconciles a committed plan by GET without a second POST', async () => {
     const { fixture, http, router } = await preparedTrainingDay();
     button(fixture, 'Apply training day').click();

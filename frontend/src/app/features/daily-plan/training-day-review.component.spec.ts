@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
 import { TrainingDayProposal } from '../../core/api/daily-plans.models';
-import { TrainingDayReviewComponent } from './training-day-review.component';
+import { TrainingDayReviewComponent, TrainingDayReviewPhase } from './training-day-review.component';
 
 const proposal: TrainingDayProposal = {
   date: '2026-03-29', preset_version: 'training-day-v1', available: true, unavailable_reason: null,
@@ -111,7 +111,37 @@ describe('TrainingDayReviewComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('does not prove an earlier request has stopped');
     expect(fixture.nativeElement.textContent).toContain('Review again');
+    const feedback = fixture.nativeElement.querySelector('.training-day-feedback') as HTMLElement;
+    expect(feedback.querySelector('[role="alert"]')?.textContent).toContain('does not prove an earlier request has stopped');
+    expect(fixture.nativeElement.querySelector('.training-day-content').contains(feedback)).toBe(false);
   });
+
+  const feedbackCases: { phase: TrainingDayReviewPhase; role: string; error: string; text: string }[] = [
+    { phase: 'applying', role: 'status', error: '', text: 'Creating the four planned activities' },
+    { phase: 'reconciling', role: 'status', error: '', text: 'Reading the current day' },
+    { phase: 'rejected', role: 'alert', error: 'The proposed date already contains a plan.', text: 'already contains a plan' },
+    { phase: 'unknown', role: 'alert', error: '', text: 'The day may already be saved' },
+    { phase: 'error', role: 'alert', error: 'Too many training-day requests. Please wait a moment.', text: 'Too many training-day requests' },
+  ];
+  for (const example of feedbackCases) {
+    it(`places ${example.phase} feedback outside the roster scroll area without moving keyboard focus`, async () => {
+      const fixture = await setup();
+      const content = fixture.nativeElement.querySelector('.training-day-content') as HTMLElement;
+      const footer = fixture.nativeElement.querySelector('footer') as HTMLElement;
+      content.scrollTop = 400;
+      fixture.componentRef.setInput('phase', example.phase);
+      fixture.componentRef.setInput('error', example.error);
+      fixture.detectChanges();
+      const feedback = fixture.nativeElement.querySelector('.training-day-feedback') as HTMLElement;
+      expect(feedback).not.toBeNull();
+      expect(content.contains(feedback)).toBe(false);
+      expect(feedback.parentElement).toBe(footer.parentElement);
+      expect(feedback.nextElementSibling).toBe(footer);
+      expect(feedback.querySelector(`[role="${example.role}"]`)?.textContent).toContain(example.text);
+      expect(content.scrollTop).toBe(400);
+      expect(document.activeElement).toBe(content);
+    });
+  }
 
   it('shows occupied-day context and a destination action without an Apply control', async () => {
     const fixture = await setup();
