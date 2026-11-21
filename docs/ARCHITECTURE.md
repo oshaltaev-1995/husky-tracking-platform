@@ -178,6 +178,9 @@ no technical identity except the canonical portrait key. Domain dates come from 
 backend; calendar formatting anchors them at UTC midnight, independent of host timezone
 or today. Work values are copied from the same actual-ledger summary as the Work tab;
 plans never contribute. No new API, schema, ledger or persisted summary exists.
+The E-UUID-01 follow-up validates and normalizes canonical, uppercase and hyphenless
+route UUIDs before identity comparison. Different/invalid identities, mixed bundles
+and cancelled older requests remain unprintable; generated links and routing are unchanged.
 
 A shared-profile-header action works from every tab without refetching the bundle.
 Route changes cancel the old load; Reset/session replacement/known expiry close the
@@ -208,10 +211,14 @@ there is no universal export framework or browser shortcut interception. Browser
 printing initiated before image preparation cannot be deferred by `beforeprint`; normal
 Print is enabled only after preparation. No event asserts a file was saved.
 
-P13D spatial/color work is accepted; P13E is local and pending independent review.
-The exact native Save → Cmd+P → Cancel sequence remains NOT VERIFIED because the single
-bounded P13E system-tool attempt found macOS locked. Headless PDF and synthetic lifecycle
-checks are separate evidence. P13F and release/deployment work are outside this package.
+P13D and P13E are accepted for local continuation (P13E review: 21 November 2026).
+The accepted P13E evidence left the exact native Save → Cmd+P → Cancel sequence
+NOT VERIFIED because the bounded system-tool attempt found macOS locked. P13F's single
+bounded native Chrome Map check subsequently passed: Save produced the review artifact
+`pdfs/native-map-save.pdf`, repeated Cmd+P opened print preview, and Cancel restored the
+usable application preview and title. Native Dog Summary was not retested. Headless PDF
+and synthetic lifecycle checks remain separate evidence. P13F does not rewrite the shared
+print lifecycle.
 
 ## Demo clock
 
@@ -474,6 +481,59 @@ work in Daily Entry. Daily Plan exposes Team Builder only when the selected pool
 the minimum from `SUPPORTED_TEAM_SIZES`; the API projects that minimum so the UI does
 not maintain a competing constant. A direct builder link with too few currently
 eligible dogs explains the shortage and returns to Daily Plan.
+
+#### Opt-in Training Day
+
+P13F is implemented locally, pending independent review. Daily Plan's **Try a training
+day** action proposes the fixed historical date `2026-03-29`; it does not change the
+selected day on opening or follow the machine calendar. Its four 5 km Training Loops
+use suggested windows 09:00–10:00, 10:30–11:30, 12:30–13:30 and 14:00–15:00. Existing
+`start_time` stores each start and the ordinary title retains the full suggested window;
+there is no end-time schema or new scheduling rule. The manual editor retains both
+5 km and 10 km distances.
+
+`GET /api/v1/training-day-example` returns a read-only proposal without materializing
+a plan/work day. `TrainingDayExampleService` reuses the dated P5 eligibility and P6
+candidate/workload projection and deterministic solver to select 16 dogs that can form
+two teams of eight. Actual workload is strictly before the proposed date. Housing
+uses that historical date, so workspace moves on 31 March do not alter 29 March.
+One visible pool repeats across four groups: 16 unique dogs, 64 planned participations,
+20 planned km per dog and 320 planned dog-km. The solver's feasibility result saves no
+team slots. Insufficient eligibility or role/pair feasibility produces an explanation.
+
+One explicit `POST /api/v1/training-day-example/apply` creates four ordinary activities
+through existing `DailyPlanService.create_activity` validation in one caller-owned
+database transaction. Intermediate flushes do not commit. Both proposal and Apply check
+the requesting workspace's effective day and reject any DailyPlan row (including
+notes-only) or actual work on that date;
+nothing is overwritten, merged or deleted. Apply accepts only the existing cookie's
+workspace. Its purpose-specific HMAC binds workspace public identity, `housing_revision`,
+date, preset version and reviewed participant IDs. Reset advances the generation even
+when empty; a housing move may conservatively stale the review too. Apply recomputes
+eligibility/feasibility and rejects a changed pool instead of silently substituting dogs.
+No table, migration, seed or second plan/actual model is introduced.
+
+Apply and ordinary Plan/Team/Actual writers share the workspace-row lock before
+materialization, followed by their existing plan/session locks. Expiry/schema validity
+is rechecked after waiting. Manual Actual creation compares primitive plan public ID
+and revision before and after that wait: a queued write observing an earlier empty or
+changed day gets 409; a fresh manual recording started after visible Apply remains valid.
+Using the public plan identity avoids a false conflict from baseline-to-workspace copying.
+
+The review owns only in-memory proposal state. Cancel sends no mutation; pending controls
+prevent duplicate Apply. Context generations discard callbacks after date change, Reset,
+session replacement/known expiry or destruction. Note/activity drafts must be saved or
+discarded first. A timeout or lost response stays outcome-unknown, with an explicit
+current-day GET for reconciliation and no automatic POST retry. An empty GET does not
+prove an earlier request has stopped; another attempt requires a new conscious Review
+and Apply with server guards. Unsubscribing is never described as a transaction rollback.
+
+After success, the server's ordinary Daily Plan is shown. Selected pool, generated
+unsaved team preview, explicitly saved lineups and confirmed actual work remain four
+distinct states. Generate/Save in Team Builder and reviewed confirmation in Daily Entry
+are separate actions; plans and lineups never change analytics by themselves. Workspace
+Reset removes that visitor's example, teams and actual overlay and restores effective
+baseline reads. P13G/P14 and production release work remain outside this local package.
 
 ### Team Builder
 

@@ -97,13 +97,12 @@ class DemoWorkspaceService:
         self.workspace_id = workspace_id
 
     def materialize_date(self, work_date: date) -> None:
-        workspace = self.session.scalar(
-            select(DemoWorkspace)
-            .where(DemoWorkspace.id == self.workspace_id)
-            .with_for_update()
-        )
-        if workspace is None or workspace.expires_at <= datetime.now(UTC):
-            raise RuntimeError("demo workspace expired")
+        # All plan/team/actual writers take the same workspace boundary as Reset
+        # and housing moves, including when the date has no plan row to lock yet.
+        # Refresh and recheck expiry/schema after any wait for that row lock.
+        workspace = lock_workspace(self.session, self.workspace_id)
+        if workspace is None:
+            raise DemoWorkspaceExpiredError("The demo session expired.")
         if self.session.scalar(
             select(DemoWorkspaceDay.id).where(
                 DemoWorkspaceDay.workspace_id == self.workspace_id,

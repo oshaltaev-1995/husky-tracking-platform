@@ -3,6 +3,10 @@
 :host { display: block; min-width: 0; }
 .daily-header { align-items: center; }
 .daily-header > div:first-child { max-width: 48rem; }
+.training-day-invitation { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3) var(--space-5); margin-bottom: var(--space-5); padding: var(--space-4) var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface-brand-soft); }
+.training-day-invitation > div { flex: 1 1 20rem; }
+.training-day-invitation p { margin: var(--space-1) 0 0; color: var(--text-secondary); font-size: var(--font-label); }
+.training-day-invitation .button { flex: 0 0 auto; }
 .date-navigation { display: grid; width: min(20rem, 100%); grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem; align-items: end; gap: var(--space-2); }
 .day-button { min-height: var(--control-height); border: 1px solid var(--border-strong); border-radius: var(--radius-control); color: var(--brand-strong); background: var(--surface-card); font-size: 1.4rem; font-weight: 800; }
 .day-button:hover:not(:disabled) { border-color: var(--brand); background: var(--surface-brand-soft); }

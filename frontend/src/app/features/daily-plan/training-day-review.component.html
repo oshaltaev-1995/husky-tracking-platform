@@ -1,0 +1,63 @@
+<div class="training-day-backdrop">
+  <section class="training-day-dialog surface" role="dialog" aria-modal="true" aria-labelledby="training-day-title" aria-describedby="training-day-description" [attr.aria-busy]="pending">
+    <header>
+      <p class="eyebrow">Opt-in example</p>
+      <h2 id="training-day-title">Review a training day</h2>
+      <p id="training-day-description">Review this proposed schedule before adding it to your demo. Opening this review does not save a plan.</p>
+    </header>
+
+    <div #content class="training-day-content" role="region" aria-label="Training Day review" tabindex="0">
+      @if (phase === 'loading') {
+        <p role="status">Checking the example date and eligible dog pool…</p>
+      }
+      @if (proposal; as example) {
+        <div class="example-date"><span>Proposed date</span><strong>{{ (example.date + 'T00:00:00Z') | date: 'EEEE, d MMMM yyyy' : 'UTC' }}</strong></div>
+        @if (example.available) {
+          <section aria-labelledby="training-day-schedule">
+            <h3 id="training-day-schedule">Suggested schedule</h3>
+            <ol class="example-schedule">
+              @for (activity of example.activities; track activity.sequence) {
+                <li><strong>Group {{ activity.sequence }}</strong><span>{{ activity.start_time.slice(0, 5) }}–{{ activity.suggested_end_time.slice(0, 5) }}</span><span>{{ activity.distance_km }} km Training Loop</span></li>
+              }
+            </ol>
+            <p class="supporting-copy">A synthetic example for exploring the workflow. These suggested time windows can be edited as ordinary activities after applying the example.</p>
+          </section>
+          <dl class="example-totals">
+            <div><dt>Unique dogs</dt><dd>{{ example.unique_dogs }}</dd></div>
+            <div><dt>Planned participations</dt><dd>{{ example.planned_participations }}</dd></div>
+            <div><dt>Planned km / dog</dt><dd>{{ example.planned_km_per_dog }} km</dd></div>
+            <div><dt>Total planned dog-km</dt><dd>{{ example.planned_dog_km }} km</dd></div>
+          </dl>
+          <section aria-labelledby="training-day-pool">
+            <h3 id="training-day-pool">One selected pool, repeated in all four groups</h3>
+            <p class="supporting-copy">The same {{ example.unique_dogs }} dogs participate four times: {{ example.planned_km_per_dog }} planned km per dog. These are planned participations, not {{ example.planned_participations }} different dogs.</p>
+            <ul class="example-pool" aria-label="Selected training day dogs">
+              @for (dog of example.participants; track dog.id) {
+                <li><strong>{{ dog.name }}</strong><span>{{ dog.housing_code || 'Housing not recorded' }} · {{ label(dog.dog_class) }}</span><small>{{ label(dog.availability) }} · Recorded roles: {{ roles(dog.capabilities) }}</small></li>
+              }
+            </ul>
+          </section>
+          <p class="example-handoff"><strong>Plans first; teams and actual work are separate.</strong> Applying creates four Training activities with selected dogs. No teams are saved and no actual work is recorded. Open Team Builder for each activity to generate and save two teams of eight, then use Daily Entry to review and record actual work.</p>
+        } @else {
+          <p class="example-unavailable" role="status">{{ example.unavailable_reason || 'This example cannot be applied to the proposed date. Existing work will be kept.' }}</p>
+        }
+      }
+      @if (phase === 'applying') { <p class="message" role="status">Creating the four planned activities. Please wait for the result.</p> }
+      @if (phase === 'reconciling') { <p class="message" role="status">Reading the current day. This does not repeat the save request.</p> }
+      @if (phase === 'unknown') {
+        <p class="message error" role="alert">The result could not be confirmed. The day may already be saved. Check its current state before reviewing again. Closing this review cannot cancel a request that reached the server.</p>
+        @if (reconciledEmpty) { <p class="supporting-copy">No saved plan is visible in that read. This does not prove an earlier request has stopped. A new review will check the day again before another explicit Apply.</p> }
+      }
+      @if (error) { <p class="message error" role="alert">{{ error }}</p> }
+    </div>
+
+    <footer>
+      <button class="button quiet" type="button" [disabled]="pending" (click)="close()">{{ phase === 'unknown' ? 'Close review' : 'Cancel' }}</button>
+      @if (phase === 'ready') { <button class="button primary" type="button" [disabled]="!proposal || !proposal.available || !proposal.precondition" (click)="apply()">Apply training day</button> }
+      @if (phase === 'applying') { <button class="button primary" type="button" disabled>Applying…</button> }
+      @if (phase === 'unavailable' || phase === 'rejected') { <button class="button secondary" type="button" (click)="openedCurrentDay.emit()">Open current day</button> }
+      @if (phase === 'unknown' || phase === 'reconciling') { <button class="button secondary" type="button" [disabled]="pending" (click)="checkedCurrentDay.emit()">{{ phase === 'reconciling' ? 'Checking…' : 'Check current day' }}</button> }
+      @if (phase === 'error' || phase === 'rejected' || (phase === 'unknown' && reconciledEmpty)) { <button class="button secondary" type="button" (click)="reviewedAgain.emit()">Review again</button> }
+    </footer>
+  </section>
+</div>

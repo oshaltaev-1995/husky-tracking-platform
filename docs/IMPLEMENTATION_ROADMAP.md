@@ -731,12 +731,13 @@ reported explicitly.
 Small directly related non-blocking corrections are included and reported within the
 authorized stage. Mandatory gates remain unchanged and are consolidated at the end;
 data/isolation/persistence/core-flow or required-output blockers stop progression.
-P13F–P13G and P14 remain unauthorized and are not started here.
+P13F is authorized separately below; P13G and P14 remain unauthorized and unstarted.
 
 ## P13E — One-page Dog Summary
 
-**Status:** implemented locally, pending independent review; no push, merge, tag or
-production deployment. P13F is not started.
+**Status:** accepted for local continuation by independent review on 21 November 2026,
+at `76c74abeba7b0c36f030577ffcb82e74c3005fe7`. No push, merge, tag or production deployment.
+The small E-UUID-01 follow-up is included with the separately authorized P13F below.
 
 Print summary is available from the shared header of every successfully loaded Dog
 Profile tab. A detached immutable projection uses the existing four-GET bundle, checks
@@ -759,9 +760,59 @@ Only the location code in Map continuation notices is kept together.
 Acceptance evidence includes all 60 canonical profile PDFs with independent API-to-PDF
 checks, representative/fallback/long-name fixtures, housing/actual UI workspace tests,
 no print requests, keyboard and 1440/768/390 responsive checks, final gates and checksum.
-Native Save → Cmd+P → Cancel is NOT VERIFIED: one bounded native-tool attempt found a
-locked Mac. Physical phone and additional browser engine are NOT RUN. Unit/synthetic
-and headless-PDF evidence do not replace that native check.
+In P13E, native Save → Cmd+P → Cancel was NOT VERIFIED: one bounded native-tool attempt
+found a locked Mac. P13F's later bounded native Map result is recorded below; native Dog
+Summary was not retested. Physical phone and additional browser engine are NOT RUN.
+Unit/synthetic and headless-PDF evidence do not replace native checks.
+
+### E-UUID-01 — Direct-link identity normalization
+
+Implemented locally in P13F: validated canonical, uppercase and hyphenless spellings
+of the same UUID load the same profile and Dog Summary. Invalid/different identities,
+mixed bundles and late responses for an earlier route remain rejected. Backend UUID
+handling, generated links, routing and shared print lifecycle are unchanged. Focused
+profile regressions precede the Training Day implementation.
+
+## P13F — Opt-in Training Day
+
+**Status:** implemented locally, pending independent review. No push, merge, tagging or
+deployment; `main` and `public-v1.2` remain protected. P13G and P14 are not started.
+
+Daily Plan offers one explicitly reviewed example for 29 March 2026: four ordinary
+5 km Training activities at suggested windows 09:00–10:00, 10:30–11:30, 12:30–13:30 and
+14:00–15:00. The same deterministic, date-eligible 16-dog pool repeats in all four groups:
+64 planned participations, 20 planned km per dog, 320 planned dog-km. Review and Cancel
+create no day or activity. A single explicit Apply is atomic and refuses any existing
+plan (including notes-only) or effective actual work; it never clears or merges a day.
+The normal editor retains 5/10 km, with no laps, PAX, end-time schema or new ledger.
+
+Proposal selection reuses P6 workload/role/pair solving and shared date-effective
+eligibility/housing. It proves two 8-dog teams are feasible without saving them. Pool,
+generated preview, saved teams and actual work remain distinct. Each activity still
+requires ordinary Generate/Save and separate reviewed Daily Entry confirmation.
+Actual workload uses dates strictly before 29 March; 31 March workspace housing moves
+do not leak into the historical proposal.
+
+The existing cookie authorizes Apply; a purpose-specific HMAC binds the reviewed
+date/version/participants to workspace public identity and reset generation. Reset of
+an empty workspace also stales a review. Shared workspace-row locking precedes ordinary
+materialization and plan/actual locks, with expiry rechecked after waiting. A queued
+manual Actual detects changed plan public identity/revision and returns conflict;
+recording begun after the committed plan is visible remains supported.
+
+Pending/double-click guards, dirty note/activity protection and context generations
+cover route/date, Reset, replacement, expiry and late callbacks. Lost-response outcomes
+require explicit GET reconciliation, never automatic Apply replay; an empty GET is not
+proof of rollback. Workspace Reset restores effective baseline state. Schema and
+canonical seed are unchanged.
+
+Review evidence distinguishes real PostgreSQL concurrency, source/UI checks, real
+browser actions and headless PDF output. The single bounded P13F native Chrome Map check
+passed real Save PDF → Cmd+P → Cancel, preserved usable preview controls and restored the
+application title (`pdfs/native-map-save.pdf` in the review bundle). This does not extend
+to native Dog Summary, a physical phone or an additional browser engine; those were not
+retested. Final logs, UI flow, checksum/media/schema evidence and reproducible scripts
+belong to the P13F review bundle.
 
 ## Completion discipline
 

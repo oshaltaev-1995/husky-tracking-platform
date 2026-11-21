@@ -29,3 +29,6 @@ npm-debug.log*
 postgres-data/
 media/*
 !media/.gitkeep
+
+# Local independent-review bundles (outside application/build outputs)
+/review-artifacts/

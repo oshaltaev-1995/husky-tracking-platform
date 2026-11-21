@@ -406,6 +406,7 @@ class DailyPlanService:
             self.session.scalars(
                 select(Dog).options(
                     selectinload(Dog.class_periods),
+                    selectinload(Dog.role_capabilities),
                     selectinload(Dog.lifecycle_periods),
                     selectinload(Dog.availability_periods),
                     selectinload(Dog.housing_assignments).selectinload(

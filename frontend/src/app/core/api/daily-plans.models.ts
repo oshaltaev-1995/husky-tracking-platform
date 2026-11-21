@@ -67,3 +67,32 @@ export interface Eligibility {
   max_daily_training_km: number;
   dogs: EligibleDog[];
 }
+
+/** One opt-in example; its pool is not a saved team lineup or actual work. */
+export interface TrainingDayProposal {
+  date: string;
+  preset_version: string;
+  available: boolean;
+  unavailable_reason: string | null;
+  activities: {
+    sequence: number;
+    start_time: string;
+    suggested_end_time: string;
+    title: string;
+    distance_km: number;
+  }[];
+  participants: (PlanParticipant & { capabilities: string[] })[];
+  unique_dogs: number;
+  planned_participations: number;
+  planned_dog_km: number;
+  planned_km_per_dog: number;
+  /** Opaque, context-bound authorization for exactly this reviewed proposal. */
+  precondition: string | null;
+}
+
+export interface TrainingDayApply {
+  date: string;
+  preset_version: string;
+  participant_ids: string[];
+  precondition: string;
+}

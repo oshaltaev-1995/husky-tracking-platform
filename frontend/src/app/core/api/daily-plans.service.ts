@@ -6,11 +6,21 @@ import {
   DailyPlan,
   Eligibility,
   PlannedActivityType,
+  TrainingDayApply,
+  TrainingDayProposal,
 } from './daily-plans.models';
 
 @Injectable({ providedIn: 'root' })
 export class DailyPlansService {
   private readonly http = inject(HttpClient);
+
+  getTrainingDayProposal() {
+    return this.http.get<TrainingDayProposal>('/api/v1/training-day-example');
+  }
+
+  applyTrainingDay(payload: TrainingDayApply) {
+    return this.http.post<DailyPlan>('/api/v1/training-day-example/apply', payload);
+  }
 
   getPlan(date: string) {
     return this.http.get<DailyPlan>(`/api/v1/daily-plans/${date}`);

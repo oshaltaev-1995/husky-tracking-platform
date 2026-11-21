@@ -46,6 +46,8 @@ implementation, not a migration or copy of either reference project.
   reference date; occupied destinations and every resident remain visible
 - PostgreSQL-backed Daily Plans with ordered activities, dated manual participant pools,
   optimistic revisions, and the shared 30 km per-dog/day training guardrail
+- an opt-in Training Day example reviewed before one atomic workspace apply; team
+  arrangements and actual-work confirmation remain separate actions
 - deterministic Team Builder previews and saved Lead/Team/Wheel harness lineups with
   workload context, pair constraints, manual refinement, and explicit rebuild safety
 - canonical Daily Entry over the existing actual ledger, including reviewed plan
@@ -91,7 +93,7 @@ Pending/unresolved housing states block printing. Opening,
 closing or repeating print makes no API request or mutation. Only continuation location
 codes are kept on one line; full names and the continuation words still wrap.
 
-P13E is implemented locally, pending independent review. **Print summary** in any Dog
+P13E was accepted for local continuation on 21 November 2026. **Print summary** in any Dog
 Profile tab opens one frozen, read-only Dog Summary from the already loaded profile,
 pedigree, actual work and history bundle. It targets one A4 portrait sheet at 100%, with
 10mm margins and text at least 9pt. Current/last housing, lifecycle/class/availability,
@@ -99,9 +101,26 @@ six ancestors and actual per-dog work remain distinct. History is limited to thr
 changes and notes to a 260-character excerpt; full records remain in the profile.
 Portrait readiness uses the same media contract and a bounded fallback. Print opens no
 API request or workspace and performs no mutation. Map and Summary share native-print
-lifecycle guards while retaining separate page geometry. Native Save → Cmd+P → Cancel
-remains NOT VERIFIED: the bounded P13E native attempt encountered a locked Mac.
-P13F and later packages are not started.
+lifecycle guards while retaining separate page geometry. The P13E native
+Save → Cmd+P → Cancel attempt was NOT VERIFIED because the Mac was locked. The bounded
+P13F check subsequently passed that exact sequence in native Chrome for Map, including
+usable preview controls after Cancel; native Dog Summary was not retested. Headless
+PDFs do not establish native-dialog behavior. The E-UUID-01 follow-up accepts
+validated canonical, uppercase and hyphenless UUID links without removing identity,
+mixed-bundle or stale-response guards.
+
+P13F is implemented locally, pending independent review. **Try a training day** in
+Daily Plan proposes 29 March 2026: four 5 km Training Loops at 09:00–10:00,
+10:30–11:30, 12:30–13:30 and 14:00–15:00. One deterministic, date-eligible pool of
+16 dogs repeats in all four groups: 64 planned participations, 20 planned km per dog
+and 320 planned dog-km. Review and Cancel save nothing; explicit Apply creates four
+ordinary activities in one transaction, only if the target day has no plan or actual
+work. Existing days are preserved. Team Builder still needs Generate and Save, and
+Daily Entry still needs its own reviewed actual confirmation. Manual 5/10 km planning
+remains available. Schema, canonical seed and season are unchanged; actual work continues
+in the existing ledger.
+Unknown save outcomes require an explicit current-day check rather than automatic
+retry. P13G/P14, push, release tagging and deployment are not part of this local work.
 
 ## Demo time
 
@@ -269,6 +288,10 @@ uv run pytest
 `pytest` includes PostgreSQL integration coverage and resets the local app-owned demo
 database twice to prove checksum determinism. Run Alembic first and ensure PostgreSQL is
 available through the configured `DATABASE_URL`.
+Training Day's destructive integration cases additionally require
+`P13F_DISPOSABLE_DB_CONFIRMED=1` and a loopback PostgreSQL database named `husky_tracking`.
+Set that flag only after positively identifying a newly created disposable test database;
+without it, those cases are explicitly skipped.
 
 Frontend development uses Node 24 (the Docker image is the canonical runtime):
 

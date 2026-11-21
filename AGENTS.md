@@ -78,6 +78,14 @@ These instructions apply to the entire repository.
 - Daily Plan is the mutable `/demo/daily` wide workspace. Keep plans separate from actual
   `WorkSession` records, resolve participant eligibility and housing on the plan date,
   and use optimistic plan revisions for every activity/note mutation.
+- Training Day is an opt-in example for 29 March 2026, not seed data or a competing
+  scheduler. Review is read-only; one explicit atomic apply creates four ordinary
+  5 km activities with the reviewed 16-dog pool only on an empty plan/actual day.
+  Reuse dated eligibility, housing, workload and the existing Team Builder solver.
+  Keep pool, generated preview, saved teams and actual confirmation distinct.
+  Apply uses the existing workspace cookie, a purpose-specific generation-bound HMAC
+  and the shared workspace lock before materialization. Reset, expiry and unknown
+  outcomes require fresh review/reconciliation, never automatic mutation replay.
 - Planned sled distance uses the shared workload rule: only 5/10 km Training activities
   count, and their per-dog daily sum may not exceed 30 km. P6 may extend a Training
   activity with lineups but must not replace its selected participant pool.

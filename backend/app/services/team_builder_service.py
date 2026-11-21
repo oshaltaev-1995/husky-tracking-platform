@@ -239,22 +239,38 @@ class TeamBuilderService:
     def _candidates(
         self, activity: PlannedActivity, plan_date: date
     ) -> tuple[list[Candidate], list[TeamBuilderCandidateRead]]:
+        assert activity.distance_km is not None
+        return self.candidates_for_pool(
+            plan_date,
+            activity.distance_km,
+            [participant.dog for participant in activity.participants],
+            exclude_activity_id=activity.public_id,
+        )
+
+    def candidates_for_pool(
+        self,
+        plan_date: date,
+        distance_km: int,
+        dogs: list[Dog],
+        *,
+        exclude_activity_id: UUID | None = None,
+    ) -> tuple[list[Candidate], list[TeamBuilderCandidateRead]]:
+        """Same dated rules/workload projection for saved pools and opt-in examples."""
         eligibility = self.plans.eligibility(
             plan_date,
             PlannedActivityType.TRAINING,
-            activity.distance_km,
-            exclude_activity_id=activity.public_id,
+            distance_km,
+            exclude_activity_id=exclude_activity_id,
         )
         eligibility_by_id = {item.id: item for item in eligibility.dogs}
-        dog_ids = [participant.dog_id for participant in activity.participants]
+        dog_ids = [dog.id for dog in dogs]
         workload = self._workload(dog_ids, plan_date)
         planned_km = self.plans._planned_km(plan_date, None)
         candidates: list[Candidate] = []
         reads: list[TeamBuilderCandidateRead] = []
-        for participant in sorted(
-            activity.participants, key=lambda item: item.dog.name.casefold()
+        for dog in sorted(
+            dogs, key=lambda item: (item.name.casefold(), str(item.public_id))
         ):
-            dog = participant.dog
             eligible = eligibility_by_id[dog.public_id]
             metrics = workload.get(dog.id, (0, 0, 0, 0, None))
             roles = frozenset(item.role for item in dog.role_capabilities)
@@ -346,7 +362,13 @@ class TeamBuilderService:
     def _relationships(
         self, activity: PlannedActivity
     ) -> list[DogRelationshipConstraint]:
-        dog_ids = [participant.dog_id for participant in activity.participants]
+        return self.relationships_for_dogs(
+            [participant.dog_id for participant in activity.participants]
+        )
+
+    def relationships_for_dogs(
+        self, dog_ids: list[int]
+    ) -> list[DogRelationshipConstraint]:
         if not dog_ids:
             return []
         return list(

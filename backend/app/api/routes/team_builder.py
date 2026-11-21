@@ -17,6 +17,7 @@ from app.schemas.team_builder import (
     TeamBuilderContextRead,
 )
 from app.services.daily_plan_service import DailyPlanError
+from app.services.demo_workspace_service import DemoWorkspaceExpiredError
 from app.services.team_builder_service import TeamBuilderError, TeamBuilderService
 
 router = APIRouter()
@@ -34,6 +35,11 @@ def service(session: Session, workspace: DemoWorkspaceContext) -> TeamBuilderSer
 def run(operation: Callable[[], ResultT]) -> ResultT:
     try:
         return operation()
+    except DemoWorkspaceExpiredError as error:
+        raise HTTPException(
+            status_code=401,
+            detail={"code": "demo_session_expired", "message": str(error)},
+        ) from error
     except (TeamBuilderError, DailyPlanError) as error:
         detail: dict[str, object] = {"code": error.code, "message": error.message}
         if isinstance(error, TeamBuilderError) and error.details:

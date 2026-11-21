@@ -18,6 +18,7 @@ from app.schemas.daily_entry import (
 )
 from app.services.daily_entry_service import DailyEntryError, DailyEntryService
 from app.services.daily_plan_service import DailyPlanError
+from app.services.demo_workspace_service import DemoWorkspaceExpiredError
 
 router = APIRouter()
 DatabaseSession = Annotated[Session, Depends(get_db)]
@@ -34,6 +35,11 @@ def service(session: Session, workspace: DemoWorkspaceContext) -> DailyEntryServ
 def run(operation: Callable[[], ResultT]) -> ResultT:
     try:
         return operation()
+    except DemoWorkspaceExpiredError as error:
+        raise HTTPException(
+            status_code=401,
+            detail={"code": "demo_session_expired", "message": str(error)},
+        ) from error
     except (DailyEntryError, DailyPlanError) as error:
         raise HTTPException(
             status_code=error.status_code,

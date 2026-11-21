@@ -151,7 +151,14 @@ class DailyEntryService:
         self, work_date: date, payload: ActualSessionCreate
     ) -> DailyEntryRead:
         self.plans.validate_date(work_date)
+        plan_before_lock = self._plan_identity(work_date)
         self.plans.materialize(work_date)
+        if self._plan_identity(work_date) != plan_before_lock:
+            raise DailyEntryError(
+                "plan_changed",
+                "This day changed. Reload before recording actual.",
+                409,
+            )
         dogs = self._validate_participants(
             work_date, payload.participants, payload.distance_km
         )
@@ -172,6 +179,19 @@ class DailyEntryService:
         self.session.add(work_session)
         self.session.flush()
         return self.read(work_date)
+
+    def _plan_identity(self, work_date: date) -> tuple[UUID, int] | None:
+        # Primitive columns deliberately bypass the ORM identity map. A pending
+        # manual write that observed an empty/different day before waiting must
+        # not silently proceed after an atomic example or another plan edit wins.
+        # Public identity survives legitimate baseline-to-workspace materializing.
+        row = self.session.execute(
+            select(DailyPlan.public_id, DailyPlan.revision).where(
+                DailyPlan.plan_date == work_date,
+                scoped_date_filter(DailyPlan, self.workspace_id, DailyPlan.plan_date),
+            )
+        ).one_or_none()
+        return (row[0], row[1]) if row is not None else None
 
     def update(
         self,

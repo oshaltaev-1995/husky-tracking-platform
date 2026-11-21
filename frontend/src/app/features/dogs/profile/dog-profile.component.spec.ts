@@ -168,6 +168,45 @@ describe('DogProfileComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('This dog profile is unavailable');
   });
 
+  for (const routeId of [id, id.toUpperCase(), id.replace(/-/g, '')]) {
+    it(`accepts equivalent UUID route identity ${routeId} for profile and summary`, async () => {
+      vi.spyOn(DogMediaComponent.prototype, 'whenReady').mockResolvedValue();
+      params.next(convertToParamMap({ dogId: routeId }));
+      const getBundle = vi.fn(() => of(bundle));
+      try {
+        const fixture = await setup(getBundle);
+        expect(fixture.nativeElement.querySelector('h1')?.textContent).toBe('Aurora');
+        (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(document.querySelector('ht-dog-summary-document h1')?.textContent).toBe('Aurora');
+        expect(getBundle).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+  }
+
+  it('rejects a genuinely different UUID bundle under a valid route', async () => {
+    params.next(convertToParamMap({ dogId: relativeId }));
+    const fixture = await setup(() => of(bundle));
+    expect(fixture.nativeElement.textContent).toContain('We could not load this profile');
+    expect(fixture.nativeElement.querySelector('.profile-actions button')).toBeNull();
+    expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+  });
+
+  for (const routeId of ['not-a-uuid', id.replace('-', ''), `${id}extra`]) {
+    it(`rejects invalid UUID route ${routeId} before accepting profile data`, async () => {
+      params.next(convertToParamMap({ dogId: routeId }));
+      const getBundle = vi.fn(() => of(bundle));
+      const fixture = await setup(getBundle);
+      expect(fixture.nativeElement.textContent).toContain('This dog profile is unavailable');
+      expect(getBundle).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('.profile-actions button')).toBeNull();
+      expect(document.querySelector('ht-dog-summary-preview')).toBeNull();
+    });
+  }
+
   it('keeps archive metadata in the normal profile experience', async () => {
     const archived = structuredClone(bundle);
     archived.profile.state.lifecycle = 'archived';

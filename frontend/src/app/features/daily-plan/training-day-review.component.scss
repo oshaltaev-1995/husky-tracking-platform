@@ -1,0 +1,37 @@
+@use '../../../styles/mixins' as mixins;
+
+.training-day-backdrop { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: var(--space-4); background: rgb(15 35 33 / 45%); }
+.training-day-dialog { display: flex; flex-direction: column; width: min(100%, 48rem); max-height: 92dvh; min-height: 0; overflow: hidden; }
+header, footer { padding: var(--space-5) var(--space-6); }
+header { border-bottom: 1px solid var(--border); }
+header .eyebrow { margin: 0; }
+h2 { margin: var(--space-2) 0; font-size: var(--font-section-title); }
+header > p:last-child { margin: 0; color: var(--text-secondary); }
+.training-day-content { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: var(--space-5) var(--space-6); }
+.example-date { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); margin-bottom: var(--space-5); }
+.example-date > span { color: var(--text-secondary); }
+h3 { margin: 0 0 var(--space-3); font-size: var(--font-body); }
+.example-schedule, .example-pool { margin: 0; padding: 0; list-style: none; }
+.example-schedule li { display: grid; grid-template-columns: 5rem 1fr 1.25fr; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--border); }
+.supporting-copy { color: var(--text-secondary); line-height: 1.55; }
+.example-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin: var(--space-5) 0; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface-soft); }
+.example-totals dt { color: var(--text-secondary); font-size: var(--font-label); }
+.example-totals dd { margin: var(--space-1) 0 0; font-size: var(--font-section-title); font-weight: 700; }
+.example-pool { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-5); }
+.example-pool li { display: grid; min-width: 0; gap: var(--space-1); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.example-pool span, .example-pool small { color: var(--text-secondary); font-size: var(--font-label); }
+.example-handoff { margin: var(--space-5) 0 0; padding: var(--space-4); border-inline-start: 3px solid var(--brand-strong); background: var(--surface-soft); line-height: 1.55; }
+.example-handoff strong { display: block; margin-bottom: var(--space-2); }
+.example-unavailable { padding: var(--space-4); border: 1px solid var(--border-strong); border-radius: var(--radius-control); }
+.message { margin: var(--space-4) 0 0; padding: var(--space-3); border-radius: var(--radius-control); color: var(--text-secondary); background: var(--surface-soft); line-height: 1.55; }
+.message.error { color: var(--danger); background: var(--danger-soft); }
+footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); border-top: 1px solid var(--border); }
+
+@include mixins.phone {
+  .training-day-backdrop { padding: var(--space-2); }
+  header, footer, .training-day-content { padding: var(--space-4); }
+  .example-schedule li { grid-template-columns: 4.5rem minmax(0, 1fr); gap: var(--space-1) var(--space-3); }
+  .example-schedule li > span:last-child { grid-column: 2; }
+  .example-pool { grid-template-columns: minmax(0, 1fr); }
+  footer .button { flex: 1 1 auto; }
+}

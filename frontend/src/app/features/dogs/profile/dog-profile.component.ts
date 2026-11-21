@@ -18,6 +18,13 @@ import { workingRoleList } from '../../../shared/working-role-label';
 
 type ProfileTab = 'profile' | 'pedigree' | 'work' | 'history';
 
+/** Accept the existing UUID route spellings without accepting misplaced separators. */
+function canonicalUuid(value: string): string | null {
+  if (!/^(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.test(value)) return null;
+  const hex = value.replace(/-/g, '').toLowerCase();
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 @Component({
   selector: 'ht-dog-profile',
   imports: [
@@ -109,10 +116,12 @@ export class DogProfileComponent {
       switchMap((action) => {
         this.summaryPrint.close(false);
         if (action === 'invalidate') return of({ kind: 'context-changed' as const });
+        const routeId = canonicalUuid(id);
+        if (!routeId) return of({ kind: 'not-found' as const });
         return this.dogs.getProfileBundle(id).pipe(
           map((data) => {
             const summary = projectDogSummary(data);
-            if (data.profile.id !== id || !summary) throw new Error('Inconsistent profile sections');
+            if (canonicalUuid(data.profile.id) !== routeId || !summary) throw new Error('Inconsistent profile sections');
             return { kind: 'ready' as const, data, summary };
           }),
           startWith({ kind: 'loading' as const }),
