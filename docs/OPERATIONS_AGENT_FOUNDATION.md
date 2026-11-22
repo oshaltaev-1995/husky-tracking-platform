@@ -8,9 +8,13 @@ server loop, default-disabled selected-day API and a feature-local Operations re
 block in Daily Plan. It adds no chat, conversation persistence, table/migration, model
 runtime or infrastructure service. Existing screens work without AI. Fake HTTP tests
 are contract evidence, not model-quality or live-provider compatibility evidence.
-P14B implementation is **READY FOR LIVE QA**, not full live PASS: project keys/account
-verification and completed real primary/reserve runs remain gated. Nothing here changes
-production; P14C and publication require separate acceptance/authorization.
+P14B is **LIVE QA INCOMPLETE / BLOCKED on the reserve**, not full live PASS.
+The owner supplied private project keys and confirmed the required Free/privacy
+conditions. A genuine Groq tool→final run passed protocol/tool/reference checks
+through the UI; its prose is not factually accepted and showed observed inaccuracies.
+The free reserve never completed its loop under the required filters. The bounded campaign stopped
+at 11/12 actual attempts. Nothing here changes production; P14C and publication still
+require separate acceptance/authorization.
 
 ## Context and consistency
 
@@ -214,7 +218,7 @@ no persistent conversation store.
   `AGENT_GROQ_FREE_ACCOUNT_CONFIRMED` is an attestation, not automatic billing proof.
   Model identity alone does not make a paid Groq account safe for a €0 budget.
 - OpenRouter fixed endpoint: `https://openrouter.ai/api/v1/chat/completions`, exact
-  `openai/gpt-oss-20b:free`. Never strip :free, use auto/random routing, model fallback
+  `particle-ai/particle-1:free`. Never strip :free, use auto/random routing, model fallback
   lists, BYOK, paid plugins/search/server tools or purchase/rotate credits/accounts.
   `provider.max_price={prompt:0,completion:0,request:0}`, `require_parameters:true`,
   `data_collection:"deny"` are mandatory. `allow_fallbacks:true` permits endpoints
@@ -227,6 +231,72 @@ no persistent conversation store.
   generic OpenAI API compatibility. The transport contract prohibits redirects;
   P14B enforces fixed host, TLS verification, response bound,
   timeout and no retries. A historically had no live transport with which keys could be sent.
+
+### Observed Groq tool/output-mode compatibility
+
+The limited live probe returned HTTP400 `invalid_request_error`, with the safe
+parameter classification `response_format` / tool-JSON-mode conflict and no failed
+model generation. Groq tool-capable requests therefore omit the provider's
+`response_format` option, on the initial required tool and later auto-tool turns.
+The tool registry remains present and later reads remain model-selected: this is not
+a forced final immediately after `validate_day`. OpenRouter keeps its JSON object
+mode. Final model content still must pass the unchanged strict JSON and evidence
+validation; malformed output is terminal and cannot trigger a safety-bypassing
+reserve. The compatibility change alone is not proof of a completed live loop.
+
+### Endpoint-declared optional controls
+
+The chosen Particle endpoint's public `supported_parameters` includes tools,
+tool_choice, JSON response_format, reasoning and max_tokens, but not the optional
+parallel_tool_calls hint. Because `require_parameters:true` excludes endpoints that
+do not support requested controls, the OpenRouter serializer omits only that hint.
+Groq still sends `parallel_tool_calls:false`. Both providers remain subject to the
+unchanged parser requirement of exactly one tool call per response; a multi-call
+reserve reply is terminally rejected before any tool executes.
+
+The observed reserve HTTP 404 did not provide a safely classified error body, so its
+precise cause is not established. This declared-parameter correction is justified by
+the published contract; the final attempt after omission still returned 404. It does
+not establish that the hint caused the prior failures or that privacy caused them.
+All zero-price/privacy filters, require_parameters, JSON mode, the selected exact
+model and the common campaign counter remain unchanged.
+
+### Evidence/entity binding clarified after a live rejection
+
+A limited live response used real snapshot/date/evidence IDs but attached a day
+entity to activity-scoped evidence. The unchanged validator rejected it. The trusted
+outgoing contract now explicitly requires each reference entity to be copied exactly
+from the entities array of the same evidence entry selected by evidence_id; a day
+entity is not a default, and an activity ID is its UUID rather than the selected date.
+The example uses issued-kind/issued-ID placeholders rather than suggesting every
+reference is day-scoped. There is no server repair, reference rewriting or looser
+acceptance. This clarification alone does not establish a successful live loop.
+
+### One manual reserve replacement during limited live preparation
+
+On 22 Nov 2026 the public OpenRouter catalog no longer listed the accepted A/B
+`openai/gpt-oss-20b:free`, and its exact model endpoints projection returned zero
+endpoints. Its historical model page is not evidence of current route availability.
+The separately authorized live continuation therefore makes one development-time
+replacement: **`particle-ai/particle-1:free`**. Groq remains `openai/gpt-oss-20b`.
+The server allowlist, defaults and tests accept only this exact reserve, not the
+retired model, paid Particle ID, model lists or random routing.
+
+The [official model page](https://openrouter.ai/particle-ai/particle-1:free) documents
+zero prompt/completion pricing, tools/tool_choice and structured response_format.
+Its public endpoints metadata reports one Particle AI endpoint with the required
+capabilities. [Particle's terms §5](https://particle.ai/terms/) state that customer
+content is not used for training/model improvement without affirmative opt-in.
+The [standard-inference retention policy](https://particle.ai/legal/zero-data-retention)
+has scope and operational-metadata/legal/abuse exceptions; this does not establish a
+universal zero-retention or EEA-only guarantee for OpenRouter and every intermediary.
+
+All existing `max_price` fields remain zero, including per-request price, with
+`require_parameters:true` and `data_collection:"deny"`. Published metadata and policy
+support this one manual trial choice, but do not prove an endpoint accepts the
+complete tools/JSON/reasoning/price/privacy combination. Only the bounded genuine
+reserve smoke can verify that. Incompatible filters must return unavailable, never
+be relaxed. The campaign's 12-total-attempt counter is not reset by this source change.
 
 ## Data handling and Free-only setup — not activated in production
 
@@ -264,6 +334,49 @@ Before limited B live QA, owner must:
    UI evidence/trace and conditional notice. Before live QA verify the current account
    Limits/remaining quota through normal provider controls, without logging account IDs.
 
+### Limited live outcome — 22 November 2026
+
+The owner supplied project-only keys privately and confirmed Groq Free/model/Limits,
+OpenRouter no-purchase/top-up and disabled optional logging/training controls,
+including free models. Effective settings were checked without printing secrets.
+This is owner attestation, not automated access to every account control.
+
+One persisted campaign ledger reserved each actual attempt before dispatch and did
+not refund failures or reset across backend restarts/source corrections. It stopped
+at **11 of 12 actual inference HTTP attempts**: eight Groq and three OpenRouter.
+Three private fake primary 429 events admitted the reserve scenarios; they made no
+outbound Groq request and are explicitly separate from the actual attempt count.
+No automatic retry, parallel load, paid route or additional model was introduced.
+
+- **Groq protocol/tool/evidence PASS:** actual attempts 7–8 completed a model-requested
+  `validate_day`, its frozen tool result, and a validated final/reference response
+  through the existing UI. Server facts matched the snapshot (one planned activity,
+  zero actual sessions), and the agent made no domain writes. This does **not** mean
+  the explanation is factually accepted: its empty-pool/archive generalizations were
+  inaccurate for the plan's four selected working dogs. References existing and
+  matching evidence do not validate every prose statement. This observed quality
+  limitation remains unresolved; separately authorized P14C model-quality evaluation
+  has not started. Earlier failed/rejected attempts remain spent in the ledger.
+- **OpenRouter reserve FAIL / INCOMPLETE:** attempts 9–11 reached the fixed Particle
+  free route with all price/privacy/parameter filters intact and returned HTTP 404.
+  No reserve tool call or accepted final occurred. The application returned
+  `503 ai_temporarily_unavailable`; it did not claim exhausted free quota.
+  Omitting the unadvertised optional parallel-call hint did not resolve the failure.
+  No usable typed upstream reason was safely observed, so its cause is **UNKNOWN**.
+- **Usage/billing:** observed OpenRouter key metadata before/after reported
+  `is_free_tier:true` and usage 0. This is key-scoped metadata, potentially delayed,
+  not an account-wide invoice or universal measured-€0 guarantee. Groq billing
+  measurement is unavailable here; its Free status is the owner's attestation.
+
+The permitted source changes are one explicit reserve-model selection and narrow
+serialization/reference instructions; parser/evidence, one-call execution, deadlines,
+call caps and zero-price/privacy controls remain enforced. Accepted 500 backend/323
+frontend gates remain baseline evidence, supplemented by the affected-path checks
+bound to these source changes; fake responses are not substitute reserve proof.
+No production feature or configuration was changed. The campaign is stopped, with
+one unused slot; missing keys are not its blocker. The unresolved required result is
+a genuine compatible free-reserve tool→result→final loop. P14C remains unstarted.
+
 ### Private configuration and remaining live gate
 
 The owner supplies a project-only private file, never credentials from another project:
@@ -274,7 +387,7 @@ AGENT_GROQ_FREE_ACCOUNT_CONFIRMED=true
 AGENT_GROQ_API_KEY=<set privately>
 AGENT_OPENROUTER_API_KEY=<set privately>
 AGENT_GROQ_MODEL=openai/gpt-oss-20b
-AGENT_OPENROUTER_MODEL=openai/gpt-oss-20b:free
+AGENT_OPENROUTER_MODEL=particle-ai/particle-1:free
 AGENT_MAX_HTTP_CALLS=6
 AGENT_MAX_TOOL_CALLS=8
 AGENT_DEADLINE_SECONDS=45
@@ -302,23 +415,27 @@ tests do not substitute for the required real Nginx admission-path QA.
 The permitted live smoke is at most **12 inference HTTP requests total**, including
 failed requests, fallback and every model turn, sequentially across the campaign.
 Verify one completed Groq tool→result→final run and one completed free-reserve run;
-the latter may use an isolated server-side fake primary429, never a public selector.
+the latter may use an isolated server-side fake primary 429, never a public selector.
 Preserve exact free model/price/privacy filters and record only safe provider/model,
 request/tool/count/code/timing/known-usage/evidence metadata. Stop at the cap even if
 cost remains zero. Do not deliberately exhaust quotas, purchase credits or weaken
 filters. Current model catalog/parameter/account compatibility and actual usage/billing
 must be checked; unknown usage is not evidence of zero spend.
 
-Until owner keys/account checks and both real completed runs exist, the honest status
-is **READY FOR LIVE QA / LIVE QA BLOCKED**, not P14B fully PASS. Unavailable routes or
-insufficient smoke budget remain explicit gates. P14C quality/adversarial evaluation
-does not begin as part of B. No production, push, tag or merge is authorized here.
+The required owner setup and genuine primary run are now present. A completed real
+reserve run under all filters is still missing, so the honest current status is
+**LIVE QA INCOMPLETE / BLOCKED on the reserve**, not P14B fully PASS. The 11-request
+campaign is stopped; no script restart/source fix may reset its total or create an
+unannounced budget. P14C quality/adversarial evaluation does not begin as part of B.
+No production enablement, push, tag or merge is authorized here.
 
 Published limits are guidance, not application constants or permanent free-service
 guarantees: Groq model table lists30RPM/1000RPD/8000TPM/200000TPD; organisation Limits
 is authoritative. OpenRouter zero-purchase :free guidance is20RPM/50RPD, including
-failed attempts. A run can spend multiple requests. B must recheck them; no quota was
-consumed in A. B has not yet established a completed live run or account proof.
+failed attempts. A run can spend multiple requests. Current account Limits remain
+authoritative; no quota was consumed in A. B now has owner account attestation and a
+completed genuine primary protocol/tool/reference loop, while model prose quality,
+reserve completion and exact Groq billing are not established.
 OpenRouter deny filters and required account logging/training controls
 do not prove universal provider retention or region; abuse/legal exceptions apply.
 
@@ -328,7 +445,7 @@ Official references inspected for A (21 Nov2026; recheck in B):
 [limits](https://console.groq.com/docs/rate-limits),
 [billing](https://console.groq.com/docs/billing-faqs),
 [deprecations](https://console.groq.com/docs/deprecations),
-[OpenRouter exact free model](https://openrouter.ai/openai/gpt-oss-20b:free),
+[Historical OpenRouter GPT-OSS free model](https://openrouter.ai/openai/gpt-oss-20b:free),
 [provider/price filters](https://openrouter.ai/docs/guides/routing/provider-selection),
 [limits](https://openrouter.ai/docs/api/reference/limits),
 [data collection](https://openrouter.ai/docs/guides/privacy/data-collection).
@@ -350,3 +467,12 @@ was rewritten. G-PRIVACY-01 names ht_demo_session and notes/housing use, keeps T
 runtime-driven, and describes Reset accurately: deletes mutable workspace data, does
 not delete the cookie and does not extend its existing expiry. Privacy GET never
 creates a workspace or optional browser storage.
+
+### B live-smoke model-quality limitation
+
+The accepted Groq result is a protocol/tool/reference PASS, not a claim of accurate
+free prose. Its screenshot contains an observed prose error: it calls the selected
+four-dog pool empty and generalizes archived-dog findings. Server facts correctly
+show one saved activity and zero actual work, and references passed strict binding.
+No validator or facts were changed to accept the wording. This limitation is recorded
+for later model-quality review; P14C has not begun, and no further inference was run.

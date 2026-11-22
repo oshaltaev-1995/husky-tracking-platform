@@ -879,10 +879,17 @@ budgets, refusal contracts, data minimization and Free-only future setup prerequ
 
 ## P14B — Limited live agent and UI
 
-**Status:** local implementation READY FOR LIVE QA; independent acceptance and live
-provider proof remain pending. No push/merge/tag/deploy or production enablement.
-No project keys, confirmed account settings or completed live Groq/reserve run is
-claimed. P14C must not begin before B acceptance.
+**Status:** local implementation/offline/UI evidence accepted for the limited live
+continuation; **LIVE QA INCOMPLETE / BLOCKED on the reserve**. Owner project keys and
+Free/privacy confirmation were supplied. One genuine Groq `validate_day` → final run
+passed protocol/tool/reference checks through the existing UI. Model prose accuracy
+is not accepted: the response showed pool/archive inaccuracies despite correct
+separate deterministic facts. The campaign stopped at 11/12 actual requests,
+including errors/rejected results; three fake primary 429 reserve-entry events are
+separate and consume no actual request number. Particle's exact free reserve returned
+HTTP 404 on three attempts, with no reserve tool/final completion. The app reported
+503 ai_temporarily_unavailable, not quota exhaustion. No push/merge/tag/deploy or
+production enablement; P14C must not begin before B acceptance.
 
 Carries four accepted-A follow-ups: Groq GPT-OSS `include_reasoning:false`, deadline
 checks before construction/dispatch, strict finish-reason/tool consistency, and
@@ -900,12 +907,20 @@ Privacy describes external synthetic-data processing only when this environment'
 feature is enabled, with excluded notes/Contact/cookies and no zero-retention or
 EEA-only guarantee. Explicit private native/Compose configuration remains opt-in.
 
-Remaining live gate: owner-supplied server project keys; verified Groq Free Limits and
-OpenRouter no-purchase/privacy settings; current exact free-model/filter compatibility;
-at most 12 inference HTTP calls total for a completed primary and a completed reserve
-tool→result→final run, with safe usage metadata. Fake integration/UI responses do not
-satisfy this gate. If keys/routes are unavailable, report LIVE QA BLOCKED without
-upgrading, relaxing filters or claiming full PASS. See `OPERATIONS_AGENT_FOUNDATION.md`.
+The continuation made one justified development-time replacement of the vanished
+GPT-OSS20B free route with `particle-ai/particle-1:free`, plus narrow Groq output-mode,
+reference/entity binding and optional OR parameter corrections. Strict evidence,
+single-call parsing, zero prices, data_collection deny and require_parameters remain
+unchanged. Removing the unadvertised optional parallel-call hint did not resolve 404;
+its exact cause is not established. Known OpenRouter key metadata before/after showed
+is_free_tier=true and usage 0; Groq billing measurement remains unknown beyond the
+owner's Free attestation. This is not a universal measured-€0 claim.
+
+Remaining live gate: a completed genuine free-reserve tool→result→final run with the
+full required filters. The current campaign is stopped; its counter must not reset
+or silently gain a new budget. Missing keys are not the blocker. No upgrade, privacy
+relaxation, paid route or full-PASS claim is allowed to bypass unavailable routing.
+See `OPERATIONS_AGENT_FOUNDATION.md` and the incremental live review evidence.
 
 ## P14C — Quality and adversarial evaluation (not started)
 

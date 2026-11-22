@@ -131,14 +131,19 @@ def build_request(
                 "Do not infer completed work from a plan or make medical claims. "
                 'Final JSON shape: {"explanation":"...","references":['
                 '{"snapshot_id":"...","selected_date":"...","evidence_id":"...",'
-                '"entity":{"kind":"day","id":"..."}}]}. '
+                '"entity":{"kind":"<issued kind>","id":"<issued id>"}}]}. '
                 "Use only those two top-level fields. explanation is plain text, "
                 "at most 4000 characters; references has 1 to 32 items. Each reference "
                 "has exactly snapshot_id, selected_date, evidence_id and entity. "
                 "Each entity has exactly kind and id; kind is day, dog, activity, "
                 "actual or location. Replace placeholders with the current run's "
                 "snapshot/date and entity/evidence values issued by its read tools; "
-                "never invent references. Do not output HTML or external URLs. "
+                "never invent references. For EACH reference, find the evidence "
+                "entry whose id equals evidence_id. Copy entity EXACTLY from "
+                "that SAME entry's entities array, never from another entry. "
+                "Do not default to a day entity: it is valid only if that entry "
+                "contains it. An activity entity uses its public UUID, never "
+                "the selected date. Do not output HTML or external URLs. "
                 "References can be verified; free explanation is not automatically "
                 "certified true."
             ),
@@ -189,11 +194,13 @@ def build_request(
             if required_tool is not None
             else "auto"
         ),
-        "parallel_tool_calls": False,
-        "response_format": {"type": "json_object"},
         "stream": False,
     }
     if provider == "groq":
+        payload["parallel_tool_calls"] = False
+        # Groq rejects JSON output mode with these tool-capable requests. Keep
+        # tools available on later turns; the final content still must pass our
+        # strict JSON/reference parser before anything can be accepted.
         payload["max_completion_tokens"] = settings.max_output_tokens
         # GPT-OSS excludes reasoning with include_reasoning, not reasoning_format.
         # The completion cap still includes its internal reasoning tokens.
@@ -204,6 +211,10 @@ def build_request(
             "https://openrouter.ai/api/v1/chat/completions",
         ] = "https://api.groq.com/openai/v1/chat/completions"
     else:
+        # The selected endpoint does not advertise the optional parallel-call
+        # control. With require_parameters, do not request an unsupported hint.
+        # The parser still rejects every multi-call reply before tool execution.
+        payload["response_format"] = {"type": "json_object"}
         payload["max_tokens"] = settings.max_output_tokens
         # OpenRouter's Chat Completions-specific control omits returned reasoning;
         # it does not imply those tokens are free or outside the completion cap.

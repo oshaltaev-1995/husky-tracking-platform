@@ -588,9 +588,15 @@ provider attempt. It returns bounded deterministic facts/findings/evidence and t
 links, with separate plain-text model explanation, snapshot date/time, provider/model,
 reserve indicator, successful tool trace and known/incomplete token usage. Structured
 reference validation does not prove arbitrary prose true. One Groq Free → exact
-OpenRouter `:free` switch preserves snapshot, counters and the overall 45-second budget;
+OpenRouter `particle-ai/particle-1:free` switch preserves snapshot, counters and the
+overall 45-second budget;
 reserve restarts without the primary transcript. Fixed endpoints, zero-price/privacy
 filters and terminal error classes cannot be changed by model/data.
+The limited-live continuation made this one manual reserve replacement after the
+original GPT-OSS20B free route disappeared from the public catalog/endpoints.
+Published tools/JSON and zero-price support justify a bounded trial, not a live-PASS
+claim; all original privacy/price filters remain mandatory. See the Operations Agent
+foundation document for evidence and policy caveats.
 
 The standard-library HTTPS transport verifies TLS, permits only the two fixed hosts,
 does not follow redirects/retry, and bounds response bytes **while reading**. A
@@ -616,8 +622,16 @@ auto-retries. Ordinary later edits are disclosed as outside the captured snapsho
 The optional external-AI notice precedes the action; Privacy metadata enables the
 provider-processing section only in an enabled environment. Notes, Contact content,
 visitor/cookie/workspace identifiers, credentials, images and whole histories never
-enter provider data. Account privacy/Free checks and completed Groq/reserve live runs
-remain a release gate: P14B is READY FOR LIVE QA, not full live PASS. P14C is unstarted.
+enter provider data. The owner supplied project keys and Free/privacy confirmation.
+Limited live QA completed the genuine Groq protocol/tool/reference loop through UI;
+this does not establish prose accuracy, and pool/archive inaccuracies were observed
+alongside correct deterministic facts. The exact free reserve returned 404 without
+tool/final completion under the full filters.
+The campaign stopped at 11/12 actual requests plus three separately labelled fake
+primary 429 events. Its exact upstream 404 cause remains unknown; a declared-parameter
+correction did not resolve it. P14B remains LIVE QA INCOMPLETE / BLOCKED on reserve,
+not full live PASS. AI review was not enabled in production; no production
+configuration changed, and P14C is unstarted.
 
 P13G QA wording is scoped to unchanged Work.summary / actual-work metrics of all16
 dogs after Training Day Apply, not entire Work DTO history/weekly-array equality.

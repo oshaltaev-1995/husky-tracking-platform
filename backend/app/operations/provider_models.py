@@ -92,7 +92,9 @@ class ProviderSettings(BaseSettings):
     groq_api_key: SecretStr | None = Field(default=None, repr=False)
     openrouter_api_key: SecretStr | None = Field(default=None, repr=False)
     groq_model: Literal["openai/gpt-oss-20b"] = "openai/gpt-oss-20b"
-    openrouter_model: Literal["openai/gpt-oss-20b:free"] = "openai/gpt-oss-20b:free"
+    openrouter_model: Literal["particle-ai/particle-1:free"] = (
+        "particle-ai/particle-1:free"
+    )
     max_http_calls: int = Field(default=6, ge=1, le=6)
     max_tool_calls: int = Field(default=8, ge=1, le=8)
     deadline_seconds: float = Field(default=45.0, ge=1, le=45)

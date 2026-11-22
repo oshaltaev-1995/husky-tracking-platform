@@ -155,7 +155,8 @@ def test_midrun_quota_restarts_once_same_snapshot_without_transcript() -> None:
     assert len(bodies[1]["messages"]) == 5
     assert bodies[0]["messages"] == bodies[2]["messages"]
     assert "issued-one" not in transport.requests[2].body_json
-    assert bodies[2]["model"] == "openai/gpt-oss-20b:free"
+    assert bodies[2]["model"] == "particle-ai/particle-1:free"
+    assert "parallel_tool_calls" not in bodies[2]
     assert bodies[2]["provider"] == {
         "max_price": {"prompt": 0, "completion": 0, "request": 0},
         "require_parameters": True,
@@ -196,6 +197,78 @@ def test_required_day_validation_is_forced_again_after_reserve_restart() -> None
     ]
     assert bodies[0]["messages"] == bodies[2]["messages"]
     assert "issued-primary" not in transport.requests[2].body_json
+
+
+def test_groq_tool_turns_omit_output_mode_and_keep_later_reads_available() -> None:
+    tools = (
+        *TOOLS,
+        ToolContract(
+            name="get_day_plan",
+            description="Read the selected frozen plan.",
+            parameters_json='{"type":"object","properties":{},"additionalProperties":false}',
+        ),
+    )
+    transport = FakeTransport(tool_answer(), tool_answer("get_day_plan"), answer())
+    active = run(transport, tools=tools, force_validate_day=True)
+    first = active.call()
+    assert first.tool_call is not None and first.tool_call.name == "validate_day"
+    active.record_tool(first, '{"checks":[]}')
+    second = active.call()
+    assert second.tool_call is not None and second.tool_call.name == "get_day_plan"
+    active.record_tool(second, '{"activities":[]}')
+    final = active.call()
+    assert active.finalize(final, lambda _: None) == '{"evidence_ids":[]}'
+    bodies = [json.loads(request.body_json) for request in transport.requests]
+    assert len(bodies) == 3 and active.tool_calls == 2
+    assert all("response_format" not in body for body in bodies)
+    assert bodies[0]["tool_choice"] == {
+        "type": "function",
+        "function": {"name": "validate_day"},
+    }
+    assert [body["tool_choice"] for body in bodies[1:]] == ["auto", "auto"]
+    assert all(
+        {row["function"]["name"] for row in body["tools"]}
+        == {"validate_day", "get_day_plan"}
+        for body in bodies
+    )
+
+
+@pytest.mark.parametrize("content", ["not-json", "[]"])
+def test_groq_final_after_required_tool_remains_strict_json(content: str) -> None:
+    transport = FakeTransport(tool_answer(), answer(content))
+    active = run(transport, force_validate_day=True)
+    active.record_tool(active.call(), '{"checks":[]}')
+    with fails("invalid_provider_response"):
+        active.call()
+    assert len(transport.requests) == 2 and active.switches == 0
+
+
+def test_reserve_multi_call_reply_is_rejected_before_any_tool_execution() -> None:
+    multiple = json.loads(tool_answer().body)
+    first = multiple["choices"][0]["message"]["tool_calls"][0]
+    second = {**first, "id": "tool-two"}
+    multiple["choices"][0]["message"]["tool_calls"].append(second)
+    transport = FakeTransport(
+        HttpReply(status=429), HttpReply(status=200, body=json.dumps(multiple).encode())
+    )
+    active = run(transport, force_validate_day=True)
+    with fails("invalid_provider_response"):
+        active.call()
+    assert active.provider == "openrouter" and active.switches == 1
+    assert active.http_calls == 2 and active.tool_calls == 0
+    assert len(transport.requests) == 2
+    reserve = json.loads(transport.requests[1].body_json)
+    assert "parallel_tool_calls" not in reserve
+    assert reserve["response_format"] == {"type": "json_object"}
+    assert reserve["provider"] == {
+        "max_price": {"prompt": 0, "completion": 0, "request": 0},
+        "require_parameters": True,
+        "data_collection": "deny",
+        "allow_fallbacks": True,
+    }
+    with fails("run_finished"):
+        active.call()
+    assert len(transport.requests) == 2
 
 
 def test_final_before_required_day_validation_is_terminal_without_reserve() -> None:
@@ -425,6 +498,10 @@ def test_missing_keys_feature_disabled_and_application_limit_make_zero_calls(
     [
         {"openrouter_model": "openai/gpt-oss-20b"},
         {"openrouter_model": "openrouter/auto"},
+        # The retired reserve and every paid or unselected variant stay closed.
+        {"openrouter_model": "openai/gpt-oss-20b:free"},
+        {"openrouter_model": "particle-ai/particle-1"},
+        {"openrouter_model": "particle-ai/particle-1:free:online"},
         {"max_http_calls": 7},
         {"max_tool_calls": 9},
         {"deadline_seconds": 46},
@@ -746,7 +823,26 @@ def test_model_receives_exact_final_reference_contract_in_trusted_system_text(
     assert "at most 4000 characters" in system["content"]
     assert "1 to 32 items" in system["content"]
     assert "never invent references" in system["content"]
-    assert payload["response_format"] == {"type": "json_object"}
+    assert (
+        "For EACH reference, find the evidence entry whose id equals evidence_id"
+        in system["content"]
+    )
+    assert (
+        "Copy entity EXACTLY from that SAME entry's entities array" in system["content"]
+    )
+    assert "never from another entry" in system["content"]
+    assert "Do not default to a day entity" in system["content"]
+    assert (
+        "An activity entity uses its public UUID, never the selected date"
+        in system["content"]
+    )
+    assert '"entity":{"kind":"day"' not in system["content"]
+    if provider == "openrouter":
+        assert payload["response_format"] == {"type": "json_object"}
+        assert "parallel_tool_calls" not in payload
+    else:
+        assert "response_format" not in payload
+        assert payload["parallel_tool_calls"] is False
     assert "json_schema" not in payload
 
 

@@ -140,11 +140,17 @@ housing, teams or actual work. Cancel/date/session/Reset/navigation discard late
 results, and no request is replayed automatically. API responses are no-store;
 production Nginx owns the narrow per-IP review limit.
 
-P14B implementation is **READY FOR LIVE QA**, not a fully live-accepted feature. No
-project keys/account verification or completed live provider proof is claimed. The
-owner's private server configuration, Free-account/privacy checks and at most 12
-inference HTTP calls are required before accepting live Groq and reserve runs. Native
-startup uses an explicit private `AGENT_ENV_FILE`; Compose explicitly forwards the
+P14B is **LIVE QA INCOMPLETE / BLOCKED on the reserve**, not fully live-accepted.
+The owner supplied private project keys and confirmed the Free/privacy conditions.
+A genuine Groq `validate_day` → final run passed protocol/tool/reference checks
+through the UI; this is not a factual-quality PASS. Its prose showed pool/archive
+inaccuracies despite separate correct server facts. The campaign stopped
+at **11/12 actual requests**; three artificial primary 429 events used to enter reserve
+are counted separately. Particle's free reserve returned 404 and never completed a
+tool/final loop under the unchanged zero-price/privacy filters; its exact upstream
+failure cause remains unknown. AI review remains disabled in production, which this
+continuation did not change. P14C has not started. Native startup uses an explicit
+private `AGENT_ENV_FILE`; Compose forwards the
 `AGENT_*` values supplied through `--env-file`. The conditional Privacy disclosure is
 shown only in an enabled environment. No model download, new schema or conversation
 store is introduced. See [`OPERATIONS_AGENT_FOUNDATION.md`](docs/OPERATIONS_AGENT_FOUNDATION.md)

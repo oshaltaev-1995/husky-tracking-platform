@@ -281,6 +281,32 @@ def test_references_reject_cross_snapshot_date_entity_and_invented_evidence(
         FrozenTools(state).validate_references(json.dumps(payload))
 
 
+def test_known_day_entity_cannot_be_attached_to_activity_evidence() -> None:
+    state = snapshot()
+    tools = FrozenTools(state)
+    day = state.evidence[0].entities[0]
+    assert day.kind == "day" and day.id == str(state.selected_date)
+    issued = next(
+        row
+        for row in state.evidence
+        if any(entity.kind == "activity" for entity in row.entities)
+    )
+    activity = next(entity for entity in issued.entities if entity.kind == "activity")
+    assert day not in issued.entities
+    payload = reference_payload(state)
+    references = payload["references"]
+    assert isinstance(references, list)
+    references[0]["evidence_id"] = issued.id
+    # Snapshot/date/evidence and the day identity are all genuinely issued, but
+    # this pairing is invalid because the chosen evidence belongs to an activity.
+    with pytest.raises(OperationError, match="^invalid_evidence$"):
+        tools.validate_references(json.dumps(payload))
+    references[0]["entity"] = activity.model_dump(mode="json")
+    assert (
+        tools.validate_references(json.dumps(payload)).references[0].entity == activity
+    )
+
+
 def test_tool_outputs_have_no_mutable_alias_back_into_frozen_snapshot() -> None:
     state = snapshot()
     tools = FrozenTools(state)
