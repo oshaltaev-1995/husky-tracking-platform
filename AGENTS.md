@@ -113,11 +113,18 @@ These instructions apply to the entire repository.
   eligibility, actual-work and lineup rules; evidence is server-created. Groq Free and
   exact OpenRouter `:free` contracts permit one bounded switch, zero-price/privacy filters
   and no paid bypass. P14A tests use fake HTTP only, even if keys exist in the environment.
-  P14B's separately authorized live QA is limited to 12 inference HTTP calls in total,
-  only after owner-supplied project keys, Groq Free confirmation, and OpenRouter
-  free-route/account privacy checks. Missing keys or live proof means READY FOR LIVE QA,
-  not full PASS; P14C remains separately gated. Force a model-requested `validate_day`
-  on each provider attempt before accepting a final result. The production Nginx
+  Live QA requires explicit owner authorization, project-only keys, Groq Free
+  confirmation and OpenRouter free-route/account privacy checks. The original campaign
+  is closed at 11/12; the separately authorized context follow-up is closed at 2/6
+  (13 combined), with no unused-slot transfer or automatic new budget. Exact reserve
+  absence from validated account metadata blocks blind reserve dispatch, even when
+  the public catalog lists it. Missing live proof is not full PASS; P14C remains gated.
+  Force a model-requested `validate_day`
+  on each provider attempt before accepting a final result. Its bounded projection
+  must preserve successful selected-pool/eligibility/state facts, distinguish unique
+  dogs from participations, separate saved teams/actuals, scope unrelated findings,
+  and report omitted details honestly without changing canonical checks. The production
+  Nginx
   exact review POST owns per-IP admission (2/minute, burst 1, one concurrent review);
   the backend's one-slot-per-worker guard is concurrency control, not global rate or
   account-quota accounting. Preserve the private backend boundary and no automatic

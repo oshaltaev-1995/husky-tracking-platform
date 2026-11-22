@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from typing import Any
 from urllib.parse import urlencode
 
 from pydantic import ValidationError
@@ -9,6 +10,7 @@ from pydantic import ValidationError
 from app.operations.provider_models import json_object
 from app.operations.schemas import (
     ActivityArguments,
+    Check,
     DayArguments,
     Entity,
     Frozen,
@@ -31,6 +33,217 @@ READ_TOOLS: tuple[ToolName, ...] = (
     "validate_day",
 )
 
+# The provider policy already enforces this whole-result limit. Compact this one
+# mandatory projection within it instead of raising the existing provider budget.
+VALIDATION_RESULT_BYTES = 16_384
+
+
+def _validation_result(snapshot: Snapshot) -> ToolResult:
+    """Keep successful plan facts beside scoped findings in one bounded read.
+
+    Counts cover the whole detached snapshot. Detail is admitted together with its
+    issued evidence, so omission never changes a selected pool into an empty one.
+    Eligibility/lineup results come from capture/checks, not an alternative rule.
+    """
+    selected_ids = {
+        dog_id for activity in snapshot.activities for dog_id in activity.participants
+    }
+    selected_strings = {str(item) for item in selected_ids}
+    evidence = {row.id: row.model_dump(mode="json") for row in snapshot.evidence}
+
+    def evidence_for(rule: str, kind: str, entity_id: str) -> list[str]:
+        return list(
+            dict.fromkeys(
+                evidence_id
+                for check in snapshot.checks
+                if check.rule == rule
+                and any(
+                    entity.kind == kind and entity.id == entity_id
+                    for entity in check.entities
+                )
+                for evidence_id in check.evidence_ids
+            )
+        )
+
+    def scope(check: Check) -> str:
+        if check.rule.startswith("ACTUAL_") or any(
+            entity.kind == "actual" for entity in check.entities
+        ):
+            return "actual"
+        if any(
+            entity.kind == "dog" and entity.id in selected_strings
+            for entity in check.entities
+        ):
+            return "plan_participants"
+        if any(entity.kind == "activity" for entity in check.entities):
+            return "plan_activity"
+        if any(entity.kind == "dog" for entity in check.entities):
+            return "other_snapshot_dogs"
+        if any(entity.kind == "location" for entity in check.entities):
+            return "housing"
+        return "day"
+
+    day = snapshot.selected_date.isoformat()
+    plan_evidence = evidence_for("PLAN_PRESENCE", "day", day)
+    actual_evidence = evidence_for("ACTUAL_LEDGER", "day", day)
+    actual_values = {
+        item.name: item.value
+        for row in snapshot.evidence
+        if row.id in actual_evidence
+        for item in row.values
+    }
+    findings = [check for check in snapshot.checks if check.status != "pass"]
+    by_scope = Counter(scope(check) for check in findings)
+    result: dict[str, Any] = {
+        "plan": {
+            "exists": snapshot.plan_exists,
+            "activity_count": len(snapshot.activities),
+            "selected_unique_dogs": len(selected_ids),
+            "selected_participations": sum(
+                len(activity.participants) for activity in snapshot.activities
+            ),
+            "evidence_ids": plan_evidence,
+            "activities": [],
+            "omitted_activity_count": len(snapshot.activities),
+        },
+        "selected_dog_states": [],
+        "omitted_selected_dog_state_count": len(selected_ids),
+        "actual": {
+            "sessions": actual_values.get("sessions"),
+            "dog_starts": actual_values.get("dog_starts"),
+            "dog_km": actual_values.get("dog_km"),
+            "unique_dogs": len(
+                {dog_id for row in snapshot.actual for dog_id in row.participants}
+            ),
+            "evidence_ids": actual_evidence,
+        },
+        "checked_rules": sorted({row.rule for row in snapshot.checks}),
+        "status_counts": dict(Counter(row.status for row in snapshot.checks)),
+        "finding_counts_by_scope": dict(sorted(by_scope.items())),
+        "checks": [],
+        "omitted_detail_count": len(findings),
+        "evidence": [],
+        "qualification": "Counts cover the full frozen snapshot; omitted detail "
+        "is unknown, not zero. Selected pools, saved teams and actual work are "
+        "independent. Other snapshot dogs are not plan participants. Only these "
+        "checks, not a guarantee of training safety; no inference that a plan ran.",
+    }
+    issued_ids = set(plan_evidence + actual_evidence)
+
+    def serialize() -> ToolResult:
+        result["evidence"] = [
+            evidence[row.id] for row in snapshot.evidence if row.id in issued_ids
+        ]
+        return ToolResult(
+            snapshot_id=snapshot.id,
+            selected_date=snapshot.selected_date,
+            tool="validate_day",
+            evidence_ids=tuple(
+                row.id for row in snapshot.evidence if row.id in issued_ids
+            ),
+            data_json=json.dumps(result, sort_keys=True, separators=(",", ":")),
+        )
+
+    def admit(rows: list[Any], row: dict[str, Any], ids: list[str]) -> bool:
+        previous_ids = issued_ids.copy()
+        rows.append(row)
+        issued_ids.update(ids)
+        if len(serialize().model_dump_json().encode()) <= VALIDATION_RESULT_BYTES:
+            return True
+        rows.pop()
+        issued_ids.clear()
+        issued_ids.update(previous_ids)
+        return False
+
+    # Invalid selected dogs must not lose priority to unrelated archived states.
+    activities = sorted(
+        snapshot.activities,
+        key=lambda activity: not any(item.reasons for item in activity.eligibility),
+    )
+    for activity in activities:
+        eligibility = {item.dog_id: item for item in activity.eligibility}
+        invalid = [
+            item
+            for dog_id in activity.participants
+            if (item := eligibility.get(dog_id)) is not None and item.reasons
+        ]
+        ids = list(
+            dict.fromkeys(
+                evidence_id
+                for rule in (
+                    "ACTIVITY_DISTANCE",
+                    "PARTICIPANT_ELIGIBILITY",
+                    "SAVED_LINEUP",
+                    "ACTUAL_RECORDING",
+                )
+                for evidence_id in evidence_for(rule, "activity", str(activity.id))
+            )
+        )
+        row: dict[str, Any] = {
+            "id": str(activity.id),
+            "kind": activity.kind,
+            "distance_km": activity.distance_km,
+            "selected_pool": [str(item) for item in activity.participants],
+            "selected_pool_count": len(activity.participants),
+            "eligible_count": sum(
+                dog_id in eligibility and not eligibility[dog_id].reasons
+                for dog_id in activity.participants
+            ),
+            "ineligible_count": len(invalid),
+            "eligibility_unverified_count": sum(
+                dog_id not in eligibility for dog_id in activity.participants
+            ),
+            "ineligible_participants": [
+                item.model_dump(mode="json") for item in invalid
+            ],
+            "saved_teams": len(activity.teams),
+            "actual_status": activity.actual_status,
+            "evidence_ids": ids,
+        }
+        if admit(result["plan"]["activities"], row, ids):
+            result["plan"]["omitted_activity_count"] -= 1
+
+    invalid_ids = {
+        item.dog_id
+        for activity in snapshot.activities
+        for item in activity.eligibility
+        if item.dog_id in activity.participants and item.reasons
+    }
+    for dog in sorted(snapshot.dogs, key=lambda dog: dog.id not in invalid_ids):
+        if dog.id not in selected_ids:
+            continue
+        ids = evidence_for("DOG_STATE", "dog", str(dog.id))
+        row = {
+            "id": str(dog.id),
+            "born": dog.born,
+            "lifecycle": dog.lifecycle,
+            "class": dog.dog_class,
+            "availability": dog.availability,
+            "capabilities": list(dog.capabilities),
+            "evidence_ids": ids,
+        }
+        if admit(result["selected_dog_states"], row, ids):
+            result["omitted_selected_dog_state_count"] -= 1
+
+    # Preserve the original 32-detail limit; all canonical checks still contribute
+    # status/scope counts even when their detail/evidence will not fit.
+    priority = {
+        "plan_participants": 0,
+        "plan_activity": 1,
+        "actual": 2,
+        "day": 3,
+        "housing": 4,
+        "other_snapshot_dogs": 5,
+    }
+    for check in sorted(findings, key=lambda check: priority[scope(check)]):
+        if len(result["checks"]) == 32:
+            break
+        row = {**check.model_dump(mode="json"), "scope": scope(check)}
+        if admit(result["checks"], row, list(check.evidence_ids)):
+            result["omitted_detail_count"] -= 1
+    return serialize()
+
+
 ARGUMENTS: dict[ToolName, type[Frozen]] = {
     "get_day_plan": ActivityArguments,
     "get_saved_teams": ActivityArguments,
@@ -52,7 +265,9 @@ TOOL_DESCRIPTIONS: dict[ToolName, str] = {
     "get_housing": "Read dated housing/provenance; optional snapshot dog_ids. "
     "Omit selection for this day's overview; capacity is informational.",
     "validate_day": "Check the selected snapshot day using canonical rules. "
-    "Returns findings and server evidence; no selectors, writes or solver.",
+    "Returns selected pools/eligibility, saved-team and actual facts plus scoped "
+    "findings/evidence. Counts cover the day; omitted details are not zero. "
+    "No selectors, writes or solver.",
 }
 
 
@@ -191,20 +406,7 @@ class FrozenTools:
                 "nominal_capacity_is_not_a_move_limit": True,
             }
         else:
-            # Operational attention first; a normal review does not ship every dog's
-            # state/history to a model. All facts remain in the frozen local snapshot.
-            important = [row for row in data["checks"] if row["status"] != "pass"]
-            included = important[:32]
-            ids = {item for row in included for item in row["evidence_ids"]}
-            result = {
-                "checked_rules": sorted(set(row.rule for row in snapshot.checks)),
-                "status_counts": dict(Counter(row.status for row in snapshot.checks)),
-                "checks": included,
-                "omitted_detail_count": max(0, len(important) - len(included)),
-                "evidence": [row for row in data["evidence"] if row["id"] in ids],
-                "qualification": "Only these checks, not a guarantee of training "
-                "safety; no inference that a plan ran.",
-            }
+            return _validation_result(snapshot)
         try:
             related_locations = {
                 row.housing_code for row in snapshot.dogs if row.id in args.dog_ids

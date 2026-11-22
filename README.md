@@ -141,15 +141,17 @@ results, and no request is replayed automatically. API responses are no-store;
 production Nginx owns the narrow per-IP review limit.
 
 P14B is **LIVE QA INCOMPLETE / BLOCKED on the reserve**, not fully live-accepted.
-The owner supplied private project keys and confirmed the Free/privacy conditions.
-A genuine Groq `validate_day` → final run passed protocol/tool/reference checks
-through the UI; this is not a factual-quality PASS. Its prose showed pool/archive
-inaccuracies despite separate correct server facts. The campaign stopped
-at **11/12 actual requests**; three artificial primary 429 events used to enter reserve
-are counted separately. Particle's free reserve returned 404 and never completed a
-tool/final loop under the unchanged zero-price/privacy filters; its exact upstream
-failure cause remains unknown. AI review remains disabled in production, which this
-continuation did not change. P14C has not started. Native startup uses an explicit
+The follow-up restores selected-pool/eligibility/state facts to mandatory `validate_day`,
+keeps saved teams and actual work separate, and scopes unrelated archived findings.
+The known four-dog Groq UI case now passes protocol/references and stated core facts;
+it no longer calls the pool empty or selected dogs archived. Its prose does not
+explicitly enumerate zero saved teams or discuss the unrelated archive group.
+Authenticated OpenRouter `/models/user` returns the exact Particle free model
+**ABSENT**, although the public catalog lists it; no blind reserve inference was sent.
+The old **11/12** campaign remains closed and unchanged; the separately authorized
+follow-up closed at **2/6** (both Groq), **13** actual attempts combined. No unused
+slots transfer. Key usage metadata is not complete billing evidence. AI review remains
+disabled in production; P14C has not started. Native startup uses an explicit
 private `AGENT_ENV_FILE`; Compose forwards the
 `AGENT_*` values supplied through `--env-file`. The conditional Privacy disclosure is
 shown only in an enabled environment. No model download, new schema or conversation

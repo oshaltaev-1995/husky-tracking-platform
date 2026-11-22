@@ -879,17 +879,18 @@ budgets, refusal contracts, data minimization and Free-only future setup prerequ
 
 ## P14B — Limited live agent and UI
 
-**Status:** local implementation/offline/UI evidence accepted for the limited live
-continuation; **LIVE QA INCOMPLETE / BLOCKED on the reserve**. Owner project keys and
-Free/privacy confirmation were supplied. One genuine Groq `validate_day` → final run
-passed protocol/tool/reference checks through the existing UI. Model prose accuracy
-is not accepted: the response showed pool/archive inaccuracies despite correct
-separate deterministic facts. The campaign stopped at 11/12 actual requests,
-including errors/rejected results; three fake primary 429 reserve-entry events are
-separate and consume no actual request number. Particle's exact free reserve returned
-HTTP 404 on three attempts, with no reserve tool/final completion. The app reported
-503 ai_temporarily_unavailable, not quota exhaustion. No push/merge/tag/deploy or
-production enablement; P14C must not begin before B acceptance.
+**Status:** **LIVE QA INCOMPLETE / BLOCKED on the reserve**. The context follow-up
+restores selected participants/eligibility/states to mandatory `validate_day`, with
+bounded issued evidence, explicit finding scope, independent pool/teams/actual facts
+and truthful omissions. The four-working-dog Groq UI case now passes protocol/reference
+checks and its stated core facts; exact zero-team and unrelated-archive wording is
+not explicitly covered by the prose. Authenticated `/models/user` is HTTP 200 but
+exact `particle-ai/particle-1:free` is ABSENT despite public presence, so no reserve
+inference was attempted. Historical 11/12 ledger/closure are byte-identical; the new
+explicitly authorized campaign closed at 2/6, combined 13/17 actual attempts, without
+transferring unused slots. Prior fake primary 429 events remain separate; none were
+added. QA-only fragmented error diagnostics and counter regressions pass. No
+push/merge/tag/deploy, public enablement or P14C.
 
 Carries four accepted-A follow-ups: Groq GPT-OSS `include_reasoning:false`, deadline
 checks before construction/dispatch, strict finish-reason/tool consistency, and
@@ -917,7 +918,7 @@ is_free_tier=true and usage 0; Groq billing measurement remains unknown beyond t
 owner's Free attestation. This is not a universal measured-€0 claim.
 
 Remaining live gate: a completed genuine free-reserve tool→result→final run with the
-full required filters. The current campaign is stopped; its counter must not reset
+full required filters. Both campaigns are closed; their counters must not reset
 or silently gain a new budget. Missing keys are not the blocker. No upgrade, privacy
 relaxation, paid route or full-PASS claim is allowed to bypass unavailable routing.
 See `OPERATIONS_AGENT_FOUNDATION.md` and the incremental live review evidence.

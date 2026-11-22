@@ -823,6 +823,12 @@ def test_model_receives_exact_final_reference_contract_in_trusted_system_text(
     assert "at most 4000 characters" in system["content"]
     assert "1 to 32 items" in system["content"]
     assert "never invent references" in system["content"]
+    assert "selected_unique_dogs counts distinct dogs" in system["content"]
+    assert "zero saved teams does not mean no dogs were selected" in system["content"]
+    assert (
+        "other_snapshot_dogs do not describe selected participants" in system["content"]
+    )
+    assert "unknown, not zero; actual work is reported separately" in system["content"]
     assert (
         "For EACH reference, find the evidence entry whose id equals evidence_id"
         in system["content"]

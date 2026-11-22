@@ -7,14 +7,24 @@ from uuid import UUID
 import pytest
 from pydantic import BaseModel, ValidationError
 
+from app.operations.checks import evaluate
 from app.operations.evals import (
     EvalFixture,
     fixture_snapshot,
     load_fixtures,
     run_evaluations,
 )
-from app.operations.schemas import Entity, OperationError, Snapshot
-from app.operations.tools import READ_TOOLS, FrozenTools
+from app.operations.schemas import (
+    Activity,
+    Actual,
+    Eligibility,
+    Entity,
+    OperationError,
+    SavedSlot,
+    SavedTeam,
+    Snapshot,
+)
+from app.operations.tools import READ_TOOLS, VALIDATION_RESULT_BYTES, FrozenTools
 
 FIXTURES = load_fixtures()
 
@@ -25,6 +35,104 @@ def snapshot(name: str = "planned_actual_limits_are_independent") -> Snapshot:
 
 def arguments(**kwargs: object) -> str:
     return json.dumps({"selected_date": "2026-03-29", **kwargs})
+
+
+def context_snapshot(
+    *,
+    selected_archived: bool = False,
+    activity_count: int = 1,
+    pool_size: int = 4,
+    dog_count: int = 14,
+    with_team: bool = False,
+    with_actual: bool = False,
+    missing_eligibility: bool = False,
+) -> Snapshot:
+    """Four working participants and ten unrelated archived dogs, detached only."""
+    base = snapshot("planned_is_not_completed")
+    dogs = tuple(
+        base.dogs[0].model_copy(
+            update={
+                "id": UUID(int=index + 1),
+                "name": f"Excluded free-text name {index}",
+                "lifecycle": "active" if index < pool_size else "archived",
+                "dog_class": "standard" if index < pool_size else None,
+                "availability": "available" if index < pool_size else None,
+                "housing_code": "A1-01" if index < pool_size else None,
+                "housing_source": "canonical" if index < pool_size else "unhoused",
+            }
+        )
+        for index in range(dog_count)
+    )
+    participants = tuple(dog.id for dog in dogs[:pool_size])
+    if selected_archived:
+        participants = (*participants[:-1], dogs[-1].id)
+    eligibility = tuple(
+        Eligibility(
+            dog_id=dog_id,
+            reasons=("archived",)
+            if selected_archived and dog_id == dogs[-1].id
+            else (),
+        )
+        for dog_id in participants
+    )
+    teams = (
+        (
+            SavedTeam(
+                sequence=1,
+                size=4,
+                slots=tuple(
+                    SavedSlot(
+                        dog_id=dog_id,
+                        pair_index=index // 2,
+                        side="left" if index % 2 == 0 else "right",
+                        role="lead" if index < 2 else "wheel",
+                        order=index,
+                    )
+                    for index, dog_id in enumerate(participants[:4])
+                ),
+            ),
+        )
+        if with_team
+        else ()
+    )
+    activities = tuple(
+        Activity(
+            id=UUID(int=100 + index),
+            sequence=index + 1,
+            kind="training",
+            distance_km=5,
+            participants=participants,
+            eligibility=() if missing_eligibility else eligibility,
+            teams=teams,
+            actual_status="matches_plan" if with_actual else "not_recorded",
+        )
+        for index in range(activity_count)
+    )
+    actual = (
+        (Actual(id=UUID(int=200), distance_km=10, participants=participants),)
+        if with_actual
+        else ()
+    )
+    checks, evidence = evaluate(
+        base.selected_date,
+        day=Entity(kind="day", id=str(base.selected_date)),
+        activities=activities,
+        dogs=dogs,
+        actual=actual,
+        locations=(),
+        plan_exists=bool(activities),
+    )
+    return base.model_copy(
+        update={
+            "activities": activities,
+            "dogs": dogs,
+            "actual": actual,
+            "locations": (),
+            "plan_exists": bool(activities),
+            "checks": checks,
+            "evidence": evidence,
+        }
+    )
 
 
 @pytest.mark.parametrize("fixture", FIXTURES, ids=lambda item: item.name)
@@ -401,3 +509,180 @@ def test_minimal_published_schema_request_executes_on_its_snapshot(name: str) ->
 def test_unsupported_empty_selector_is_not_silently_accepted(name: str) -> None:
     with pytest.raises(OperationError, match="invalid_tool_arguments"):
         FrozenTools(snapshot()).execute(name, arguments(dog_ids=[]))
+
+
+def test_required_validation_retains_four_dog_pool_without_saved_teams_or_actual() -> (
+    None
+):
+    state = context_snapshot()
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    plan = report["plan"]
+    assert plan["exists"] is True and plan["activity_count"] == 1
+    assert plan["selected_unique_dogs"] == plan["selected_participations"] == 4
+    assert plan["omitted_activity_count"] == 0
+    activity = plan["activities"][0]
+    assert activity["id"] == str(state.activities[0].id)
+    assert activity["kind"] == "training" and activity["distance_km"] == 5
+    assert activity["selected_pool"] == [str(dog.id) for dog in state.dogs[:4]]
+    assert activity["selected_pool_count"] == activity["eligible_count"] == 4
+    assert activity["ineligible_count"] == activity["eligibility_unverified_count"] == 0
+    assert activity["saved_teams"] == 0 and activity["actual_status"] == "not_recorded"
+    assert report["actual"]["sessions"] == report["actual"]["dog_starts"] == 0
+    assert report["actual"]["dog_km"] == report["actual"]["unique_dogs"] == 0
+    assert report["omitted_selected_dog_state_count"] == 0
+    assert len(report["selected_dog_states"]) == 4
+    assert all(dog["lifecycle"] == "active" for dog in report["selected_dog_states"])
+    assert report["finding_counts_by_scope"]["other_snapshot_dogs"] == 10
+    for check in report["checks"]:
+        if check["rule"] == "DOG_STATE":
+            assert check["scope"] == "other_snapshot_dogs"
+            assert all(
+                entity["id"] not in activity["selected_pool"]
+                for entity in check["entities"]
+            )
+    assert "selected pool" not in report["actual"]
+
+
+def test_archived_selected_dog_remains_explicitly_ineligible_not_unrelated() -> None:
+    state = context_snapshot(selected_archived=True)
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    activity = report["plan"]["activities"][0]
+    archived_id = str(state.dogs[-1].id)
+    assert activity["eligible_count"] == 3 and activity["ineligible_count"] == 1
+    assert activity["ineligible_participants"] == [
+        {"dog_id": archived_id, "reasons": ["archived"]}
+    ]
+    selected = next(
+        dog for dog in report["selected_dog_states"] if dog["id"] == archived_id
+    )
+    assert selected["lifecycle"] == "archived" and selected["class"] is None
+    for rule in ["PARTICIPANT_ELIGIBILITY", "DOG_STATE"]:
+        found = next(
+            check
+            for check in report["checks"]
+            if check["rule"] == rule
+            and any(entity["id"] == archived_id for entity in check["entities"])
+        )
+        assert found["scope"] == "plan_participants"
+
+
+@pytest.mark.parametrize(
+    ("activity_count", "pool_size", "with_team", "with_actual"),
+    [
+        (0, 0, False, False),
+        (1, 0, False, False),
+        (1, 4, False, False),
+        (1, 4, True, False),
+        (0, 4, False, True),
+        (1, 4, False, True),
+    ],
+)
+def test_plan_pool_teams_and_actual_are_independent(
+    activity_count: int,
+    pool_size: int,
+    with_team: bool,
+    with_actual: bool,
+) -> None:
+    state = context_snapshot(
+        activity_count=activity_count,
+        pool_size=pool_size,
+        with_team=with_team,
+        with_actual=with_actual,
+    )
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    assert report["plan"]["exists"] is bool(activity_count)
+    assert report["plan"]["selected_unique_dogs"] == (
+        pool_size if activity_count else 0
+    )
+    assert report["plan"]["selected_participations"] == pool_size * activity_count
+    assert report["actual"]["sessions"] == int(with_actual)
+    assert report["actual"]["dog_starts"] == (pool_size if with_actual else 0)
+    assert report["actual"]["dog_km"] == (pool_size * 10 if with_actual else 0)
+    if activity_count:
+        activity = report["plan"]["activities"][0]
+        assert activity["selected_pool_count"] == pool_size
+        assert activity["saved_teams"] == int(with_team)
+
+
+def test_multiple_activities_count_unique_dogs_and_participations_separately() -> None:
+    state = context_snapshot(activity_count=2)
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    assert report["plan"]["activity_count"] == 2
+    assert report["plan"]["selected_unique_dogs"] == 4
+    assert report["plan"]["selected_participations"] == 8
+    assert [row["selected_pool_count"] for row in report["plan"]["activities"]] == [
+        4,
+        4,
+    ]
+
+
+def test_missing_eligibility_detail_is_unknown_not_success_or_zero_pool() -> None:
+    state = context_snapshot(missing_eligibility=True)
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    activity = report["plan"]["activities"][0]
+    assert activity["selected_pool_count"] == 4
+    assert activity["eligible_count"] == activity["ineligible_count"] == 0
+    assert activity["eligibility_unverified_count"] == 4
+
+
+@pytest.mark.parametrize(
+    "activity_count,pool_size,dog_count", [(1, 4, 14), (32, 60, 60)]
+)
+def test_validation_evidence_is_frozen_scoped_bounded_and_omissions_are_truthful(
+    activity_count: int,
+    pool_size: int,
+    dog_count: int,
+) -> None:
+    state = context_snapshot(
+        activity_count=activity_count, pool_size=pool_size, dog_count=dog_count
+    )
+    before = state.model_dump_json()
+    tools = FrozenTools(state)
+    output = tools.execute("validate_day", arguments())
+    report = json.loads(output.data_json)
+    assert output == tools.execute("validate_day", arguments())
+    assert state.model_dump_json() == before
+    assert len(output.model_dump_json().encode()) <= VALIDATION_RESULT_BYTES
+    assert report["plan"]["omitted_activity_count"] == activity_count - len(
+        report["plan"]["activities"]
+    )
+    assert report["omitted_selected_dog_state_count"] == pool_size - len(
+        report["selected_dog_states"]
+    )
+    important = [row for row in state.checks if row.status != "pass"]
+    assert report["omitted_detail_count"] == len(important) - len(report["checks"])
+    assert sum(report["status_counts"].values()) == len(state.checks)
+    assert sum(report["finding_counts_by_scope"].values()) == len(important)
+    assert len(report["checks"]) <= 32
+    evidence = {row.id: row.model_dump(mode="json") for row in state.evidence}
+    emitted = {row["id"]: row for row in report["evidence"]}
+    assert set(output.evidence_ids) == set(emitted)
+    assert all(evidence[key] == row for key, row in emitted.items())
+    for row in report["plan"]["activities"]:
+        for evidence_id in row["evidence_ids"]:
+            assert {"kind": "activity", "id": row["id"]} in emitted[evidence_id][
+                "entities"
+            ]
+    for row in report["selected_dog_states"]:
+        for evidence_id in row["evidence_ids"]:
+            assert {"kind": "dog", "id": row["id"]} in emitted[evidence_id]["entities"]
+    for check in report["checks"]:
+        for evidence_id in check["evidence_ids"]:
+            assert emitted[evidence_id]["entities"] == check["entities"]
+    for section in [report["plan"], report["actual"]]:
+        for evidence_id in section["evidence_ids"]:
+            assert emitted[evidence_id]["entities"] == [
+                {"kind": "day", "id": str(state.selected_date)}
+            ]
+    assert "Excluded free-text name" not in output.data_json
+    assert not {"notes", "title", "history", "dogs", "locations"} & set(report)

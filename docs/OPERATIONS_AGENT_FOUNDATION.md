@@ -354,8 +354,8 @@ No automatic retry, parallel load, paid route or additional model was introduced
   zero actual sessions), and the agent made no domain writes. This does **not** mean
   the explanation is factually accepted: its empty-pool/archive generalizations were
   inaccurate for the plan's four selected working dogs. References existing and
-  matching evidence do not validate every prose statement. This observed quality
-  limitation remains unresolved; separately authorized P14C model-quality evaluation
+  matching evidence do not validate every prose statement. That campaign left this
+  quality limitation unresolved; separately authorized P14C model-quality evaluation
   has not started. Earlier failed/rejected attempts remain spent in the ledger.
 - **OpenRouter reserve FAIL / INCOMPLETE:** attempts 9–11 reached the fixed Particle
   free route with all price/privacy/parameter filters intact and returned HTTP 404.
@@ -376,6 +376,60 @@ bound to these source changes; fake responses are not substitute reserve proof.
 No production feature or configuration was changed. The campaign is stopped, with
 one unused slot; missing keys are not its blocker. The unresolved required result is
 a genuine compatible free-reserve tool→result→final loop. P14C remains unstarted.
+
+### Context and diagnostic follow-up — 22 November 2026
+
+The mandatory `validate_day` projection previously retained only non-pass detail.
+Four selected working dogs disappeared while ten unrelated archived states remained.
+It now includes activity kind/distance, selected UUID pool and counts, eligibility
+counts/reasons, selected dated states, saved-team counts, recording state and a
+separate actual ledger summary. Unique dogs and activity participations are distinct.
+Findings carry explicit selected/activity/actual/other-dog/housing/day scope; selected
+invalid dogs take priority. Every detail carries unchanged issued frozen evidence.
+Counts cover the full snapshot, and omitted activities/states/findings are counted.
+The whole serialized result remains at most 16,384 bytes. No names/titles/notes/history
+are added to this mandatory projection, and canonical checks/eligibility are unchanged.
+The representative probe grows from 10,857 to 15,564 bytes; it retains all four selected
+states and truthfully omits one unrelated archived detail, while counting all ten.
+
+QA-only diagnostics now read fragmented/chunked/EOF error responses up to a byte cap
+and deadline, retain numeric error codes and finite routing stage/count/type values,
+and preserve original HTTP status on observer failure. They discard raw messages,
+metadata/raw bodies, prompts/outputs, identifiers and secrets. Only the private QA
+adapter opts in to [OpenRouter router metadata](https://openrouter.ai/docs/guides/routing/routers/router-metadata),
+including its documented top-level error envelope; no public debug feature is added.
+
+The authenticated [account-filtered model catalog](https://openrouter.ai/docs/api/api-reference/models/list-models-filtered-by-user-provider-preferences-privacy-settings-and-guardrails)
+returned HTTP 200 with a complete validated body, but exact Particle free is **ABSENT**;
+the public catalog/endpoints list it. This establishes a current account/public
+availability mismatch, not the precise reason for old 404s. Missing request pricing
+is not proof of zero; ZDR is not equivalent to `data_collection:deny`. The request's
+zero-price/required-parameter/privacy filters remain unchanged. No reserve POST or
+model substitution was attempted after this metadata result; failures or invalid
+catalog bodies would instead be UNKNOWN.
+
+A separate durable cap-six campaign was explicitly authorized for this follow-up.
+It closed at **2/6**: two genuine Groq HTTP 200 turns, one model-requested `validate_day`,
+and accepted final/reference JSON through the existing UI. Stated facts match one
+5 km plan, four eligible active/available dogs, and zero actual sessions/dog-km; the
+old empty-pool/archive generalization is gone. The prose distinguishes pool from teams
+but does not explicitly state numeric zero saved teams or discuss unselected archives.
+This is one bounded example, not a general quality guarantee. No further generation
+was used to polish wording. All 21 domain/workspace table counts **and values** had
+matching pre/post hashes. UI Reset removed the temporary plan before guarded cleanup.
+
+The old 11/12 ledger/closure remain byte-identical; combined actual attempts are
+**13/17**, with no transferred slots or new fake events. New known usage is 7,004 prompt
+and 432 completion tokens; historical failed/lost usage stays unknown. OpenRouter key
+metadata remained Free with reported usage zero, which may lag and is not an invoice.
+P14B remains **LIVE QA INCOMPLETE / BLOCKED** until a compatible genuine reserve loop
+is proved under separately authorized scope. No account settings were relaxed, no
+paid route was used, and no production activation or P14C work occurred.
+
+Targeted checks: 188 tools/providers/transport tests, 55 snapshot/API tests, 31 QA
+diagnostic fixtures, 25 counter tests, four metadata/admission fixtures, Ruff and mypy.
+Frontend 323 tests/build and unchanged architecture gates are reused with source
+hash bindings; the full suites/build were deliberately not repeated in this scope.
 
 ### Private configuration and remaining live gate
 
