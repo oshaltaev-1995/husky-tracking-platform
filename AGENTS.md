@@ -140,8 +140,15 @@ These instructions apply to the entire repository.
   recovery campaign closed at6/6, cumulative21/21, with three genuine required cases
   passed (zero live retries); retry-path proof is fake/offline. No unused transfer or
   implicit new budget. P14C recovery was independently accepted at `0b602970df7d2b0263b055abcf5b462626ba2f08`
-  in the Groq-only demo scope, without a general prose-correctness guarantee. P14D is
-  a local presentation/photo/Privacy candidate pending independent UX/UI acceptance.
+  in the Groq-only demo scope, without a general prose-correctness guarantee. P14D's
+  independent UX/UI pass accepted portraits, housing moves, previews, named links,
+  Privacy and Training Day, and identified D-STALE-01 for final acceptance. Operations
+  review remains a frozen saved-day snapshot: a known accepted plan identity/revision
+  change invalidates its result/pending generation, preserves cooldown, and requires
+  an explicit Review again. Editor open/Cancel/failed saves do not imply saved changes.
+  Check the captured saved-context version directly before accepting a response; do
+  not rely only on a later effect, auto-review or cross-tab polling. The narrow local
+  microfix candidate stays retained pending final acceptance, not deployment.
   No new inference is authorized: all live ledgers stay CLOSED at 21/21. Keep the
   retained review stand offline, without project provider keys; fixture provenance
   belongs in QA tooling, never production success logic. No account/privacy/payment

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { By } from '@angular/platform-browser';
 
 import {
   DailyPlan,
@@ -10,6 +11,8 @@ import {
   TrainingDayProposal,
 } from '../../core/api/daily-plans.models';
 import { DemoSessionService } from '../../core/api/demo-session.service';
+import { OperationsReview } from '../../core/api/operations.models';
+import { OperationsReviewComponent } from './operations-review.component';
 import { DailyPlanPageComponent } from './daily-plan-page.component';
 
 const atlas = {
@@ -104,7 +107,28 @@ function examplePlan(): DailyPlan {
       start_time: item.start_time, title: item.title, distance_km: 5, participants: example.participants, team_count: 0, arranged_dog_count: 0 })) };
 }
 
-async function setup(url = '/daily') {
+function savedVersion(fixture: ComponentFixture<DailyPlanPageComponent>): number {
+  const review = fixture.debugElement.query(By.directive(OperationsReviewComponent)).componentInstance as OperationsReviewComponent;
+  return review.savedContextVersion()();
+}
+
+function emptyReview(): OperationsReview {
+  return {
+    snapshot_id: '00000000-0000-0000-0000-000000000001', selected_date: '2026-03-31',
+    captured_at: '2026-11-22T06:00:00Z', explanation: 'The saved day has no plan.',
+    presentation: { status: 'ready', message: null, segments: [{ text: 'The saved day has no plan.', entity: null, path: null }] },
+    summary: { plan_exists: false, activity_count: 0, selected_unique_dogs: 0,
+      selected_participations: 0, activities: [], omitted_activities: 0,
+      actual: { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 } },
+    finding_groups: [], facts: [], findings: [], evidence: [], links: [], checked_rules: [],
+    status_counts: { passed: 0, violations: 0, attention: 0, unverified: 0 }, omitted_findings: 0,
+    provider: 'groq', model: 'openai/gpt-oss-20b', fallback: false, http_calls: 2,
+    tool_calls: 1, trace: [{ tool_name: 'validate_day', provider: 'groq', outcome: 'ok', elapsed_ms: 1 }],
+    usage: { known_prompt_tokens: null, known_completion_tokens: null, incomplete: true },
+  };
+}
+
+async function setup(url = '/daily', reviewEnabled = false) {
   await TestBed.configureTestingModule({
     imports: [DailyPlanPageComponent],
     providers: [
@@ -114,11 +138,15 @@ async function setup(url = '/daily') {
     ],
   }).compileComponents();
   const router = TestBed.inject(Router);
+  if (reviewEnabled) TestBed.inject(DemoSessionService).session.set({
+    active: true, expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+    ttl_hours: 1, ttl_seconds: 3600, created: false, replaced_expired: false,
+  });
   await router.navigateByUrl(url);
   const fixture = TestBed.createComponent(DailyPlanPageComponent);
   fixture.detectChanges();
   TestBed.inject(HttpTestingController).expectOne('/api/v1/operations/capabilities').flush({
-    enabled: false, external_processing: false, providers: [], selected_scenario: 'review_operations',
+    enabled: reviewEnabled, external_processing: reviewEnabled, providers: reviewEnabled ? ['groq'] : [], selected_scenario: 'review_operations',
     season_start: '2025-12-01', season_end: '2026-03-31',
   });
   return { fixture, router, http: TestBed.inject(HttpTestingController) };
@@ -186,13 +214,100 @@ describe('DailyPlanPageComponent', () => {
     expect(request.request.body.distance_km).toBe(5);
     expect(request.request.body.participant_ids).toEqual(['atlas-id']);
     expect(request.request.body.expected_revision).toBeNull();
+    const previousVersion = savedVersion(fixture);
     request.flush(plan([{ ...activity, distance_km: 5, title: 'Training Loop' }], 1));
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Activity added');
     expect(fixture.nativeElement.textContent).toContain('Atlas');
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('keeps a completed review while an editor is opened/cancelled, then invalidates it only after the activity is saved', async () => {
+    const { fixture, http } = await setup('/daily', true);
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan());
+    await fixture.whenStable(); fixture.detectChanges();
+    button(fixture, 'Review operations').click();
+    http.expectOne('/api/v1/operations/review').flush(emptyReview());
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('No saved plan for this date.');
+    const previousVersion = savedVersion(fixture);
+
+    async function openEditor() {
+      button(fixture, 'Add first activity').click(); fixture.detectChanges();
+      http.expectOne('/api/v1/daily-plans/2026-03-31/eligible-dogs?activity_type=training&distance_km=5').flush(eligibility);
+      await fixture.whenStable(); fixture.detectChanges();
+    }
+    await openEditor();
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    expect(fixture.nativeElement.querySelector('.review-result')).not.toBeNull();
+    button(fixture, 'Cancel').click(); fixture.detectChanges();
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    expect(fixture.nativeElement.textContent).not.toContain('The saved day changed after this review.');
+    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+
+    await openEditor();
+    (fixture.nativeElement.querySelector('input[name="dog-atlas-id"]') as HTMLInputElement).click();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.activity-dialog form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    const save = http.expectOne('/api/v1/daily-plans/2026-03-31/activities');
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    save.flush(plan([{ ...activity, distance_km: 5 }], 1));
+    // This reads the shared signal before input rebinding/effect cleanup can run.
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).not.toContain('No saved plan for this date.');
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Review again to include your latest changes.');
+    expect(button(fixture, 'Review again').disabled).toBe(false);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('advances the saved context when a first note creates a plan, but not while editing or after a failed save', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan());
+    await fixture.whenStable(); fixture.detectChanges();
+    const previousVersion = savedVersion(fixture);
+    const note = fixture.nativeElement.querySelector('.daily-note textarea') as HTMLTextAreaElement;
+    note.value = 'Synthetic note'; note.dispatchEvent(new Event('input'));
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    button(fixture, 'Save note').click();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(
+      { detail: 'The note could not be saved.' }, { status: 503, statusText: 'Unavailable' },
+    );
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    button(fixture, 'Save note').click();
+    const save = http.expectOne('/api/v1/daily-plans/2026-03-31');
+    expect(save.request.body.expected_revision).toBeNull();
+    save.flush({ ...plan(), exists: true, id: 'notes-plan', revision: 1, notes: 'Synthetic note' });
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Daily note saved.');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('retains accepted context across an unchanged reload and advances it when the reload accepts a newer revision', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan([activity], 1));
+    await fixture.whenStable(); fixture.detectChanges();
+    const previousVersion = savedVersion(fixture);
+    const page = fixture.componentInstance as unknown as { retry(): void };
+    page.retry(); fixture.detectChanges();
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan([activity], 1));
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    page.retry(); fixture.detectChanges();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan([{ ...activity, distance_km: 5 }], 2));
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
+    await fixture.whenStable(); fixture.detectChanges();
+    http.expectNone('/api/v1/operations/review');
   });
 
   it('keeps a small Training plan valid without offering an impossible Build teams action', async () => {
@@ -275,7 +390,9 @@ describe('DailyPlanPageComponent', () => {
     const patch = http.expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id');
     expect(patch.request.method).toBe('PATCH');
     expect(patch.request.body.expected_revision).toBe(3);
+    const previousVersion = savedVersion(fixture);
     patch.flush(plan([activity], 4));
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -288,9 +405,27 @@ describe('DailyPlanPageComponent', () => {
     );
     expect(deletion.request.method).toBe('DELETE');
     deletion.flush(plan());
+    expect(savedVersion(fixture)).toBe(previousVersion + 2);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No activities planned');
+  });
+
+  it('publishes a newer saved context for a successfully reordered activity without starting another review', async () => {
+    const other = { ...activity, id: 'other-activity', title: 'Second loop', sequence: 2 };
+    const { fixture, http } = await setup();
+    http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan([activity, other], 3));
+    await fixture.whenStable(); fixture.detectChanges();
+    const previousVersion = savedVersion(fixture);
+    (fixture.nativeElement.querySelector('[aria-label="Move Forest Loop later"]') as HTMLButtonElement).click();
+    const move = http.expectOne('/api/v1/daily-plans/2026-03-31/activities/activity-id/move');
+    expect(move.request.body).toEqual({ direction: 'down', expected_revision: 3 });
+    expect(savedVersion(fixture)).toBe(previousVersion);
+    move.flush(plan([{ ...other, sequence: 1 }, { ...activity, sequence: 2 }], 4));
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.activity-card h3').textContent).toContain('Second loop');
+    http.expectNone('/api/v1/operations/review');
   });
 
   it('displays a server validation error without closing the editor', async () => {
@@ -330,6 +465,7 @@ describe('DailyPlanPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const teamLink = fixture.nativeElement.querySelector('.team-handoff a') as HTMLAnchorElement;
+    const previousVersion = savedVersion(fixture);
     expect(teamLink.textContent).toContain('View teams');
     expect(teamLink.getAttribute('href')).toContain(
       '/demo/daily/2026-03-31/activities/activity-id/teams',
@@ -361,6 +497,7 @@ describe('DailyPlanPageComponent', () => {
     );
     await fixture.whenStable();
     fixture.detectChanges();
+    expect(savedVersion(fixture)).toBe(previousVersion);
     expect(fixture.nativeElement.textContent).toContain('Clear the saved lineup?');
     const confirm = Array.from(
       fixture.nativeElement.querySelectorAll('.lineup-clear-warning button') as NodeListOf<HTMLButtonElement>,
@@ -371,6 +508,7 @@ describe('DailyPlanPageComponent', () => {
     );
     expect(cleared.request.body.clear_saved_teams).toBe(true);
     cleared.flush(plan([{ ...activity, team_count: 0, arranged_dog_count: 0 }], 4));
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.team-handoff a')).toBeNull();
@@ -434,6 +572,7 @@ describe('DailyPlanPageComponent', () => {
     apply.click();
     const request = http.expectOne('/api/v1/training-day-example/apply');
     expect(request.request.method).toBe('POST');
+    const previousVersion = savedVersion(fixture);
     expect(request.request.body).toEqual({
       date: '2026-03-29', preset_version: 'training-day-v1',
       participant_ids: trainingProposal().participants.map((dog) => dog.id), precondition: 'opaque-reviewed-precondition',
@@ -442,6 +581,7 @@ describe('DailyPlanPageComponent', () => {
     expect(button(fixture, 'Applying…').disabled).toBe(true);
     expect(button(fixture, 'Cancel').disabled).toBe(true);
     request.flush(examplePlan());
+    expect(savedVersion(fixture)).toBe(previousVersion + 1);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(router.url).toContain('date=2026-03-29');

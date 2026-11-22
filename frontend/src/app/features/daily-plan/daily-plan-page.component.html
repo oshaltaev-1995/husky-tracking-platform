@@ -16,7 +16,7 @@
   <button class="button secondary" type="button" [disabled]="loading() || trainingDayOpen() || !plan()" (click)="openTrainingDay()">Try a training day</button>
 </section>
 
-<ht-operations-review [selectedDate]="selectedDate" [blocked]="loading() || editorOpen() || trainingDayOpen() || savingNotes() || savingEditor() || mutatingPlan() || noteDirty()" />
+<ht-operations-review [selectedDate]="selectedDate" [savedContextVersion]="savedDayVersion" [blocked]="loading() || editorOpen() || trainingDayOpen() || savingNotes() || savingEditor() || mutatingPlan() || noteDirty()" />
 
 @if (successMessage()) { <p class="message success" role="status">{{ successMessage() }}</p> }
 @if (pageError()) { <p class="message error" role="alert">{{ pageError() }}</p> }

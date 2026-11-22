@@ -49,6 +49,9 @@ const VALUE_LABELS: Record<string, string> = {
 export class OperationsReviewComponent {
   readonly selectedDate = input.required<string>();
   readonly blocked = input(false);
+  // Read the parent's signal directly at acceptance, including before the next
+  // input-binding/effect pass. This is local saved-state fencing, not polling.
+  readonly savedContextVersion = input<() => number>(() => 0);
   private readonly api = inject(OperationsService);
   private readonly session = inject(DemoSessionService);
   private readonly router = inject(Router);
@@ -64,6 +67,7 @@ export class OperationsReviewComponent {
   private destroyed = false;
   private contextDate: string | null = null;
   private contextSession: DemoSession | null | undefined;
+  private contextSavedVersion: number | null = null;
 
   protected readonly capabilities = signal<OperationsCapabilities | null>(null);
   protected readonly capabilitiesFailed = signal(false);
@@ -73,6 +77,7 @@ export class OperationsReviewComponent {
   protected readonly notice = signal('');
   protected readonly retryAt = signal<number | null>(null);
   protected readonly sessionExpired = signal(false);
+  protected readonly savedDayChanged = signal(false);
   protected readonly safePresentation = computed(() => this.presentationFor(this.result()));
   protected readonly safeLinks = computed(() => this.localLinks(this.result()?.links.filter((link) => link.entity.kind !== 'dog') ?? []));
 
@@ -85,7 +90,7 @@ export class OperationsReviewComponent {
       .subscribe(() => this.invalidate());
     effect((onCleanup) => {
       const date = this.selectedDate(), currentSession = this.session.session();
-      this.synchronize(date, currentSession);
+      this.synchronize(date, currentSession, this.savedContextVersion()());
       let timer: ReturnType<typeof setTimeout> | null = null;
       const checkExpiry = () => {
         const remaining = currentSession ? new Date(currentSession.expires_at).getTime() - Date.now() : 0;
@@ -119,16 +124,18 @@ export class OperationsReviewComponent {
 
   protected review(): void {
     const currentSession = this.session.session();
-    this.synchronize(this.selectedDate(), currentSession);
+    const savedVersion = this.savedContextVersion()();
+    this.synchronize(this.selectedDate(), currentSession, savedVersion);
     if (!this.capabilities()?.enabled || this.pending() || this.blocked() || this.retryAt() || !this.validSession(currentSession)) return;
     const date = this.selectedDate(), epoch = ++this.epoch;
     this.result.set(null);
     this.error.set('');
     this.notice.set('');
+    this.savedDayChanged.set(false);
     this.pending.set(true);
     this.request = this.api.review(date).pipe(timeout(50_000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
-        if (!this.isCurrent(epoch, date, currentSession)) return;
+        if (!this.isCurrent(epoch, date, currentSession, savedVersion)) return;
         const restoreFocus = this.document.activeElement === this.cancelButton()?.nativeElement;
         this.pending.set(false);
         if (response.selected_date !== date) {
@@ -140,7 +147,7 @@ export class OperationsReviewComponent {
         if (restoreFocus) this.restoreReviewFocus(epoch);
       },
       error: (failure: unknown) => {
-        if (!this.isCurrent(epoch, date, currentSession)) return;
+        if (!this.isCurrent(epoch, date, currentSession, savedVersion)) return;
         const restoreFocus = this.document.activeElement === this.cancelButton()?.nativeElement;
         this.pending.set(false);
         this.error.set(this.failureMessage(failure));
@@ -222,11 +229,22 @@ export class OperationsReviewComponent {
     return typeof data === 'string' ? data.replaceAll('_', ' ') : String(data);
   }
 
-  private synchronize(date: string, currentSession: DemoSession | null): void {
+  private synchronize(date: string, currentSession: DemoSession | null, savedVersion: number): void {
     if (this.contextDate !== date || this.contextSession !== currentSession) {
       this.invalidate();
       this.contextDate = date;
       this.contextSession = currentSession;
+      this.contextSavedVersion = savedVersion;
+    } else if (this.contextSavedVersion !== savedVersion) {
+      const hadReview = this.pending() || this.result() !== null || Boolean(this.error()) || this.savedDayChanged();
+      const restoreFocus = this.document.activeElement === this.cancelButton()?.nativeElement;
+      this.invalidate();
+      this.contextSavedVersion = savedVersion;
+      if (hadReview) {
+        this.savedDayChanged.set(true);
+        this.notice.set('The saved day changed after this review. Review again to include your latest changes.');
+        if (restoreFocus) this.restoreReviewFocus(this.epoch);
+      }
     }
   }
 
@@ -238,6 +256,7 @@ export class OperationsReviewComponent {
     this.result.set(null);
     this.error.set('');
     this.notice.set('');
+    this.savedDayChanged.set(false);
     // Retry-After belongs to this connection/provider, not the selected demo date.
     // A date change or Reset must not make that waiting hint disappear.
   }
@@ -245,8 +264,8 @@ export class OperationsReviewComponent {
   private validSession(current: DemoSession | null): current is DemoSession {
     return Boolean(current?.active && new Date(current.expires_at).getTime() > Date.now());
   }
-  private isCurrent(epoch: number, date: string, currentSession: DemoSession): boolean {
-    return !this.destroyed && this.epoch === epoch && this.selectedDate() === date && this.session.session() === currentSession && this.validSession(currentSession);
+  private isCurrent(epoch: number, date: string, currentSession: DemoSession, savedVersion: number): boolean {
+    return !this.destroyed && this.epoch === epoch && this.selectedDate() === date && this.session.session() === currentSession && this.validSession(currentSession) && this.savedContextVersion()() === savedVersion;
   }
   private restoreReviewFocus(epoch: number): void {
     // Signals change before Angular removes Cancel and re-enables this button.

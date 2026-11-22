@@ -9,7 +9,7 @@
       <div class="review-actions">
         <button #reviewButton class="button secondary" type="button"
           [disabled]="pending() || blocked() || sessionExpired() || retryAt() !== null"
-          (click)="review()">{{ pending() ? 'Reviewing…' : result() || error() ? 'Review again' : 'Review operations' }}</button>
+          (click)="review()">{{ pending() ? 'Reviewing…' : result() || error() || savedDayChanged() ? 'Review again' : 'Review operations' }}</button>
         @if (pending()) { <button #cancelButton class="button quiet" type="button" (click)="cancel()">Cancel review</button> }
       </div>
     }
@@ -43,6 +43,7 @@
       <header class="result-heading">
         <div><h3>Review of {{ (current.selected_date + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</h3><p>Snapshot · {{ current.captured_at | date: 'd MMM y, HH:mm:ss':'UTC' }} UTC</p></div>
       </header>
+      <p class="review-context">This review uses the saved snapshot captured at the time shown. Later changes are not included.</p>
 
       <section class="checked-facts" aria-label="Saved-day facts">
         <h4>Saved-day facts</h4>

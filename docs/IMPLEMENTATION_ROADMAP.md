@@ -959,9 +959,22 @@ Groq-only demo and required factual results, not universal model truth or future
 
 ## P14D — Presentation, photo viewing and independent UX/UI handoff
 
-**Status:** **READY FOR UX/UI REVIEW — LOCAL GROQ-ONLY CANDIDATE, STAND RETAINED**.
-This is the first reviewable handoff; final D acceptance and candidate fixation follow
-an independent UX/UI pass and any necessary narrow corrections. It is not self-accepted.
+**Status:** **MICROFIX READY FOR FINAL ACCEPTANCE — STAND RETAINED**.
+The independent live UX/UI pass of `9020a4fa7e73d2e1cbe8c823f05a057ba64f961e`
+accepted portraits, Ground drag without swap, more than two residents, mobile selection/
+Undo/Discard, print previews, named links, Privacy and Training Day. It identified one
+P2 finding, D-STALE-01: a completed frozen Operations review still looked current after
+a same-page saved plan change. The narrow correction remains part of P14D; final
+acceptance of the corrected candidate is pending, not self-declared.
+
+Daily Plan exposes a monotonic saved-context version derived from accepted date/plan
+identity/revision. Known successful changes or an accepted changed reload invalidate
+old result/ready state and pending generation. The response acceptance guard also
+compares its captured version directly, before any effect cleanup. Editor opening,
+Cancel, failed saves and unchanged reloads do not simulate successful changes.
+The recovery message requires an explicit Review again; cooldown/Retry-After remains
+independent of local plan changes. Snapshot prose/facts are never rewritten or mixed
+with fresh data, and no polling, backend revision or automatic POST is introduced.
 
 Client prose labels internal tools only from the executed allowed trace, and evidence
 only from validated same-snapshot references. Identity segments take priority, raw

@@ -42,10 +42,13 @@ export class DailyPlanPageComponent {
   private trainingEpoch = 0;
   private destroyed = false;
   private trainingRequest: Subscription | null = null;
+  private acceptedReviewContext: string | null = null;
 
   protected selectedDate = DEFAULT_DATE;
   protected notes = '';
   protected readonly plan = signal<DailyPlan | null>(null);
+  // Pass the signal itself so response guards can read saves before another render.
+  protected readonly savedDayVersion = signal(0);
   protected readonly loading = signal(true);
   protected readonly pageError = signal('');
   protected readonly successMessage = signal('');
@@ -527,6 +530,13 @@ export class DailyPlanPageComponent {
   }
 
   private acceptPlan(plan: DailyPlan): void {
+    // Keep the last accepted identity/revision across a loading placeholder. Opening
+    // or cancelling an editor, failed saves and an unchanged reload are not saves.
+    const context = JSON.stringify([plan.selected_date, plan.exists, plan.id, plan.revision]);
+    if (context !== this.acceptedReviewContext) {
+      this.acceptedReviewContext = context;
+      this.savedDayVersion.update((version) => version + 1);
+    }
     this.plan.set(plan);
     this.notes = plan.notes ?? '';
     this.noteDirty.set(false);

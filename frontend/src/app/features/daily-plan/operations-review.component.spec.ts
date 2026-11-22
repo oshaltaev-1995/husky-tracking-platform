@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component } from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { vi } from 'vitest';
@@ -248,6 +248,97 @@ describe('OperationsReviewComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('30 March 2026');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('clears completed facts and ready after a saved change, then reviews only on an explicit action', async () => {
+    await setup();
+    const savedVersion = signal(1);
+    fixture.componentRef.setInput('savedContextVersion', savedVersion);
+    fixture.detectChanges();
+    const empty = result();
+    empty.summary = { ...empty.summary, plan_exists: false, activity_count: 0,
+      selected_unique_dogs: 0, selected_participations: 0, activities: [],
+      actual: { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 } };
+    start().flush(empty); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('No saved plan for this date.');
+    expect(fixture.nativeElement.textContent).toContain('Later changes are not included.');
+
+    savedVersion.set(2); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).not.toContain('No saved plan for this date.');
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Review again to include your latest changes.');
+    expect(button('Review again').disabled).toBe(false);
+    savedVersion.set(3); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
+    http.expectNone('/api/v1/operations/review');
+
+    button('Review again').click(); fixture.detectChanges();
+    const fresh = http.expectOne('/api/v1/operations/review');
+    expect(fresh.request.body).toEqual({ selected_date: '2026-03-31' });
+    expect(fixture.nativeElement.textContent).not.toContain('The saved day changed after this review.');
+    fresh.flush(result()); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('4 selected dogs');
+    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('rejects a stale saved-day response synchronously before the cleanup effect runs', async () => {
+    await setup();
+    const savedVersion = signal(1);
+    fixture.componentRef.setInput('savedContextVersion', savedVersion);
+    fixture.detectChanges();
+    const request = start();
+    savedVersion.set(2);
+    request.flush(result());
+    // Observe the acceptance boundary before rendering/effects can mask a late
+    // acceptance by clearing it again. The parent signal is already current.
+    const state = fixture.componentInstance as unknown as {
+      result: WritableSignal<OperationsReview | null>; notice: WritableSignal<string>;
+    };
+    expect(state.result()).toBeNull();
+    expect(state.notice()).not.toContain('ready');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
+    expect(button('Review again').disabled).toBe(false);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('cancels a pending generation on a saved change without accepting or replaying it', async () => {
+    await setup();
+    const savedVersion = signal(1);
+    fixture.componentRef.setInput('savedContextVersion', savedVersion);
+    fixture.detectChanges();
+    const request = start();
+    savedVersion.set(2); fixture.detectChanges();
+    expect(request.cancelled).toBe(true);
+    expect(fixture.nativeElement.textContent).not.toContain('Reviewing…');
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('preserves known Retry-After across saved changes and waits for manual Review again', async () => {
+    await setup();
+    const savedVersion = signal(1);
+    fixture.componentRef.setInput('savedContextVersion', savedVersion);
+    fixture.detectChanges();
+    vi.useFakeTimers();
+    start().flush({ detail: { code: 'ai_quota_exhausted' } }, {
+      status: 429, statusText: 'Too Many Requests', headers: new HttpHeaders({ 'Retry-After': '2' }),
+    });
+    fixture.detectChanges();
+    savedVersion.set(2); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
+    expect(fixture.nativeElement.textContent).toContain('You can start another review after');
+    expect(button('Review again').disabled).toBe(true);
+    vi.advanceTimersByTime(1500);
+    savedVersion.set(3); fixture.detectChanges();
+    expect(button('Review again').disabled).toBe(true);
+    vi.advanceTimersByTime(501); fixture.detectChanges();
+    expect(button('Review again').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 
