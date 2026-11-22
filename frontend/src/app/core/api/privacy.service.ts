@@ -11,6 +11,7 @@ export interface PrivacyMetadata {
   mail_provider_region: string | null;
   demo_workspace_ttl_hours: number;
   operations_review_enabled?: boolean;
+  operations_review_providers?: ('groq' | 'openrouter')[];
 }
 
 @Injectable({ providedIn: 'root' })

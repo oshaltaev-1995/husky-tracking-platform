@@ -879,7 +879,9 @@ budgets, refusal contracts, data minimization and Free-only future setup prerequ
 
 ## P14B — Limited live agent and UI
 
-**Status:** **LIVE QA INCOMPLETE / BLOCKED on the reserve**. The context follow-up
+**Status:** context/diagnostic fixes independently accepted; the historical two-provider
+live gate was INCOMPLETE. Reserve is now DEFERRED by the P14C scope decision, not PASS.
+The context follow-up
 restores selected participants/eligibility/states to mandatory `validate_day`, with
 bounded issued evidence, explicit finding scope, independent pool/teams/actual facts
 and truthful omissions. The four-working-dog Groq UI case now passes protocol/reference
@@ -890,7 +892,7 @@ inference was attempted. Historical 11/12 ledger/closure are byte-identical; the
 explicitly authorized campaign closed at 2/6, combined 13/17 actual attempts, without
 transferring unused slots. Prior fake primary 429 events remain separate; none were
 added. QA-only fragmented error diagnostics and counter regressions pass. No
-push/merge/tag/deploy, public enablement or P14C.
+push/merge/tag/deploy, public enablement or P14C occurred in that B stage.
 
 Carries four accepted-A follow-ups: Groq GPT-OSS `include_reasoning:false`, deadline
 checks before construction/dispatch, strict finish-reason/tool consistency, and
@@ -917,17 +919,37 @@ its exact cause is not established. Known OpenRouter key metadata before/after s
 is_free_tier=true and usage 0; Groq billing measurement remains unknown beyond the
 owner's Free attestation. This is not a universal measured-€0 claim.
 
-Remaining live gate: a completed genuine free-reserve tool→result→final run with the
-full required filters. Both campaigns are closed; their counters must not reset
+Historical remaining two-provider gate was a genuine free-reserve tool→result→final
+run under full filters. P14C explicitly defers it for the Groq-only demo. Both B campaigns are closed; their counters must not reset
 or silently gain a new budget. Missing keys are not the blocker. No upgrade, privacy
 relaxation, paid route or full-PASS claim is allowed to bypass unavailable routing.
 See `OPERATIONS_AGENT_FOUNDATION.md` and the incremental live review evidence.
 
-## P14C — Quality and adversarial evaluation (not started)
+## P14C — Groq-only client review and bounded quality evaluation
 
-Approximately20–30 scenarios assessing model correctness, evidence, malicious inputs,
-fallback/quotas, accessibility and regressions. Fake HTTP contract tests in A do not
-establish model quality or live end-to-end success.
+**Status:** local implementation/offline gates complete; **LIVE QUALITY INCOMPLETE /
+FREE QUOTA BLOCKED**. Not READY FOR INDEPENDENT RELEASE REVIEW yet. The owner explicitly
+changed the first-demo scope to Groq Free only, deferred OpenRouter, and accepted the
+B context/diagnostic fixes. No reserve metadata/inference or account changes in C.
+
+Adds explicit default-false reserve control at policy/serialization boundaries;
+capabilities and Privacy list active providers. Frozen typed display segments replace
+known UUIDs with real dog names/links, retain identity/evidence, and fail unresolved
+prose safely. Compact activity pool/teams/actual summaries are factual; other-dog
+findings are secondary. No new tables, provider fields, domain workflow or post-review
+identity fetch. Offline quality matrix covers twelve grouped scenarios, including
+unknown/HTML/duplicate/long names, eligibility, omissions, stale/reset and quota paths.
+Targeted backend172 tests, frontend47 tests, Ruff/mypy, lint/Node24 build and responsive
+1440/768/390 fixture UI pass. Reused unchanged gates remain source-bound.
+
+The separate cap-eight genuine Groq campaign stopped at2/8: forced validate_day
+succeeded, then Groq returned429 with Retry-After1. No final/reference result was
+accepted; empty-plan and recorded-Actual live cases were not attempted. All three
+remain NOT VERIFIED for current model factual quality. No automatic retry, paid
+fallback, model change or quota escalation. Historical11+2 plus new2 =15 attempts,
+21 combined ceiling; all campaigns closed, no unused transfer. Own loopback resources
+are cleaned up, canonical checksum/schema/media preserved. No push/merge/tag/deploy,
+production enablement or P14D. The old two-provider gate is not claimed passed.
 
 ## P14D — Presentation and final candidate acceptance (not started)
 

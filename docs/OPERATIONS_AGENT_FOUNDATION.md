@@ -1,5 +1,6 @@
 # Operations Agent — P14A foundation and P14B review
 
+> Historical B-stage status (superseded for current scope by the P14C section below).
 P14A was accepted as a local, disabled foundation, **not a live AI feature**. It supplies strict
 contracts, a frozen operational projection, six read tools, deterministic checks,
 provider-specific request/response adapters and a bounded routing state machine.
@@ -15,6 +16,54 @@ through the UI; its prose is not factually accepted and showed observed inaccura
 The free reserve never completed its loop under the required filters. The bounded campaign stopped
 at 11/12 actual attempts. Nothing here changes production; P14C and publication still
 require separate acceptance/authorization.
+
+
+
+## Current first-demo scope — P14C, 22 November 2026
+
+The owner's explicit scope decision makes Groq Free `openai/gpt-oss-20b` the sole
+active provider for the first demo. OpenRouter reserve is **DEFERRED**, not a passed
+historical two-provider gate. `AGENT_OPENROUTER_RESERVE_ENABLED=false` by default
+independently of retained keys, and the feature itself remains disabled by default.
+The optional adapter and meaningful opt-in tests retain all exact-free price/privacy
+filters. Capabilities and Privacy derive the same active provider list. No OpenRouter
+metadata/inference/account changes were made in C. Groq-only429 preserves known
+Retry-After; temporary failure is503, auth/configuration stays distinct. No retry or
+switch occurs in this mode.
+
+Known exact snapshot entities become typed escaped text/link segments after strict
+model reference validation. UUIDs remain internal identities/routes; no extra dog
+names/free text are sent to the model for presentation. A narrow verified-ID-list
+formatter removes only its technical IDs marker, not factual assertions. Unknown,
+malformed, embedded or wrong-kind IDs make the explanation unresolved; checked facts
+remain. Duplicate/long/Cyrillic/HTML-like names remain real names with correct local
+links. One frozen summary separately shows plan presence, activity/distance, selected
+names/counts (unique versus participations), saved teams, recording status and actual
+sessions/starts/dog-km. Other snapshot dogs have their own finding counts/details/links.
+There is no second profile fetch, mutable identity source, HTML trust or reference repair.
+
+Offline fixtures and real UI at1440/768/390 prove readable names, links, explicit
+teams/actual, secondary archive grouping, safe unavailable states and no page overflow.
+Targeted backend172 and frontend47 tests, Ruff/mypy and Node24 build pass. These are
+not evidence that free model prose is true. The old UUID-heavy Groq explanation is
+used as a deterministic presentation fixture, not regenerated for style.
+
+**P14C LIVE QUALITY INCOMPLETE / FREE QUOTA BLOCKED.** The separately authorized
+Groq-only campaign closed at2/8: one HTTP200 requested mandatory validate_day, then
+HTTP429 prevented the final. The API preserved429/Retry-After1 and made no reserve
+switch. Safe headers observed1000RPD and8000TPM; they do not prove daily exhaustion
+or an invoice. No raw upstream error body or precise unobserved cause is claimed.
+No further generation was used to wait for a lucky pass. Empty-plan and actual-only
+expected cases were fixed before inference (Mar31 actual2sessions/16starts/120dog-km),
+but not run after the rate-limit failure. Three genuine quality outcomes remain
+NOT VERIFIED. A fake quota UI fixture separately verifies copy/Retry-After/no replay.
+
+Old11/12 and2/6 ledgers/closures are immutable; new2/8 makes cumulative15/21 ceiling.
+Unused slots do not transfer. New known tokens1148prompt/39completion cover only
+HTTP200;429 usage is unknown. Free account/privacy attestation is reused, not a measured
+billing guarantee. No new payment, model, account relaxation, deployment or P14D.
+The historical sections below describe their original stage; they grant no live budget.
+
 
 ## Context and consistency
 
@@ -431,12 +480,13 @@ diagnostic fixtures, 25 counter tests, four metadata/admission fixtures, Ruff an
 Frontend 323 tests/build and unchanged architecture gates are reused with source
 hash bindings; the full suites/build were deliberately not repeated in this scope.
 
-### Private configuration and remaining live gate
+### Private configuration and historical B live gate
 
 The owner supplies a project-only private file, never credentials from another project:
 
 ```dotenv
 AGENT_ENABLED=true
+AGENT_OPENROUTER_RESERVE_ENABLED=false
 AGENT_GROQ_FREE_ACCOUNT_CONFIRMED=true
 AGENT_GROQ_API_KEY=<set privately>
 AGENT_OPENROUTER_API_KEY=<set privately>
@@ -466,7 +516,7 @@ printed. `PUBLIC_BASE_URL` must equal the actual browser origin (including local
 port); the review endpoint checks Origin in development too. Native/dev-server-only
 tests do not substitute for the required real Nginx admission-path QA.
 
-The permitted live smoke is at most **12 inference HTTP requests total**, including
+The historical B live smoke was at most **12 inference HTTP requests total**, including
 failed requests, fallback and every model turn, sequentially across the campaign.
 Verify one completed Groq tool→result→final run and one completed free-reserve run;
 the latter may use an isolated server-side fake primary 429, never a public selector.
@@ -477,7 +527,7 @@ filters. Current model catalog/parameter/account compatibility and actual usage/
 must be checked; unknown usage is not evidence of zero spend.
 
 The required owner setup and genuine primary run are now present. A completed real
-reserve run under all filters is still missing, so the honest current status is
+reserve run under all filters is still missing, so the honest status at that B stage was
 **LIVE QA INCOMPLETE / BLOCKED on the reserve**, not P14B fully PASS. The 11-request
 campaign is stopped; no script restart/source fix may reset its total or create an
 unannounced budget. P14C quality/adversarial evaluation does not begin as part of B.
@@ -511,8 +561,9 @@ rule/status/value/evidence checks, no model or provider request. Pure-tool tests
 strict arguments and evidence; real disposable PostgreSQL covers shared locks,
 snapshot/no-write/isolation, historical/future bounds and lifecycle; fake HTTP/state
 tests cover serial turns, mid-run restart, rejection, deadlines and budget. These
-are not 12 model-quality evaluations. P14C will assess approximately20–30 real-model
-and adversarial scenarios after B's separately authorised live interface.
+are not 12 model-quality evaluations. The current P14C scope replaces that earlier20–30-model-scenario expectation with a
+12-row mixed-method matrix and three prespecified Groq cases within a separate cap8;
+its genuine quality outcomes remain NOT VERIFIED after a rate-limit failure.
 
 G-DOC-01 clarification: P13G's pre/post-Apply comparison establishes unchanged
 **Work.summary / actual-work metrics for all16 dogs**. It does not establish equality
@@ -529,4 +580,5 @@ free prose. Its screenshot contains an observed prose error: it calls the select
 four-dog pool empty and generalizes archived-dog findings. Server facts correctly
 show one saved activity and zero actual work, and references passed strict binding.
 No validator or facts were changed to accept the wording. This limitation is recorded
-for later model-quality review; P14C has not begun, and no further inference was run.
+for later review at that time. The subsequent accepted context fix removed that
+observed loss; current C scope/outcome are stated at the top of this document.

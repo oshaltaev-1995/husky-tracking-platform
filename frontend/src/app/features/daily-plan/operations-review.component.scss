@@ -20,7 +20,7 @@ a { color: var(--brand-strong); }
 .model-explanation, .checked-facts, .findings { min-width: 0; margin-top: var(--space-5); }
 .model-explanation > p { margin: var(--space-2) 0; color: var(--text-primary); font-size: var(--font-body); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
 small { display: block; color: var(--text-secondary); font-size: var(--font-caption); line-height: 1.6; }
-.checked-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-5); }
+.checked-facts { display: grid; gap: var(--space-3); }
 .checked-facts > h4 { grid-column: 1 / -1; }
 .fact-group { min-width: 0; padding: var(--space-3); background: var(--surface-soft); border-radius: var(--radius-control); }
 .fact-group > strong { font-size: var(--font-label); }
@@ -53,3 +53,18 @@ dd { margin: var(--space-1) 0 0; color: var(--text-primary); font-size: var(--fo
   .review-actions .button { flex: 1 1 auto; }
   .checked-facts { grid-template-columns: 1fr; }
 }
+
+.plan-context { margin: 0; color: var(--text-secondary); font-size: var(--font-label); line-height: 1.6; }
+.activity-summary { min-width: 0; border-left: 2px solid var(--border); padding: var(--space-3) var(--space-4); }
+.activity-summary > header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+.activity-summary > header span, .activity-summary > p { color: var(--text-secondary); font-size: var(--font-label); line-height: 1.6; }
+.selected-dogs { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: var(--space-3) 0; padding: 0; list-style: none; }
+.selected-dogs li { min-width: 0; max-width: 100%; }
+.selected-dogs a, .model-explanation a { overflow-wrap: anywhere; }
+.selected-dogs a { display: inline-block; max-width: 100%; padding-block: var(--space-1); font-size: var(--font-label); font-weight: 750; }
+.activity-state { gap: var(--space-2) var(--space-6); }
+.actual-summary { border-top: 1px solid var(--border); padding-top: var(--space-3); }
+.actual-summary > strong, .technical-fact > strong { font-size: var(--font-label); }
+.other-dog-findings { border-top: 1px solid var(--border); padding-top: var(--space-3); }
+.technical-fact { margin-block: var(--space-3); }
+.technical-fact p { color: var(--text-secondary); font-size: var(--font-label); line-height: 1.6; }

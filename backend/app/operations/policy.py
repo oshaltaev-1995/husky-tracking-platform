@@ -2,7 +2,8 @@
 
 This state machine does not query a database, retain a DB session, execute tools,
 sleep, retry a provider, or emit a partial result. Admission and freshness are
-injected server checks. Only one explicit restart to the free reserve is possible.
+injected server checks. Groq-only is the default; one explicit restart is possible
+only when the operator separately enables the retained free reserve.
 """
 
 from __future__ import annotations
@@ -123,6 +124,11 @@ class ProviderRun:
 
     def _send(self) -> ProviderResult:
         self._guard()
+        if (
+            self.provider == "openrouter"
+            and not self.settings.openrouter_reserve_enabled
+        ):
+            self._fail("provider_configuration")
         if self.http_calls >= self.settings.max_http_calls:
             self._fail("run_budget_exhausted", 429)
         remaining = self._deadline - self._clock()
@@ -202,7 +208,11 @@ class ProviderRun:
                 self._error = failure.code
                 raise
             self.retry_after_seconds = failure.retry_after_seconds
-            if self.provider == "groq" and self.switches == 0:
+            if (
+                self.settings.openrouter_reserve_enabled
+                and self.provider == "groq"
+                and self.switches == 0
+            ):
                 self._primary_error = failure.code
                 # Recheck reset/expiry/cancel immediately before restart.
                 self._guard()
@@ -230,7 +240,10 @@ class ProviderRun:
             self.retry_after_seconds = max(
                 self.retry_after_seconds or 0, failure.retry_after_seconds
             )
-        if failure.code == "provider_quota" and self._primary_error == "provider_quota":
+        if failure.code == "provider_quota" and (
+            not self.settings.openrouter_reserve_enabled
+            or self._primary_error == "provider_quota"
+        ):
             self._fail("ai_quota_exhausted", 429)
         if failure.code in RETRYABLE or failure.code == "free_route_unavailable":
             self._fail("ai_temporarily_unavailable", 503)

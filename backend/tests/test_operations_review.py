@@ -229,6 +229,7 @@ def test_public_capabilities_privacy_and_disabled_review_create_no_session(
     assert (
         metadata.status_code == 200
         and metadata.json()["operations_review_enabled"] is False
+        and metadata.json()["operations_review_providers"] == []
     )
     assert (
         client.post(REVIEW, json={"selected_date": DAY}).json()["detail"]["code"]
@@ -279,11 +280,13 @@ def test_out_of_season_date_refuses_without_dispatch(when: str) -> None:
     assert not model.calls
 
 
+@pytest.mark.parametrize("reserve_enabled", [False, True])
 def test_enabled_capabilities_and_privacy_expose_only_processing_metadata(
     monkeypatch: pytest.MonkeyPatch,
+    reserve_enabled: bool,
 ) -> None:
     model = FakeModel()
-    configuration = settings()
+    configuration = settings(openrouter_reserve_enabled=reserve_enabled)
     install(model, configuration)
     monkeypatch.setattr(privacy_routes, "get_provider_settings", lambda: configuration)
     client = visitor(initialize=False)
@@ -291,7 +294,9 @@ def test_enabled_capabilities_and_privacy_expose_only_processing_metadata(
     metadata = client.get("/api/v1/public/privacy")
     capability = client.get("/api/v1/operations/capabilities")
     assert metadata.json()["operations_review_enabled"] is True
-    assert capability.json()["providers"] == ["groq", "openrouter"]
+    expected_providers = ["groq", "openrouter"] if reserve_enabled else ["groq"]
+    assert capability.json()["providers"] == expected_providers
+    assert metadata.json()["operations_review_providers"] == expected_providers
     assert capability.json()["external_processing"] is True
     assert "offline-primary" not in capability.text + metadata.text
     assert "offline-reserve" not in capability.text + metadata.text
@@ -382,7 +387,7 @@ def test_midrun_restart_uses_same_snapshot_without_primary_transcript_or_writes(
     None
 ):
     model = FakeModel("midrun")
-    install(model)
+    install(model, settings(openrouter_reserve_enabled=True))
     client = visitor()
     before = counts()
     response = client.post(REVIEW, json={"selected_date": DAY})
@@ -402,8 +407,8 @@ def test_midrun_restart_uses_same_snapshot_without_primary_transcript_or_writes(
 @pytest.mark.parametrize(
     ("mode", "status", "code", "calls"),
     [
-        ("quota", 429, "ai_quota_exhausted", 2),
-        ("transport", 503, "ai_temporarily_unavailable", 2),
+        ("quota", 429, "ai_quota_exhausted", 1),
+        ("transport", 503, "ai_temporarily_unavailable", 1),
         ("status-401", 503, "provider_authentication", 1),
         ("status-403", 503, "provider_access_denied", 1),
         ("status-402", 503, "provider_payment_required", 1),
@@ -437,6 +442,8 @@ def test_loop_failures_are_typed_safe_and_not_safety_bypassed(
     assert counts() == before
     if mode == "quota":
         assert response.headers["retry-after"] == "4"
+        assert "both" not in response.json()["detail"]["message"].lower()
+        assert "daily" not in response.json()["detail"]["message"].lower()
 
 
 @pytest.mark.parametrize(

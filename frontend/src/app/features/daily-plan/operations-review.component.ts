@@ -6,10 +6,13 @@ import { NavigationStart, Router, RouterLink } from '@angular/router';
 import { Subscription, filter, timeout } from 'rxjs';
 
 import { DemoSession, DemoSessionService } from '../../core/api/demo-session.service';
-import { OperationsCapabilities, OperationsReview, ReviewCheck, ReviewEvidence, ReviewProvider, ReviewStatus } from '../../core/api/operations.models';
+import { OperationsCapabilities, OperationsReview, ReviewCheck, ReviewEvidence, ReviewLink, ReviewProvider, ReviewStatus } from '../../core/api/operations.models';
 import { OperationsService } from '../../core/api/operations.service';
 
 interface LocalLink { label: string; route: string; query: Record<string, string> }
+interface DisplaySegment { text: string; link: Omit<LocalLink, 'label'> | null }
+
+const UUID_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
 const ROLE_LABELS: Record<string, string> = { lead: 'Lead', team: 'Team', wheel: 'Wheel' };
 // A local courtesy for the ingress 2/minute policy, not account/global quota state.
@@ -70,10 +73,8 @@ export class OperationsReviewComponent {
   protected readonly notice = signal('');
   protected readonly retryAt = signal<number | null>(null);
   protected readonly sessionExpired = signal(false);
-  protected readonly safeLinks = computed(() => this.result()?.links.flatMap((link) => {
-    const parsed = this.localLink(link.path);
-    return parsed ? [{ ...parsed, label: link.label }] : [];
-  }) ?? []);
+  protected readonly safePresentation = computed(() => this.presentationFor(this.result()));
+  protected readonly safeLinks = computed(() => this.localLinks(this.result()?.links.filter((link) => link.entity.kind !== 'dog') ?? []));
 
   constructor() {
     this.loadCapabilities();
@@ -134,7 +135,7 @@ export class OperationsReviewComponent {
           this.error.set('The review response did not match this day. No result was accepted.');
         } else {
           this.result.set(response);
-          this.notice.set('Operations review ready. The checked facts and model explanation are shown separately.');
+          this.notice.set(this.presentationFor(response) ? 'Operations review ready.' : 'Saved-day facts are ready. The AI explanation contains an unresolved reference and is not shown.');
         }
         if (restoreFocus) this.restoreReviewFocus(epoch);
       },
@@ -161,12 +162,42 @@ export class OperationsReviewComponent {
 
   protected ruleLabel(rule: string): string { return RULE_LABELS[rule] ?? 'Operational check'; }
   protected findingTitle(check: ReviewCheck): string {
+    const current = this.result();
+    const links = [...(current?.links ?? []), ...(current?.summary?.activities.flatMap((activity) => activity.selected_dogs) ?? []), ...(current?.finding_groups?.flatMap((group) => group.links) ?? [])];
     const names = [...new Set(check.entities.filter((entity) => entity.kind === 'dog').map((entity) => entity.id))]
       .flatMap((id) => {
-        const link = this.result()?.links.find((item) => item.entity.kind === 'dog' && item.entity.id === id && this.localLink(item.path));
-        return link ? [link.label] : [];
+        const link = links.find((item) => item.entity.kind === 'dog' && item.entity.id === id && this.localLink(item.path));
+        return link && !UUID_TEXT.test(link.label) ? [link.label] : [];
       });
     return names.length ? `${this.ruleLabel(check.rule)} · ${names.join(', ')}` : this.ruleLabel(check.rule);
+  }
+  protected localLinks(links: ReviewLink[]): LocalLink[] {
+    return links.flatMap((link) => {
+      if (typeof link.label !== 'string' || UUID_TEXT.test(link.label)) return [];
+      const parsed = this.localLink(link.path);
+      if (!parsed || (link.entity.kind === 'dog' && parsed.route !== `/demo/dogs/${link.entity.id}`)) return [];
+      return [{ ...parsed, label: link.label }];
+    });
+  }
+  protected activityLabel(kind: string): string {
+    return ({ training: 'Training', open_space_walk: 'Open-space walk', individual_exercise: 'Individual exercise', rest: 'Rest' } as Record<string, string>)[kind] ?? 'Activity';
+  }
+  protected actualLabel(status: string): string {
+    return ({ not_recorded: 'Not recorded', matches_plan: 'Recorded · matches plan', modified: 'Recorded · modified', not_run: 'Not run', context_only: 'Context only' } as Record<string, string>)[status] ?? 'Not verified';
+  }
+  private presentationFor(response: OperationsReview | null): DisplaySegment[] | null {
+    const presentation = response?.presentation;
+    if (!presentation || presentation.status !== 'ready' || !Array.isArray(presentation.segments) || !presentation.segments.length) return null;
+    const output: DisplaySegment[] = [];
+    for (const segment of presentation.segments) {
+      if (typeof segment.text !== 'string' || UUID_TEXT.test(segment.text)) return null;
+      if (segment.entity === null && segment.path === null) { output.push({ text: segment.text, link: null }); continue; }
+      if (!segment.entity || typeof segment.path !== 'string') return null;
+      const link = this.localLink(segment.path);
+      if (!link || (segment.entity.kind === 'dog' && link.route !== `/demo/dogs/${segment.entity.id}`)) return null;
+      output.push({ text: segment.text, link });
+    }
+    return output.some((segment) => segment.text.trim()) ? output : null;
   }
   protected valueLabel(name: string): string { return VALUE_LABELS[name] ?? name.replaceAll('_', ' '); }
   protected statusLabel(status: ReviewStatus): string {
@@ -235,7 +266,7 @@ export class OperationsReviewComponent {
     const messages: Record<string, string> = {
       app_rate_limited: 'Too many reviews from this connection. Wait before starting another review.',
       review_busy: 'Another review is already running. Wait for it to finish before starting another.',
-      ai_quota_exhausted: 'Both free AI routes are currently quota-limited. Wait before explicitly trying again.',
+      ai_quota_exhausted: 'AI review is currently rate or quota limited. Wait before explicitly trying again.',
       ai_temporarily_unavailable: 'The free AI service is temporarily unavailable. Your saved plan is unchanged.',
       agent_disabled: 'AI review is not enabled in this environment. You can continue using Daily Plan.',
       timeout: 'The review reached its time limit. No result was accepted.',

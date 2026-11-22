@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -27,3 +28,4 @@ class PrivacyRead(BaseModel):
     mail_provider_region: str | None
     demo_workspace_ttl_hours: int
     operations_review_enabled: bool = False
+    operations_review_providers: tuple[Literal["groq", "openrouter"], ...] = ()

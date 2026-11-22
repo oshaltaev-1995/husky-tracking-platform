@@ -60,6 +60,7 @@ services:
       # Explicit opt-in only. Values are passed through to server-only settings;
       # absent keys/flags never enable AI while redeploying an existing environment.
       AGENT_ENABLED: ${AGENT_ENABLED:-false}
+      AGENT_OPENROUTER_RESERVE_ENABLED: ${AGENT_OPENROUTER_RESERVE_ENABLED:-false}
       AGENT_GROQ_FREE_ACCOUNT_CONFIRMED: ${AGENT_GROQ_FREE_ACCOUNT_CONFIRMED:-false}
       AGENT_GROQ_API_KEY: ${AGENT_GROQ_API_KEY:-}
       AGENT_OPENROUTER_API_KEY: ${AGENT_OPENROUTER_API_KEY:-}

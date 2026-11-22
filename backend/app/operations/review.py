@@ -16,6 +16,7 @@ from app.operations.api_schemas import (
     ReviewTrace,
     ReviewUsage,
 )
+from app.operations.display import FrozenDisplay
 from app.operations.foundation import PreparedReview, context_failure, prepare_review
 from app.operations.provider_models import AgentFailure, ProviderSettings
 from app.operations.providers import Transport
@@ -129,8 +130,10 @@ class OperationsReviewService:
             for row in snapshot.checks
             if row.rule in {"PLAN_PRESENCE", "ACTUAL_LEDGER"}
         )
+        display = FrozenDisplay(snapshot, prepared.tools.link)
+        groups = display.finding_groups()
         important = tuple(row for row in snapshot.checks if row.status != "pass")
-        findings = important[:32]
+        findings = tuple(row for group in groups for row in group.findings)
         evidence_ids = {
             identity for row in (*facts, *findings) for identity in row.evidence_ids
         } | {row.evidence_id for row in answer.references}
@@ -146,25 +149,23 @@ class OperationsReviewService:
             ReviewLink(entity=day, label="Kennel Map", path=f"/demo/kennel?{query}"),
         ]
         known_paths = {row.path for row in links}
-        dog_names = {str(row.id): row.name for row in snapshot.dogs}
         for item in evidence:
             for entity in item.entities:
+                if entity.kind == "dog":
+                    # Dog links live beside their selected names or scoped findings.
+                    continue
                 path = prepared.tools.link(entity)
                 if path in known_paths:
                     continue
                 known_paths.add(path)
-                label = (
-                    dog_names[entity.id]
-                    if entity.kind == "dog"
-                    else {
-                        "activity": "Saved teams"
-                        if path.endswith("/teams")
-                        else "Daily Plan",
-                        "actual": "Daily Entry",
-                        "location": "Kennel Map",
-                        "day": "Daily Plan",
-                    }[entity.kind]
-                )
+                label = {
+                    "activity": "Saved teams"
+                    if path.endswith("/teams")
+                    else "Daily Plan",
+                    "actual": "Daily Entry",
+                    "location": "Kennel Map",
+                    "day": "Daily Plan",
+                }[entity.kind]
                 links.append(ReviewLink(entity=entity, label=label, path=path))
         counts = Counter(row.status for row in snapshot.checks)
         metadata = prepared.run.metadata()
@@ -173,6 +174,9 @@ class OperationsReviewService:
             selected_date=snapshot.selected_date,
             captured_at=snapshot.captured_at,
             explanation=answer.explanation,
+            presentation=display.explanation(answer.explanation),
+            summary=display.summary(),
+            finding_groups=groups,
             facts=facts,
             findings=findings,
             evidence=evidence,

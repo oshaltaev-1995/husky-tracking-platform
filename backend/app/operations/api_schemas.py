@@ -61,11 +61,62 @@ class ReviewStatusCounts(Frozen):
     unverified: int = Field(ge=0)
 
 
+class ReviewDisplaySegment(Frozen):
+    text: str = Field(max_length=4000)
+    entity: Entity | None = None
+    path: str | None = Field(default=None, max_length=240)
+
+
+class ReviewDisplay(Frozen):
+    status: Literal["ready", "unresolved"]
+    segments: tuple[ReviewDisplaySegment, ...] = Field(max_length=256)
+    message: str | None = Field(default=None, max_length=240)
+
+
+class ReviewActualSummary(Frozen):
+    sessions: int = Field(ge=0)
+    dogs_worked: int = Field(ge=0)
+    dog_starts: int = Field(ge=0)
+    dog_km: int = Field(ge=0)
+
+
+class ReviewActivitySummary(Frozen):
+    entity: Entity
+    kind: str = Field(max_length=40)
+    distance_km: int | None
+    selected_pool_count: int = Field(ge=0, le=60)
+    selected_dogs: tuple[ReviewLink, ...] = Field(max_length=60)
+    omitted_selected_dogs: int = Field(ge=0, le=60)
+    saved_teams: int | None = Field(ge=0, le=6)
+    actual_status: str = Field(max_length=40)
+
+
+class ReviewOperationalSummary(Frozen):
+    plan_exists: bool
+    activity_count: int = Field(ge=0, le=32)
+    selected_unique_dogs: int = Field(ge=0, le=60)
+    selected_participations: int = Field(ge=0, le=1920)
+    activities: tuple[ReviewActivitySummary, ...] = Field(max_length=32)
+    omitted_activities: int = Field(ge=0, le=32)
+    actual: ReviewActualSummary
+
+
+class ReviewFindingGroup(Frozen):
+    scope: Literal["plan", "other_dogs"]
+    findings: tuple[Check, ...] = Field(max_length=32)
+    status_counts: ReviewStatusCounts
+    omitted_findings: int = Field(ge=0)
+    links: tuple[ReviewLink, ...] = Field(max_length=60)
+
+
 class OperationsReviewRead(Frozen):
     snapshot_id: UUID
     selected_date: date
     captured_at: datetime
     explanation: str = Field(max_length=4000)
+    presentation: ReviewDisplay
+    summary: ReviewOperationalSummary
+    finding_groups: tuple[ReviewFindingGroup, ...] = Field(min_length=2, max_length=2)
     facts: tuple[Check, ...] = Field(max_length=2)
     findings: tuple[Check, ...] = Field(max_length=32)
     evidence: tuple[Evidence, ...] = Field(max_length=66)

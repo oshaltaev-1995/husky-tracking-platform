@@ -103,36 +103,38 @@ These instructions apply to the entire repository.
   use actual `WorkSession`/`WorkParticipation` rows only. Planned/not-run work is never
   counted, weeks run Monday–Sunday, and attention rules normalize by eligible days and
   class peers rather than comparing Puppy/Junior dogs with working adults.
-- Operations Agent P14A established the disabled read-only foundation. P14B adds one
-  explicitly triggered, default-disabled selected-day review, not a chat or writer.
-  Capture one bounded frozen snapshot
-  under the existing cookie-authorized workspace lock and shared HousingContext; close
-  the transaction/Session before any provider wait. Tools never materialize or write.
-  Recheck session/expiry/Reset/cancellation before fallback and final output. Keep private
-  context, notes, cookies, preconditions and keys out of provider data/logs. Reuse existing
-  eligibility, actual-work and lineup rules; evidence is server-created. Groq Free and
-  exact OpenRouter `:free` contracts permit one bounded switch, zero-price/privacy filters
-  and no paid bypass. P14A tests use fake HTTP only, even if keys exist in the environment.
-  Live QA requires explicit owner authorization, project-only keys, Groq Free
-  confirmation and OpenRouter free-route/account privacy checks. The original campaign
-  is closed at 11/12; the separately authorized context follow-up is closed at 2/6
-  (13 combined), with no unused-slot transfer or automatic new budget. Exact reserve
-  absence from validated account metadata blocks blind reserve dispatch, even when
-  the public catalog lists it. Missing live proof is not full PASS; P14C remains gated.
-  Force a model-requested `validate_day`
-  on each provider attempt before accepting a final result. Its bounded projection
-  must preserve successful selected-pool/eligibility/state facts, distinguish unique
-  dogs from participations, separate saved teams/actuals, scope unrelated findings,
-  and report omitted details honestly without changing canonical checks. The production
-  Nginx
-  exact review POST owns per-IP admission (2/minute, burst 1, one concurrent review);
-  the backend's one-slot-per-worker guard is concurrency control, not global rate or
-  account-quota accounting. Preserve the private backend boundary and no automatic
-  POST replay. Date/session/Reset/navigation/expiry/Cancel invalidate client results.
-  An already dispatched provider request may finish and use quota after cancellation.
-  Provider explanations are plain text, distinct from server-created facts/evidence.
-  Public Privacy names external AI only when this environment enables the feature;
-  never claim universal zero retention, EEA-only processing or unverified account controls.
+- Operations Agent P14A established the read-only foundation; P14B added an explicitly
+  triggered selected-day review. P14C's owner-approved first-demo scope is Groq Free
+  only (`openai/gpt-oss-20b`). Both `AGENT_ENABLED` and
+  `AGENT_OPENROUTER_RESERVE_ENABLED` default false. A saved reserve key does not opt in;
+  disabled reserve must never serialize or dispatch an OpenRouter request. Preserve
+  the optional adapter/tests and its exact-free zero-price/privacy controls, but label
+  reserve DEFERRED, never live PASS. Capabilities/Privacy disclose only active providers.
+  Groq-only quota returns honest 429 with known Retry-After; temporary failures return
+  503, without retries/switches or auth/configuration being called quota.
+  Capture one bounded frozen snapshot under the cookie-authorized workspace lock and
+  shared HousingContext; close Session before provider waits. Tools never materialize
+  or write. Preserve six HTTP/eight tools/45 seconds/1024 output tokens, strict JSON,
+  one model-requested validate_day per attempt, evidence/entity binding and context
+  fencing. Its bounded projection retains selected pool/eligibility/states, unique
+  versus participations, independent teams/actuals, scoped findings and honest omissions.
+  Resolve display identities only from the same frozen snapshot: escaped real names,
+  typed local links, no post-review refetch, no model HTML or meaning/reference repair.
+  Unknown display references suppress unusable prose while retaining facts. Main summary
+  shows selected dogs, saved-team count and actual status/metrics independently; other
+  snapshot dogs belong in a secondary group, technical details remain collapsible.
+  Keep private notes, Contact, cookies/preconditions, account IDs and credentials out
+  of provider data/logs. Reuse canonical eligibility/actual/lineup/housing rules.
+  Live QA needs separate owner authorization and Free/privacy attestation; tests use
+  fake HTTP even if keys exist. The original campaigns remain closed at 11/12 and2/6;
+  the Groq-only P14C campaign closed at2/8 after a genuine429, cumulative15/21 ceiling.
+  No unused slots transfer or implicit new budget. Live quality is NOT VERIFIED, not
+  complete release acceptance. No account/privacy/payment relaxation or new model.
+  Production Nginx owns the narrow review POST per-IP admission (2/minute, burst1,
+  one concurrent); backend worker slot is concurrency control, not global quota state.
+  Preserve private backend/no automatic POST replay. Cancel/date/session/Reset/expiry/
+  navigation fence late results; already dispatched remote work can still use quota.
+  Conditional Privacy must not promise universal zero retention or EEA-only processing.
 - Dashboard is the fixed-reference `/demo/dashboard` operational home. Its projection must
   compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
   services; do not persist dashboard totals or create alternate KPI/attention rules.

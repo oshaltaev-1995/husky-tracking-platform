@@ -49,10 +49,13 @@ def reset_demo_workspace(
 @router.get("/public/privacy", response_model=PrivacyRead)
 def privacy(settings: Annotated[Settings, Depends(get_settings)]) -> PrivacyRead:
     try:
-        operations_enabled = get_provider_settings().enabled
+        operations = get_provider_settings()
+        operations_enabled = operations.enabled
+        operations_providers = operations.active_providers
     except AgentFailure:
         # Invalid optional agent settings cannot break the public privacy notice.
         operations_enabled = False
+        operations_providers = ()
     return PrivacyRead(
         controller_name=settings.privacy_controller_name,
         contact_email=settings.privacy_contact_email,
@@ -63,4 +66,5 @@ def privacy(settings: Annotated[Settings, Depends(get_settings)]) -> PrivacyRead
         mail_provider_region=settings.privacy_mail_provider_region,
         demo_workspace_ttl_hours=settings.demo_workspace_ttl_hours,
         operations_review_enabled=operations_enabled,
+        operations_review_providers=operations_providers,
     )

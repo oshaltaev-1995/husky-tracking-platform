@@ -88,6 +88,8 @@ class ProviderSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="AGENT_", extra="forbid", frozen=True)
 
     enabled: bool = False
+    # A retained reserve key never opts the server into fallback.
+    openrouter_reserve_enabled: bool = False
     groq_free_account_confirmed: bool = False
     groq_api_key: SecretStr | None = Field(default=None, repr=False)
     openrouter_api_key: SecretStr | None = Field(default=None, repr=False)
@@ -103,6 +105,12 @@ class ProviderSettings(BaseSettings):
     max_input_bytes: int = Field(default=65536, ge=1024, le=65536)
     max_response_bytes: int = Field(default=32768, ge=1024, le=32768)
     max_tool_result_bytes: int = Field(default=16384, ge=256, le=16384)
+
+    @property
+    def active_providers(self) -> tuple[ProviderName, ...]:
+        if not self.enabled:
+            return ()
+        return ("groq", "openrouter") if self.openrouter_reserve_enabled else ("groq",)
 
 
 def get_provider_settings() -> ProviderSettings:

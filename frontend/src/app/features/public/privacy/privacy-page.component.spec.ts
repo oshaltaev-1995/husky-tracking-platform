@@ -82,18 +82,32 @@ describe('Privacy workspace disclosure', () => {
       .expectNone((request) => request.url.startsWith('/api/v1/demo/'));
   });
 
-  it('describes external AI only in an environment where the feature is enabled', () => {
+  it('describes only active Groq processing when the feature is enabled', () => {
     const fixture = TestBed.createComponent(PrivacyPageComponent);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController).expectOne('/api/v1/public/privacy')
-      .flush({ ...metadata, operations_review_enabled: true });
+      .flush({ ...metadata, operations_review_enabled: true, operations_review_providers: ['groq'] });
     fixture.detectChanges();
     const text = fixture.nativeElement.querySelector('#operations-review')?.textContent ?? '';
     expect(text).toContain('Groq');
-    expect(text).toContain('OpenRouter');
+    expect(text).not.toContain('OpenRouter');
     expect(text).toContain('Free-text notes, Contact messages');
     expect(text).toContain('do not guarantee zero retention or EEA-only');
     expect(text).toContain('A request already sent may still finish');
     TestBed.inject(HttpTestingController).expectNone((request) => request.url.startsWith('/api/v1/demo/'));
   });
+
+  it('discloses the optional reserve only when the server explicitly activates it', () => {
+    const fixture = TestBed.createComponent(PrivacyPageComponent);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/public/privacy')
+      .flush({ ...metadata, operations_review_enabled: true, operations_review_providers: ['groq', 'openrouter'] });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.querySelector('#operations-review')?.textContent ?? '';
+    expect(text).toContain('Groq');
+    expect(text).toContain('OpenRouter as a free reserve');
+    expect(text).toContain('data collection denial');
+    TestBed.inject(HttpTestingController).expectNone((request) => request.url.startsWith('/api/v1/demo/'));
+  });
+
 });

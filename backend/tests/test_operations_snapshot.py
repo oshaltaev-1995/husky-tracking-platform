@@ -644,9 +644,10 @@ def tool_reply() -> HttpReply:
     )
 
 
-def settings() -> ProviderSettings:
+def settings(*, reserve_enabled: bool = False) -> ProviderSettings:
     return ProviderSettings(
         enabled=True,
+        openrouter_reserve_enabled=reserve_enabled,
         groq_free_account_confirmed=True,
         groq_api_key=SecretStr("offline-primary-fixture"),
         openrouter_api_key=SecretStr("offline-reserve-fixture"),
@@ -710,7 +711,7 @@ def test_midrun_fallback_keeps_frozen_snapshot_and_releases_locks_for_every_http
         selected_date=DAY,
         current_cookie=lambda: token(client),
         cancelled=lambda: False,
-        settings=settings(),
+        settings=settings(reserve_enabled=True),
         transport=transport,
         admit=admit,
     )

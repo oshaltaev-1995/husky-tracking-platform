@@ -101,6 +101,8 @@ def build_request(
     required_tool: Literal["validate_day"] | None = None,
 ) -> HttpRequest:
     """No caller/model-supplied URL, paid option, model or arbitrary tool."""
+    if provider == "openrouter" and not settings.openrouter_reserve_enabled:
+        raise AgentFailure("provider_configuration")
     if not tools or len(tools) > 6 or len({t.name for t in tools}) != len(tools):
         raise AgentFailure("provider_configuration")
     if any(tool.name not in TOOL_NAMES for tool in tools):

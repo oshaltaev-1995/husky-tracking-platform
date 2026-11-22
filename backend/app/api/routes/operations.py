@@ -53,8 +53,10 @@ ERROR_MESSAGES = {
     "date_out_of_range": "Choose a date within the demo season.",
     "snapshot_too_large": "This day has more detail than a review can read.",
     "run_budget_exhausted": "The review reached its request or data budget.",
-    "ai_quota_exhausted": "Both free AI routes are currently rate or quota limited.",
-    "ai_temporarily_unavailable": "The free AI routes are temporarily unavailable.",
+    "ai_quota_exhausted": "AI review is currently rate or quota limited. "
+    "Try again later.",
+    "ai_temporarily_unavailable": "AI review is temporarily unavailable. "
+    "Please try again later.",
     "provider_configuration": "Operations review configuration is incomplete "
     "or unavailable.",
     "provider_authentication": "The AI provider credentials need operator attention.",
@@ -150,7 +152,7 @@ def capabilities(
     return OperationsCapabilities(
         enabled=provider.enabled,
         external_processing=provider.enabled,
-        providers=("groq", "openrouter") if provider.enabled else (),
+        providers=provider.active_providers,
         season_start=settings.demo_season_start,
         season_end=settings.demo_season_end,
     )

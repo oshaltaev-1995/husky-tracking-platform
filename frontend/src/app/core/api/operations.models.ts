@@ -35,15 +35,57 @@ export interface ReviewEvidence {
   }[];
 }
 
+export interface ReviewLink {
+  entity: ReviewEntity;
+  label: string;
+  path: string;
+}
+
+export interface ReviewPresentation {
+  status: 'ready' | 'unresolved';
+  segments: { text: string; entity: ReviewEntity | null; path: string | null }[];
+  message: string | null;
+}
+
+export interface ReviewSummary {
+  plan_exists: boolean;
+  activity_count: number;
+  selected_unique_dogs: number;
+  selected_participations: number;
+  activities: {
+    entity: ReviewEntity;
+    kind: string;
+    distance_km: number | null;
+    selected_pool_count: number;
+    selected_dogs: ReviewLink[];
+    omitted_selected_dogs: number;
+    saved_teams: number | null;
+    actual_status: string;
+  }[];
+  omitted_activities: number;
+  actual: { sessions: number; dogs_worked: number; dog_starts: number; dog_km: number };
+}
+
+export interface ReviewFindingGroup {
+  scope: 'plan' | 'other_dogs';
+  findings: ReviewCheck[];
+  status_counts: { passed: number; violations: number; attention: number; unverified: number };
+  omitted_findings: number;
+  links: ReviewLink[];
+}
+
 export interface OperationsReview {
   snapshot_id: string;
   selected_date: string;
   captured_at: string;
   explanation: string;
+  presentation: ReviewPresentation;
+  summary: ReviewSummary;
+  finding_groups: ReviewFindingGroup[];
   facts: ReviewCheck[];
   findings: ReviewCheck[];
   evidence: ReviewEvidence[];
-  links: { entity: ReviewEntity; label: string; path: string }[];
+  links: ReviewLink[];
   checked_rules: string[];
   status_counts: { passed: number; violations: number; attention: number; unverified: number };
   omitted_findings: number;

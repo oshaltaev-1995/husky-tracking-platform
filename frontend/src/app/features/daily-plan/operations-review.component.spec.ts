@@ -15,7 +15,7 @@ import { OperationsReviewComponent } from './operations-review.component';
 class OtherPageComponent {}
 
 const capabilities: OperationsCapabilities = {
-  enabled: true, external_processing: true, providers: ['groq', 'openrouter'],
+  enabled: true, external_processing: true, providers: ['groq'],
   selected_scenario: 'review_operations', season_start: '2025-12-01', season_end: '2026-03-31',
 };
 
@@ -26,6 +26,12 @@ function currentSession(): DemoSession {
   };
 }
 
+const dogs = ['Atlas', 'Aurora', 'Clover', 'Cosmo'].map((label, index) => ({
+  entity: { kind: 'dog' as const, id: `00000000-0000-0000-0000-${String(index + 2).padStart(12, '0')}` },
+  label,
+  path: `/demo/dogs/00000000-0000-0000-0000-${String(index + 2).padStart(12, '0')}?tab=work`,
+}));
+
 function result(): OperationsReview {
   const fact: ReviewCheck = {
     rule: 'ACTUAL_LEDGER', status: 'pass', explanation: 'Actual work only.',
@@ -34,6 +40,12 @@ function result(): OperationsReview {
   return {
     snapshot_id: '00000000-0000-0000-0000-000000000001', selected_date: '2026-03-31',
     captured_at: '2026-11-22T06:00:00Z', explanation: 'No saved teams exist for the selected day.',
+    presentation: { status: 'ready', message: null, segments: [{ text: 'No saved teams exist for the selected day.', entity: null, path: null }] },
+    summary: { plan_exists: true, activity_count: 1, selected_unique_dogs: 4, selected_participations: 4,
+      activities: [{ entity: { kind: 'activity', id: '00000000-0000-0000-0000-000000000010' }, kind: 'training', distance_km: 5, selected_pool_count: 4, selected_dogs: dogs, omitted_selected_dogs: 0, saved_teams: 0, actual_status: 'not_recorded' }],
+      omitted_activities: 0, actual: { sessions: 1, dogs_worked: 8, dog_starts: 8, dog_km: 80 } },
+    finding_groups: [{ scope: 'plan', findings: [{ ...fact, rule: 'SAVED_LINEUP', status: 'attention', explanation: 'No saved teams; a selected pool is not an arranged harness.' }], status_counts: { passed: 4, violations: 0, attention: 1, unverified: 0 }, omitted_findings: 0, links: [] },
+      { scope: 'other_dogs', findings: [], status_counts: { passed: 0, violations: 0, attention: 0, unverified: 0 }, omitted_findings: 0, links: [] }],
     facts: [fact], findings: [{ ...fact, rule: 'SAVED_LINEUP', status: 'attention', explanation: 'No saved teams; a selected pool is not an arranged harness.' }],
     evidence: [{ id: 'e-actual', selected_date: '2026-03-31', entities: fact.entities,
       values: [{ name: 'sessions', value: 1, unit: 'count' }, { name: 'dog_starts', value: 8, unit: 'count' }, { name: 'dog_km', value: 80, unit: 'km' }] }],
@@ -102,7 +114,8 @@ describe('OperationsReviewComponent', () => {
     const write = vi.spyOn(Storage.prototype, 'setItem');
     await setup();
     expect(fixture.nativeElement.textContent).toContain('31 March 2026');
-    expect(fixture.nativeElement.textContent).toContain('Groq or the free OpenRouter reserve');
+    expect(fixture.nativeElement.textContent).toContain('processed by Groq');
+    expect(fixture.nativeElement.textContent).not.toContain('OpenRouter');
     http.expectNone('/api/v1/operations/review');
     http.expectNone('/api/v1/demo/session');
     expect(write).not.toHaveBeenCalled();
@@ -149,7 +162,7 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Operations review ready');
     expect(fixture.nativeElement.textContent).toContain('Snapshot');
     expect(fixture.nativeElement.textContent).toContain('AI explanation');
-    expect(fixture.nativeElement.textContent).toContain('Checked facts');
+    expect(fixture.nativeElement.textContent).toContain('Saved-day facts');
     expect(fixture.nativeElement.textContent).toContain('80 km');
     expect(fixture.nativeElement.textContent).toContain('not independently verified');
     http.expectNone('/api/v1/operations/review');
@@ -289,7 +302,8 @@ describe('OperationsReviewComponent', () => {
   it('renders model text safely, uses local links with query state and explains unknown usage', async () => {
     await setup();
     const response = result();
-    response.explanation = '<img src=x onerror="alert(1)"> Untrusted text';
+    response.explanation = 'This raw model field must not be rendered';
+    response.presentation.segments = [{ text: '<img src=x onerror="alert(1)"> Untrusted text', entity: null, path: null }];
     response.evidence[0].values.push({ name: 'roles', value: 'lead,team,wheel', unit: 'state' });
     response.links.push({ entity: { kind: 'day', id: '2026-03-31' }, label: 'External', path: 'https://untrusted.example' });
     start().flush(response); fixture.detectChanges();
@@ -297,7 +311,7 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('<img');
     const planLink = fixture.nativeElement.querySelector('.review-links a') as HTMLAnchorElement;
     expect(planLink.getAttribute('href')).toBe('/demo/daily?date=2026-03-31');
-    expect(fixture.nativeElement.querySelector('.review-links')?.textContent).not.toContain('External');
+    expect(fixture.nativeElement.querySelector('[aria-label="Related operational screens"]')?.textContent).not.toContain('External');
     expect(fixture.nativeElement.textContent).toContain('Token usage was not reported');
     expect(fixture.nativeElement.textContent).not.toContain('0 input tokens');
     expect(fixture.nativeElement.textContent).toContain('Lead · Team · Wheel');
@@ -306,10 +320,11 @@ describe('OperationsReviewComponent', () => {
 
   it('shows reserve/tool trace, incomplete known usage and omitted findings honestly', async () => {
     await setup();
-    start().flush({ ...result(), fallback: true, provider: 'openrouter', model: 'openai/gpt-oss-20b:free', omitted_findings: 2,
+    const response = result(); response.finding_groups[0].omitted_findings = 2;
+    start().flush({ ...response, fallback: true, provider: 'openrouter', model: 'particle-ai/particle-1:free', omitted_findings: 2,
       usage: { known_prompt_tokens: 25, known_completion_tokens: null, incomplete: true } });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Free reserve used');
+    expect(fixture.nativeElement.querySelector('.review-trace')?.textContent).toContain('OpenRouter');
     expect(fixture.nativeElement.textContent).toContain('same snapshot');
     expect(fixture.nativeElement.textContent).toContain('Validate the selected day');
     expect(fixture.nativeElement.textContent).toContain('totals are incomplete');
@@ -325,6 +340,7 @@ describe('OperationsReviewComponent', () => {
     response.evidence.push({ id: 'dog-state', selected_date: response.selected_date, entities: [dog], values: [{ name: 'availability', value: 'retired', unit: 'state' }] });
     response.status_counts = { passed: 4, violations: 0, attention: 0, unverified: 1 };
     response.omitted_findings = 3;
+    response.finding_groups[0] = { scope: 'plan', findings: response.findings, status_counts: response.status_counts, omitted_findings: 3, links: [] };
     start().flush(response); fixture.detectChanges();
     const details = fixture.nativeElement.querySelector('.finding-details') as HTMLDetailsElement;
     expect(details.open).toBe(false);
@@ -342,7 +358,7 @@ describe('OperationsReviewComponent', () => {
 
   const failures = [
     ['app_rate_limited', 'Too many reviews'],
-    ['ai_quota_exhausted', 'Both free AI routes'],
+    ['ai_quota_exhausted', 'AI review is currently rate or quota limited'],
     ['ai_temporarily_unavailable', 'temporarily unavailable'],
     ['timeout', 'time limit'],
     ['invalid_provider_response', 'could not be validated'],
@@ -438,4 +454,123 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Finish the current edit');
     http.expectNone('/api/v1/operations/review');
   });
+  it('shows four linked names and saved pool, teams and actual facts without raw UUID prose', async () => {
+    await setup();
+    const response = result();
+    response.explanation = `Four eligible dogs (IDs ${dogs.map((dog) => dog.entity.id).join(', ')}).`;
+    response.presentation.segments = [
+      { text: 'Four eligible dogs (', entity: null, path: null },
+      ...dogs.flatMap((dog, index) => [
+        { text: dog.label, entity: dog.entity, path: dog.path },
+        { text: index === dogs.length - 1 ? '). ' : ', ', entity: null, path: null },
+      ]),
+      { text: 'Atlas', entity: dogs[0].entity, path: dogs[0].path },
+      { text: ' is selected.', entity: null, path: null },
+    ];
+    response.summary.actual = { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 };
+    start().flush(response); fixture.detectChanges();
+    const content = fixture.nativeElement as HTMLElement;
+    expect(content.textContent).toContain('Training · 5 km');
+    expect(content.textContent).toContain('4 selected dogs');
+    expect(content.textContent).toContain('Not saved');
+    expect(content.textContent).toContain('Not recorded');
+    expect(content.textContent).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    expect(content.querySelector('.model-explanation')?.textContent).not.toContain('IDs Atlas');
+    expect(content.querySelector('.model-explanation > p')?.textContent).toBe(response.presentation.segments.map((segment) => segment.text).join(''));
+    for (const [index, dog] of dogs.entries()) {
+      const links = [...content.querySelectorAll<HTMLAnchorElement>('.selected-dogs a, .model-explanation a')].filter((link) => link.textContent?.trim() === dog.label);
+      expect(links.length).toBe(index === 0 ? 3 : 2);
+      expect(links.every((link) => link.getAttribute('href') === dog.path)).toBe(true);
+      expect(links.every((link) => !link.hasAttribute('aria-label'))).toBe(true);
+    }
+    expect(content.querySelector('.review-links')?.textContent).not.toContain('Atlas');
+    expect(content.querySelector('.review-trace')?.hasAttribute('open')).toBe(false);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('retains saved facts but does not claim an unresolved AI explanation is ready', async () => {
+    await setup();
+    const response = result();
+    response.explanation = 'Do not display this raw provider value';
+    response.presentation = { status: 'unresolved', message: 'untrusted detail must not be rendered', segments: [] };
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+    expect(fixture.nativeElement.textContent).toContain('Saved-day facts are ready');
+    expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).not.toContain(response.explanation);
+    expect(fixture.nativeElement.textContent).not.toContain(response.presentation.message);
+    expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('Training');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  for (const malformed of ['unknown_uuid', 'unsafe_path', 'wrong_identity']) {
+    it(`rejects a malformed ${malformed} presentation without exposing raw prose or retrying`, async () => {
+      await setup();
+      const response = result();
+      response.presentation.segments = malformed === 'unknown_uuid'
+        ? [{ text: 'Unknown 11111111-1111-1111-1111-111111111111', entity: null, path: null }]
+        : [{ text: 'Atlas', entity: dogs[0].entity, path: malformed === 'unsafe_path' ? 'https://untrusted.example/dog' : dogs[1].path }];
+      start().flush(response); fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+      expect(fixture.nativeElement.textContent).not.toContain('11111111-1111-1111-1111-111111111111');
+      http.expectNone('/api/v1/operations/review');
+    });
+  }
+
+  it('keeps duplicate, long Cyrillic and HTML-like labels escaped with distinct identity links', async () => {
+    await setup();
+    const response = result();
+    const names = ['Atlas · A1-01', 'Atlas · B1-01', 'Снежный ветер из северной долины', '<b>Bright snow</b>'];
+    const links = dogs.map((dog, index) => ({ ...dog, label: names[index] }));
+    response.summary.activities[0].selected_dogs = links;
+    response.presentation.segments = links.flatMap((dog) => [{ text: dog.label, entity: dog.entity, path: dog.path }, { text: ' ', entity: null, path: null }]);
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-explanation b')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.selected-dogs b')).toBeNull();
+    for (const [index, name] of names.entries()) {
+      const link = fixture.nativeElement.querySelectorAll('.selected-dogs a')[index] as HTMLAnchorElement;
+      expect(link.textContent?.trim()).toBe(name); expect(link.getAttribute('href')).toBe(dogs[index].path);
+    }
+    expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('<b>Bright snow</b>');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('separates unrelated archive findings and preserves full scoped counts and omissions', async () => {
+    await setup();
+    const response = result();
+    const archived = { entity: { kind: 'dog' as const, id: '00000000-0000-0000-0000-000000000060' }, label: 'Coast', path: '/demo/dogs/00000000-0000-0000-0000-000000000060?tab=work' };
+    response.finding_groups[1] = { scope: 'other_dogs', findings: [{ ...response.findings[0], rule: 'DOG_STATE', status: 'unverified', entities: [archived.entity] }], status_counts: { passed: 0, violations: 0, attention: 0, unverified: 10 }, omitted_findings: 9, links: [archived] };
+    start().flush(response); fixture.detectChanges();
+    const main = fixture.nativeElement.querySelector('.findings:not(.other-dog-findings)');
+    const other = fixture.nativeElement.querySelector('.other-dog-findings');
+    expect(main.textContent).not.toContain('Coast');
+    expect(other.textContent).toContain('Other dogs in this snapshot');
+    expect(other.textContent).toContain('10 not verified');
+    expect(other.textContent).toContain('9 additional findings');
+    expect(other.querySelector('details').open).toBe(false);
+    expect(other.querySelector('a').getAttribute('href')).toBe(archived.path);
+    expect(fixture.nativeElement.querySelector('[aria-label="Related operational screens"]')?.textContent).not.toContain('Coast');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('distinguishes an empty plan, repeated participants, saved teams and recorded actual truth', async () => {
+    await setup();
+    const response = result();
+    response.summary = { ...response.summary, plan_exists: false, activities: [], activity_count: 0, selected_unique_dogs: 0, selected_participations: 0, actual: { sessions: 2, dogs_worked: 16, dog_starts: 16, dog_km: 120 } };
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('No saved plan for this date.');
+    expect(fixture.nativeElement.querySelector('.actual-summary')?.textContent).toContain('120 km');
+    button('Review again').click(); fixture.detectChanges();
+    const request = http.expectOne('/api/v1/operations/review');
+    const next = result();
+    const activity = next.summary.activities[0];
+    next.summary.activities = [{ ...activity, saved_teams: 1, actual_status: 'matches_plan' }, { ...activity, entity: { kind: 'activity', id: '00000000-0000-0000-0000-000000000011' } }];
+    next.summary.activity_count = 2; next.summary.selected_participations = 8;
+    request.flush(next); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('4 unique dogs · 8 planned participations across 2 activities');
+    expect(fixture.nativeElement.textContent).toContain('Recorded · matches plan');
+    expect(fixture.nativeElement.querySelectorAll('.activity-summary').length).toBe(2);
+    http.expectNone('/api/v1/operations/review');
+  });
+
 });

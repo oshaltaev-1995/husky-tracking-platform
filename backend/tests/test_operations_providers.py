@@ -33,6 +33,8 @@ SNAPSHOT = '{"snapshot_id":"safe-run-snapshot","date":"2026-03-29"}'
 def settings(**updates: object) -> ProviderSettings:
     defaults: dict[str, object] = {
         "enabled": True,
+        # Historical optional-reserve contracts opt in explicitly.
+        "openrouter_reserve_enabled": True,
         "groq_free_account_confirmed": True,
         "groq_api_key": SecretStr("fake-groq-key-for-tests"),
         "openrouter_api_key": SecretStr("fake-reserve-key-for-tests"),
@@ -916,3 +918,67 @@ def test_finish_reason_and_tool_call_shape_must_agree(
     with fails("invalid_provider_response"):
         active.call()
     assert active.switches == 0 and len(transport.requests) == 1
+
+
+def test_groq_only_default_is_explicit_even_with_a_retained_reserve_key() -> None:
+    configuration = ProviderSettings(
+        enabled=True,
+        groq_free_account_confirmed=True,
+        groq_api_key=SecretStr("offline-primary"),
+        openrouter_api_key=SecretStr("offline-retained-reserve"),
+    )
+    assert configuration.openrouter_reserve_enabled is False
+    assert configuration.active_providers == ("groq",)
+    assert configuration.openrouter_api_key is not None
+    assert ProviderSettings().active_providers == ()
+    assert settings().active_providers == ("groq", "openrouter")
+    with fails("provider_configuration"):
+        build_request(
+            "openrouter",
+            configuration,
+            task="Review day",
+            snapshot_json=SNAPSHOT,
+            tools=TOOLS,
+            timeout_seconds=1,
+        )
+
+
+@pytest.mark.parametrize(
+    "reply,code,status,retry_after",
+    [
+        (HttpReply(status=429, retry_after="17"), "ai_quota_exhausted", 429, 17),
+        (HttpReply(status=429), "ai_quota_exhausted", 429, None),
+        (HttpReply(status=503), "ai_temporarily_unavailable", 503, None),
+        (OSError("offline transport fixture"), "ai_temporarily_unavailable", 503, None),
+        (TimeoutError(), "ai_temporarily_unavailable", 503, None),
+        (HttpReply(status=401), "provider_authentication", 503, None),
+        (HttpReply(status=400), "provider_bad_request", 502, None),
+    ],
+)
+def test_groq_only_failure_is_terminal_without_reserve_or_retry(
+    reply: HttpReply | Exception,
+    code: ErrorCode,
+    status: int,
+    retry_after: int | None,
+) -> None:
+    transport = FakeTransport(reply, answer())
+    active = run(transport, settings(openrouter_reserve_enabled=False))
+    with fails(code) as caught:
+        active.call()
+    assert caught.value.http_status == status
+    assert caught.value.retry_after_seconds == retry_after
+    assert len(transport.requests) == active.http_calls == 1
+    assert transport.requests[0].url.startswith("https://api.groq.com/")
+    assert active.provider == "groq" and active.switches == 0
+    with fails("run_finished"):
+        active.call()
+    assert len(transport.requests) == 1
+
+
+def test_groq_only_defensively_blocks_a_changed_internal_provider() -> None:
+    transport = FakeTransport(answer())
+    active = run(transport, settings(openrouter_reserve_enabled=False))
+    active.provider = "openrouter"
+    with fails("provider_configuration"):
+        active.call()
+    assert not transport.requests and active.http_calls == active.switches == 0

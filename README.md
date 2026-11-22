@@ -131,33 +131,37 @@ schema upgrade, isolated backup restore, and compatible workspace-draining rollb
 readiness belongs to the final report, not a deployment claim. Main/public-v1.2 remain
 unchanged. Push, release tagging and deployment require separate authorization.
 
-P14A supplies the accepted read-only Operations Agent foundation. P14B adds a compact
-**Operations review** block beside the selected Daily Plan date, a bounded server tool
-loop and Groq Free → exact OpenRouter `:free` reserve. It is disabled by default;
-existing keys alone never enable it. One explicit click reviews a frozen snapshot,
-shows server facts/evidence separately from model text, and never changes plans,
-housing, teams or actual work. Cancel/date/session/Reset/navigation discard late
-results, and no request is replayed automatically. API responses are no-store;
-production Nginx owns the narrow per-IP review limit.
+P14A supplies the accepted read-only Operations Agent foundation. P14B added the
+explicit Operations review beside the selected Daily Plan. For the first demo,
+**P14C uses Groq Free only** (`openai/gpt-oss-20b`); optional OpenRouter reserve is
+**DEFERRED by owner scope decision**, not a passed two-provider live gate.
+`AGENT_ENABLED=false` and `AGENT_OPENROUTER_RESERVE_ENABLED=false` are defaults.
+A saved reserve key never enables switching. Quota/rate limits return honest 429;
+network/provider failures return 503, with no automatic retry or paid fallback.
+Capabilities and conditional Privacy describe only the active providers.
 
-P14B is **LIVE QA INCOMPLETE / BLOCKED on the reserve**, not fully live-accepted.
-The follow-up restores selected-pool/eligibility/state facts to mandatory `validate_day`,
-keeps saved teams and actual work separate, and scopes unrelated archived findings.
-The known four-dog Groq UI case now passes protocol/references and stated core facts;
-it no longer calls the pool empty or selected dogs archived. Its prose does not
-explicitly enumerate zero saved teams or discuss the unrelated archive group.
-Authenticated OpenRouter `/models/user` returns the exact Particle free model
-**ABSENT**, although the public catalog lists it; no blind reserve inference was sent.
-The old **11/12** campaign remains closed and unchanged; the separately authorized
-follow-up closed at **2/6** (both Groq), **13** actual attempts combined. No unused
-slots transfer. Key usage metadata is not complete billing evidence. AI review remains
-disabled in production; P14C has not started. Native startup uses an explicit
-private `AGENT_ENV_FILE`; Compose forwards the
-`AGENT_*` values supplied through `--env-file`. The conditional Privacy disclosure is
-shown only in an enabled environment. No model download, new schema or conversation
-store is introduced. See [`OPERATIONS_AGENT_FOUNDATION.md`](docs/OPERATIONS_AGENT_FOUNDATION.md)
-for configuration, limits, privacy exclusions and the remaining live gate. Offline
-checks: backend `python -m app.operations.evals` (no keys, provider or database needed).
+Accepted B context fixes preserve selected pools/eligibility and independent teams/
+actual facts. P14C displays exact snapshot dog identities as escaped names and local
+profile links, with a compact saved-day summary and separately scoped other-dog
+findings. Unknown/malformed display identities suppress only the unusable AI prose;
+checked facts stay available. Raw UUID prose is not rendered. No extra provider
+fields, post-review profile fetch, domain writes or reference repair are involved.
+
+**P14C local implementation/offline checks pass; LIVE QUALITY is INCOMPLETE due to
+Free quota/rate limiting.** The first genuine four-dog review requested `validate_day`
+but its next HTTP request returned Groq 429 (`Retry-After: 1`). No final was accepted.
+The empty-plan and recorded-Actual model scenarios are NOT VERIFIED; no retry or
+reserve was dispatched. Historical campaigns remain closed at 11 and 2; the new
+cap-eight campaign closed at **2/8**, cumulative **15/21 ceiling**, no unused transfer.
+Offline responsive/name/error fixtures are distinct from genuine model-quality proof.
+No production activation, push, merge, tagging, deployment or P14D occurred.
+
+Native startup uses explicit private `AGENT_ENV_FILE`; Compose forwards the declared
+`AGENT_*` values through `--env-file`. Existing owner keys are not source code or
+browser assets. One review captures one frozen snapshot, keeps notes/Contact/cookies
+out of provider data, and invalidates on Cancel/date/session/Reset/navigation. See
+[`OPERATIONS_AGENT_FOUNDATION.md`](docs/OPERATIONS_AGENT_FOUNDATION.md) for configuration,
+limits, exclusions, historical ledgers and current acceptance status.
 
 QA clarification: the P13G pre/post-Training Day Apply comparison establishes unchanged
 **Work.summary / actual-work metrics for all 16 dogs**, not equality of full Work DTOs
