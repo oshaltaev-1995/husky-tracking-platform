@@ -3,9 +3,18 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 from typing import Any, Literal, NoReturn
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretStr,
+    ValidationError,
+    field_validator,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ProviderName = Literal["groq", "openrouter"]
@@ -70,7 +79,7 @@ def json_object(value: str | bytes) -> dict[str, Any]:
 
 
 class ProviderSettings(BaseSettings):
-    """Separate server-only config; enabling does NOT enable a network transport.
+    """Separate server-only configuration, disabled unless explicitly enabled.
 
     Groq's Free-account attestation is an operator prerequisite, not a claim that
     the model identifier itself proves a free account. P14B must verify the plan.
@@ -92,6 +101,26 @@ class ProviderSettings(BaseSettings):
     max_input_bytes: int = Field(default=65536, ge=1024, le=65536)
     max_response_bytes: int = Field(default=32768, ge=1024, le=32768)
     max_tool_result_bytes: int = Field(default=16384, ge=256, le=16384)
+
+
+def get_provider_settings() -> ProviderSettings:
+    """No implicit .env search: only runtime env or an operator-selected private file.
+
+    AGENT_ENV_FILE is server configuration, never a request/model parameter. Its
+    AGENT-only contents are not exposed in errors, metadata, repr or browser data.
+    """
+    try:
+        filename = os.environ.get("AGENT_ENV_FILE")
+        if filename:
+            path = Path(filename).expanduser()
+            if not path.is_file():
+                raise ValueError("Missing explicitly configured file")
+            if path.stat().st_mode & 0o077:
+                raise ValueError("The explicitly configured file must be private")
+            filename = str(path)
+        return ProviderSettings(_env_file=filename or None, _env_file_encoding="utf-8")
+    except (OSError, ValueError, ValidationError):
+        raise AgentFailure("provider_configuration") from None
 
 
 class AgentFailure(Exception):
@@ -142,6 +171,13 @@ class Usage(FrozenModel):
     completion_tokens: int | None = Field(default=None, ge=0)
 
 
+class ProviderUsage(FrozenModel):
+    provider: ProviderName
+    http_calls: int = Field(ge=0)
+    known_usage: Usage = Field(default_factory=Usage)
+    usage_complete: bool
+
+
 class ProviderResult(FrozenModel):
     provider: ProviderName
     attempt: int = Field(ge=0)
@@ -183,3 +219,7 @@ class RunMetadata(FrozenModel):
     elapsed_seconds: float
     error_code: ErrorCode | None = None
     usage: Usage = Field(default_factory=Usage)
+    last_response_usage: Usage = Field(default_factory=Usage)
+    known_run_usage: Usage = Field(default_factory=Usage)
+    usage_complete: bool = False
+    known_usage_by_provider: tuple[ProviderUsage, ...] = ()

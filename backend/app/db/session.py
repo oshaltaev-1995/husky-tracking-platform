@@ -13,6 +13,11 @@ engine = create_engine(
     max_overflow=settings.db_max_overflow,
     pool_timeout=settings.db_pool_timeout_seconds,
     pool_recycle=settings.db_pool_recycle_seconds,
+    connect_args=(
+        {"connect_timeout": settings.db_connect_timeout_seconds}
+        if settings.database_url.startswith("postgresql")
+        else {}
+    ),
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 

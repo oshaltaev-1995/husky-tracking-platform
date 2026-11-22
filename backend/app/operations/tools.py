@@ -8,9 +8,14 @@ from pydantic import ValidationError
 
 from app.operations.provider_models import json_object
 from app.operations.schemas import (
+    ActivityArguments,
+    DayArguments,
     Entity,
+    Frozen,
+    HousingArguments,
     OperationError,
     ReferencedExplanation,
+    SelectedDogArguments,
     Snapshot,
     ToolArguments,
     ToolName,
@@ -26,6 +31,30 @@ READ_TOOLS: tuple[ToolName, ...] = (
     "validate_day",
 )
 
+ARGUMENTS: dict[ToolName, type[Frozen]] = {
+    "get_day_plan": ActivityArguments,
+    "get_saved_teams": ActivityArguments,
+    "get_dog_states": SelectedDogArguments,
+    "get_workload": SelectedDogArguments,
+    "get_housing": HousingArguments,
+    "validate_day": DayArguments,
+}
+
+TOOL_DESCRIPTIONS: dict[ToolName, str] = {
+    "get_day_plan": "Read saved plan and participant UUIDs on selected_date. "
+    "Use activity_ids only from the current snapshot; omit to read this day.",
+    "get_saved_teams": "Read persisted teams and harness slots only. "
+    "Use activity UUIDs from get_day_plan and the selected snapshot date.",
+    "get_dog_states": "Read dated state/capabilities for one or more dog_ids. "
+    "Take dog UUIDs from current plan, teams or housing; selected_date stays fixed.",
+    "get_workload": "Read actual workload before selected_date, with today's actual "
+    "separate. Nonempty dog UUIDs must come from current snapshot tools.",
+    "get_housing": "Read dated housing/provenance; optional snapshot dog_ids. "
+    "Omit selection for this day's overview; capacity is informational.",
+    "validate_day": "Check the selected snapshot day using canonical rules. "
+    "Returns findings and server evidence; no selectors, writes or solver.",
+}
+
 
 class FrozenTools:
     """Closed, detached registry: no Session, network client or write capability."""
@@ -34,8 +63,10 @@ class FrozenTools:
         self.snapshot = snapshot
 
     def contracts(self) -> tuple[tuple[ToolName, str], ...]:
-        schema = ToolArguments.model_json_schema()
-        return tuple((name, json.dumps(schema, sort_keys=True)) for name in READ_TOOLS)
+        return tuple(
+            (name, json.dumps(ARGUMENTS[name].model_json_schema(), sort_keys=True))
+            for name in READ_TOOLS
+        )
 
     def execute(self, name: str, arguments_json: str) -> ToolResult:
         if name not in READ_TOOLS:
@@ -43,8 +74,15 @@ class FrozenTools:
         if len(arguments_json.encode()) > 8192:
             raise OperationError("invalid_tool_arguments")
         try:
-            json_object(arguments_json)
-            args = ToolArguments.model_validate_json(arguments_json)
+            raw = json_object(arguments_json)
+            if set(raw) - set(ARGUMENTS[name].model_fields):
+                raise OperationError("invalid_tool_arguments")
+            if name in {"get_dog_states", "get_workload"} and (
+                "dog_ids" not in raw or raw["dog_ids"] == []
+            ):
+                raise OperationError("dog_selection_required")
+            selected = ARGUMENTS[name].model_validate_json(arguments_json)
+            args = ToolArguments.model_validate_json(selected.model_dump_json())
         except (ValidationError, ValueError, TypeError):
             raise OperationError("invalid_tool_arguments") from None
         snapshot = self.snapshot

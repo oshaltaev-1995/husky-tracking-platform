@@ -1,7 +1,7 @@
 """Provider-specific serialization and strict parsing over an injected transport.
 
-There is deliberately no live HTTP client in P14A. The explicit transport contract
-forbids redirects and retries and requires response-size enforcement while reading.
+P14A used fake transports; P14B supplies an explicit bounded HTTPS transport. The
+contract forbids redirects and retries and requires size enforcement while reading.
 Bodies are additionally bounded before parsing; no raw request/response logging.
 """
 
@@ -98,12 +98,17 @@ def build_request(
     tools: tuple[ToolContract, ...],
     messages: tuple[Message, ...] = (),
     timeout_seconds: float,
+    required_tool: Literal["validate_day"] | None = None,
 ) -> HttpRequest:
     """No caller/model-supplied URL, paid option, model or arbitrary tool."""
     if not tools or len(tools) > 6 or len({t.name for t in tools}) != len(tools):
         raise AgentFailure("provider_configuration")
     if any(tool.name not in TOOL_NAMES for tool in tools):
         raise AgentFailure("forbidden_tool", http_status=422)
+    if required_tool is not None and not any(
+        tool.name == required_tool for tool in tools
+    ):
+        raise AgentFailure("provider_configuration")
     if not task or len(task.encode()) > 2048:
         raise AgentFailure("provider_bad_request", http_status=422)
     try:
@@ -179,22 +184,30 @@ def build_request(
             }
             for tool in tools
         ],
-        "tool_choice": "auto",
+        "tool_choice": (
+            {"type": "function", "function": {"name": required_tool}}
+            if required_tool is not None
+            else "auto"
+        ),
         "parallel_tool_calls": False,
         "response_format": {"type": "json_object"},
         "stream": False,
     }
     if provider == "groq":
         payload["max_completion_tokens"] = settings.max_output_tokens
-        # Output cap includes reasoning; hidden reasoning is neither returned nor kept.
+        # GPT-OSS excludes reasoning with include_reasoning, not reasoning_format.
+        # The completion cap still includes its internal reasoning tokens.
         payload["reasoning_effort"] = "low"
-        payload["reasoning_format"] = "hidden"
+        payload["include_reasoning"] = False
         url: Literal[
             "https://api.groq.com/openai/v1/chat/completions",
             "https://openrouter.ai/api/v1/chat/completions",
         ] = "https://api.groq.com/openai/v1/chat/completions"
     else:
         payload["max_tokens"] = settings.max_output_tokens
+        # OpenRouter's Chat Completions-specific control omits returned reasoning;
+        # it does not imply those tokens are free or outside the completion cap.
+        payload["reasoning"] = {"exclude": True, "effort": "low"}
         payload["provider"] = {
             "max_price": {"prompt": 0, "completion": 0, "request": 0},
             "require_parameters": True,
@@ -235,16 +248,17 @@ def parse_reply(
         message = choice["message"]
         if message.get("refusal") or choice.get("finish_reason") == "content_filter":
             raise AgentFailure("policy_refusal", http_status=422)
-        if choice.get("finish_reason") not in {"stop", "tool_calls"}:
+        finish = choice.get("finish_reason")
+        if finish not in {"stop", "tool_calls"}:
             raise ValueError
         usage_data = data.get("usage") or {}
         usage = Usage(
             prompt_tokens=usage_data.get("prompt_tokens"),
             completion_tokens=usage_data.get("completion_tokens"),
         )
-        calls = message.get("tool_calls") or []
-        if calls:
-            if len(calls) != 1 or choice.get("finish_reason") != "tool_calls":
+        calls = message.get("tool_calls")
+        if finish == "tool_calls":
+            if not isinstance(calls, list) or len(calls) != 1:
                 raise ValueError
             call = calls[0]
             if call["type"] != "function":
@@ -266,6 +280,8 @@ def parse_reply(
                 ),
                 usage=usage,
             )
+        if calls is not None and calls != []:
+            raise ValueError
         content = message["content"]
         if not isinstance(content, str):
             raise ValueError

@@ -10,6 +10,7 @@ from app.api.routes.demo_workspace import router as demo_workspace_router
 from app.api.routes.dogs import router as dogs_router
 from app.api.routes.health import router as health_router
 from app.api.routes.kennel_map import router as kennel_map_router
+from app.api.routes.operations import router as operations_router
 from app.api.routes.team_builder import router as team_builder_router
 from app.api.routes.training_day_example import router as training_day_example_router
 
@@ -26,3 +27,4 @@ api_router.include_router(team_builder_router, tags=["team-builder"])
 api_router.include_router(daily_entry_router, tags=["daily-entry"])
 api_router.include_router(analytics_router, tags=["analytics"])
 api_router.include_router(dashboard_router, tags=["dashboard"])
+api_router.include_router(operations_router, tags=["operations"])

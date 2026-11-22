@@ -10,6 +10,7 @@ export interface PrivacyMetadata {
   mail_provider_name: string | null;
   mail_provider_region: string | null;
   demo_workspace_ttl_hours: number;
+  operations_review_enabled?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

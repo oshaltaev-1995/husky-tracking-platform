@@ -135,9 +135,27 @@ class Snapshot(Frozen):
 
 
 class ToolArguments(Frozen):
+    """Internal normalized selection; each published tool has its own contract."""
+
     selected_date: date
     dog_ids: tuple[UUID, ...] = Field(default=(), max_length=60)
     activity_ids: tuple[UUID, ...] = Field(default=(), max_length=32)
+
+
+class DayArguments(Frozen):
+    selected_date: date
+
+
+class ActivityArguments(DayArguments):
+    activity_ids: tuple[UUID, ...] = Field(default=(), max_length=32)
+
+
+class SelectedDogArguments(DayArguments):
+    dog_ids: tuple[UUID, ...] = Field(min_length=1, max_length=60)
+
+
+class HousingArguments(DayArguments):
+    dog_ids: tuple[UUID, ...] = Field(default=(), max_length=60)
 
 
 class ToolResult(Frozen):

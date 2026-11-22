@@ -128,7 +128,9 @@ def test_groq_success_never_calls_reserve_and_logs_only_metadata() -> None:
     assert body["model"] == "openai/gpt-oss-20b"
     assert body["max_completion_tokens"] == 1024
     assert body["parallel_tool_calls"] is False
-    assert body["reasoning_format"] == "hidden"
+    assert body["include_reasoning"] is False
+    assert "reasoning_format" not in body
+    assert body["reasoning_effort"] == "low"
     assert request.follow_redirects is False and request.retries == 0
     assert "fake-groq" not in repr(request)
     assert "fake-groq" not in repr(settings())
@@ -160,7 +162,154 @@ def test_midrun_quota_restarts_once_same_snapshot_without_transcript() -> None:
         "data_collection": "deny",
         "allow_fallbacks": True,
     }
+    assert bodies[2]["reasoning"] == {"exclude": True, "effort": "low"}
+    assert "include_reasoning" not in bodies[2]
     assert active.retry_after_seconds == 30
+
+
+def test_required_day_validation_is_forced_again_after_reserve_restart() -> None:
+    transport = FakeTransport(
+        tool_answer(),
+        HttpReply(status=429),
+        tool_answer(),
+        answer(),
+    )
+    active = run(transport, force_validate_day=True)
+    first = active.call()
+    assert active.validated_current_attempt is False
+    active.record_tool(first, '{"evidence_ids":["issued-primary"]}')
+    assert active.validated_current_attempt is True
+    reserve = active.call()
+    assert reserve.provider == "openrouter"
+    assert active.validated_current_attempt is False
+    active.record_tool(reserve, '{"evidence_ids":["issued-reserve"]}')
+    assert active.validated_current_attempt is True
+    final = active.call()
+    assert active.finalize(final, lambda _: None)
+    bodies = [json.loads(request.body_json) for request in transport.requests]
+    forced = {"type": "function", "function": {"name": "validate_day"}}
+    assert [body["tool_choice"] for body in bodies] == [
+        forced,
+        "auto",
+        forced,
+        "auto",
+    ]
+    assert bodies[0]["messages"] == bodies[2]["messages"]
+    assert "issued-primary" not in transport.requests[2].body_json
+
+
+def test_final_before_required_day_validation_is_terminal_without_reserve() -> None:
+    transport = FakeTransport(answer(), tool_answer())
+    active = run(transport, force_validate_day=True)
+    with fails("invalid_provider_response"):
+        active.call()
+    assert len(transport.requests) == 1
+    assert active.switches == 0
+
+
+def with_usage(reply: HttpReply, usage: dict[str, int] | None) -> HttpReply:
+    body = json.loads(reply.body)
+    if usage is None:
+        body.pop("usage", None)
+    else:
+        body["usage"] = usage
+    return reply.model_copy(update={"body": json.dumps(body).encode()})
+
+
+def test_usage_sums_successful_turns_and_separates_last_response() -> None:
+    transport = FakeTransport(
+        with_usage(tool_answer(), {"prompt_tokens": 20, "completion_tokens": 6}),
+        with_usage(answer(), {"prompt_tokens": 30, "completion_tokens": 8}),
+    )
+    active = run(transport)
+    active.record_tool(active.call(), "{}")
+    active.finalize(active.call(), lambda _: None)
+    metadata = active.metadata()
+    assert metadata.last_response_usage.prompt_tokens == 30
+    assert metadata.last_response_usage.completion_tokens == 8
+    assert metadata.usage == metadata.last_response_usage
+    assert metadata.known_run_usage.prompt_tokens == 50
+    assert metadata.known_run_usage.completion_tokens == 14
+    assert metadata.usage_complete is True
+    assert len(metadata.known_usage_by_provider) == 1
+    assert metadata.known_usage_by_provider[0].known_usage == metadata.known_run_usage
+    assert metadata.known_usage_by_provider[0].usage_complete is True
+
+
+def test_usage_remains_incomplete_after_lost_response_and_counts_both_providers() -> (
+    None
+):
+    transport = FakeTransport(
+        with_usage(tool_answer(), {"prompt_tokens": 20, "completion_tokens": 6}),
+        OSError("private transport detail"),
+        with_usage(answer(), {"prompt_tokens": 30, "completion_tokens": 8}),
+    )
+    active = run(transport)
+    active.record_tool(active.call(), "{}")
+    active.finalize(active.call(), lambda _: None)
+    metadata = active.metadata()
+    assert metadata.http_calls == 3
+    assert metadata.known_run_usage.prompt_tokens == 50
+    assert metadata.known_run_usage.completion_tokens == 14
+    assert metadata.usage_complete is False
+    groq, reserve = metadata.known_usage_by_provider
+    assert groq.provider == "groq" and groq.http_calls == 2
+    assert groq.known_usage.prompt_tokens == 20 and groq.usage_complete is False
+    assert reserve.provider == "openrouter" and reserve.http_calls == 1
+    assert reserve.known_usage.prompt_tokens == 30 and reserve.usage_complete is True
+
+
+def test_missing_usage_is_unknown_instead_of_fabricated_zero() -> None:
+    active = run(FakeTransport(with_usage(answer(), None)))
+    active.finalize(active.call(), lambda _: None)
+    metadata = active.metadata()
+    assert metadata.known_run_usage.prompt_tokens is None
+    assert metadata.known_run_usage.completion_tokens is None
+    assert metadata.last_response_usage.prompt_tokens is None
+    assert metadata.usage_complete is False
+
+
+def test_partial_usage_sums_only_known_fields_and_reports_incomplete() -> None:
+    active = run(
+        FakeTransport(
+            with_usage(tool_answer(), {"prompt_tokens": 10}),
+            with_usage(answer(), {"completion_tokens": 4}),
+        )
+    )
+    active.record_tool(active.call(), "{}")
+    active.finalize(active.call(), lambda _: None)
+    metadata = active.metadata()
+    assert metadata.known_run_usage.prompt_tokens == 10
+    assert metadata.known_run_usage.completion_tokens == 4
+    assert metadata.usage_complete is False
+
+
+def test_reported_zero_usage_is_known_and_complete() -> None:
+    active = run(
+        FakeTransport(
+            with_usage(answer(), {"prompt_tokens": 0, "completion_tokens": 0})
+        )
+    )
+    active.finalize(active.call(), lambda _: None)
+    assert active.metadata().known_run_usage.prompt_tokens == 0
+    assert active.metadata().known_run_usage.completion_tokens == 0
+    assert active.metadata().usage_complete is True
+
+
+def test_failed_last_response_does_not_reuse_previous_usage() -> None:
+    active = run(
+        FakeTransport(
+            with_usage(tool_answer(), {"prompt_tokens": 20, "completion_tokens": 6}),
+            HttpReply(status=401),
+        )
+    )
+    active.record_tool(active.call(), "{}")
+    with fails("provider_authentication"):
+        active.call()
+    metadata = active.metadata()
+    assert metadata.known_run_usage.prompt_tokens == 20
+    assert metadata.last_response_usage.prompt_tokens is None
+    assert metadata.usage_complete is False
 
 
 @pytest.mark.parametrize("first", [429, 500, 503])
@@ -599,3 +748,69 @@ def test_model_receives_exact_final_reference_contract_in_trusted_system_text(
     assert "never invent references" in system["content"]
     assert payload["response_format"] == {"type": "json_object"}
     assert "json_schema" not in payload
+
+
+def test_deadline_boundary_before_request_construction_is_typed_timeout() -> None:
+    ticks = iter([0.0, 0.0, 0.0, 0.0, 44.9, 45.0])
+    transport = FakeTransport(answer())
+    active = run(transport, monotonic=lambda: next(ticks))
+    with fails("timeout") as caught:
+        active.call()
+    assert caught.value.http_status == 504
+    assert active.http_calls == 0 and transport.requests == []
+
+
+def test_deadline_expiring_during_serialization_prevents_dispatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.operations import policy
+
+    clock = [0.0]
+    original = policy.build_request
+
+    def serialize(*args, **kwargs):  # type: ignore[no-untyped-def]
+        request = original(*args, **kwargs)
+        clock[0] = 45.0
+        return request
+
+    monkeypatch.setattr(policy, "build_request", serialize)
+    transport = FakeTransport(answer())
+    active = run(transport, monotonic=lambda: clock[0])
+    with fails("timeout"):
+        active.call()
+    assert active.http_calls == 0 and transport.requests == []
+
+
+@pytest.mark.parametrize(
+    ("finish", "calls"),
+    [
+        ("tool_calls", "missing"),
+        ("tool_calls", None),
+        ("tool_calls", []),
+        ("tool_calls", {}),
+        ("tool_calls", [None]),
+        ("stop", [{}]),
+        ("stop", {}),
+        ("stop", "invalid"),
+    ],
+)
+def test_finish_reason_and_tool_call_shape_must_agree(
+    finish: str,
+    calls: object,
+) -> None:
+    message = {"content": '{"evidence_ids":[]}'}
+    if calls != "missing":
+        message["tool_calls"] = calls
+    reply = HttpReply(
+        status=200,
+        body=json.dumps(
+            {
+                "choices": [{"finish_reason": finish, "message": message}],
+            }
+        ).encode(),
+    )
+    transport = FakeTransport(reply, answer())
+    active = run(transport)
+    with fails("invalid_provider_response"):
+        active.call()
+    assert active.switches == 0 and len(transport.requests) == 1

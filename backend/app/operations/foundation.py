@@ -1,4 +1,4 @@
-"""Explicit programmatic steps, not an agent loop, route, UI or live transport."""
+"""Read-only snapshot/tool boundary shared by scripted tests and the review loop."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from app.operations.provider_models import (
 from app.operations.providers import Transport
 from app.operations.schemas import OperationError, ToolResult
 from app.operations.snapshot import RunContext, SnapshotReader
-from app.operations.tools import FrozenTools
+from app.operations.tools import TOOL_DESCRIPTIONS, FrozenTools
 
 CONTEXT_ERRORS: dict[str, ErrorCode] = {
     "session_required": "session_expired",
@@ -26,7 +26,22 @@ CONTEXT_ERRORS: dict[str, ErrorCode] = {
     "cancelled": "cancelled",
     "date_out_of_range": "date_out_of_range",
     "snapshot_too_large": "snapshot_too_large",
+    "timeout": "timeout",
+    "database_unavailable": "ai_temporarily_unavailable",
 }
+
+
+def context_failure(error: OperationError) -> AgentFailure:
+    status = (
+        504
+        if error.code == "timeout"
+        else 503
+        if error.code == "database_unavailable"
+        else 409
+    )
+    return AgentFailure(
+        CONTEXT_ERRORS.get(error.code, "provider_configuration"), http_status=status
+    )
 
 
 class PreparedReview:
@@ -70,8 +85,11 @@ def prepare_review(
     settings: ProviderSettings,
     transport: Transport,
     admit: Callable[[], bool],
+    force_validate_day: bool = False,
+    started_at: float | None = None,
 ) -> PreparedReview:
-    started_at = monotonic()
+    started_at = monotonic() if started_at is None else started_at
+    deadline = started_at + settings.deadline_seconds
     # No cookie resolution, snapshot work, or outbound request when disabled.
     if not settings.enabled:
         raise AgentFailure("agent_disabled")
@@ -81,21 +99,19 @@ def prepare_review(
     if cancelled():
         raise AgentFailure("cancelled", http_status=409)
     try:
-        context = reader.capture(current_cookie(), selected_date)
+        context = reader.capture(
+            current_cookie(), selected_date, deadline=deadline, cancelled=cancelled
+        )
     except OperationError as error:
-        raise AgentFailure(
-            CONTEXT_ERRORS.get(error.code, "provider_configuration"),
-            http_status=409,
-        ) from None
+        raise context_failure(error) from None
 
     def check() -> None:
         try:
-            reader.check(context, current_cookie(), cancelled=cancelled())
+            reader.check(
+                context, current_cookie(), cancelled=cancelled, deadline=deadline
+            )
         except OperationError as error:
-            raise AgentFailure(
-                CONTEXT_ERRORS.get(error.code, "provider_configuration"),
-                http_status=409,
-            ) from None
+            raise context_failure(error) from None
 
     tools = FrozenTools(context.snapshot)
     run = ProviderRun(
@@ -108,8 +124,7 @@ def prepare_review(
         tools=tuple(
             ToolContract(
                 name=name,
-                description=f"Read-only {name}; same frozen snapshot, "
-                "no execution of plans or solver.",
+                description=TOOL_DESCRIPTIONS[name],
                 parameters_json=schema,
             )
             for name, schema in tools.contracts()
@@ -117,5 +132,6 @@ def prepare_review(
         check_context=check,
         admit=lambda: True,  # Already admitted above; never re-admit on reserve.
         started_at=started_at,
+        force_validate_day=force_validate_day,
     )
     return PreparedReview(context, tools, run)

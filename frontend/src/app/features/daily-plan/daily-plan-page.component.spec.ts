@@ -117,6 +117,10 @@ async function setup(url = '/daily') {
   await router.navigateByUrl(url);
   const fixture = TestBed.createComponent(DailyPlanPageComponent);
   fixture.detectChanges();
+  TestBed.inject(HttpTestingController).expectOne('/api/v1/operations/capabilities').flush({
+    enabled: false, external_processing: false, providers: [], selected_scenario: 'review_operations',
+    season_start: '2025-12-01', season_end: '2026-03-31',
+  });
   return { fixture, router, http: TestBed.inject(HttpTestingController) };
 }
 
@@ -131,6 +135,9 @@ describe('DailyPlanPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('No activities planned');
+    expect(fixture.nativeElement.querySelector('ht-operations-review')?.textContent).toContain('31 March 2026');
+    expect(fixture.nativeElement.querySelector('ht-operations-review')?.textContent).toContain('AI review is not enabled');
+    http.expectNone('/api/v1/operations/review');
     (fixture.nativeElement.querySelector('.activities-heading .primary') as HTMLButtonElement).click();
     fixture.detectChanges();
     http

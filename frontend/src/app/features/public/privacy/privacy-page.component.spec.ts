@@ -81,4 +81,19 @@ describe('Privacy workspace disclosure', () => {
     TestBed.inject(HttpTestingController)
       .expectNone((request) => request.url.startsWith('/api/v1/demo/'));
   });
+
+  it('describes external AI only in an environment where the feature is enabled', () => {
+    const fixture = TestBed.createComponent(PrivacyPageComponent);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/public/privacy')
+      .flush({ ...metadata, operations_review_enabled: true });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.querySelector('#operations-review')?.textContent ?? '';
+    expect(text).toContain('Groq');
+    expect(text).toContain('OpenRouter');
+    expect(text).toContain('Free-text notes, Contact messages');
+    expect(text).toContain('do not guarantee zero retention or EEA-only');
+    expect(text).toContain('A request already sent may still finish');
+    TestBed.inject(HttpTestingController).expectNone((request) => request.url.startsWith('/api/v1/demo/'));
+  });
 });

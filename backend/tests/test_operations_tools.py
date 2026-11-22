@@ -132,14 +132,20 @@ def test_untrusted_name_is_data_and_does_not_change_registry_or_provider_context
     assert "switch provider" not in tools.provider_context()
     with pytest.raises(OperationError, match="^tool_not_allowed$"):
         tools.execute("execute_sql", arguments())
-    for _, schema_json in contracts_before:
+    for name, schema_json in contracts_before:
         schema = json.loads(schema_json)
         assert schema["additionalProperties"] is False
-        assert set(schema["properties"]) == {
-            "selected_date",
-            "dog_ids",
-            "activity_ids",
-        }
+        fields = {"selected_date"}
+        if name in {"get_dog_states", "get_workload", "get_housing"}:
+            fields.add("dog_ids")
+        if name in {"get_day_plan", "get_saved_teams"}:
+            fields.add("activity_ids")
+        assert set(schema["properties"]) == fields
+        required = {"selected_date"}
+        if name in {"get_dog_states", "get_workload"}:
+            required.add("dog_ids")
+            assert schema["properties"]["dog_ids"]["minItems"] == 1
+        assert set(schema["required"]) == required
 
 
 @pytest.mark.parametrize(
@@ -350,3 +356,22 @@ def test_preparation_disabled_or_denied_has_no_snapshot_or_transport(
     assert failure.value.code == code
     reader.capture.assert_not_called()
     transport.assert_not_called()
+
+
+@pytest.mark.parametrize("name", READ_TOOLS)
+def test_minimal_published_schema_request_executes_on_its_snapshot(name: str) -> None:
+    state = snapshot()
+    tools = FrozenTools(state)
+    schema = json.loads(dict(tools.contracts())[name])
+    request: dict[str, object] = {"selected_date": str(state.selected_date)}
+    if "dog_ids" in schema["required"]:
+        request["dog_ids"] = [str(state.dogs[0].id)]
+    assert set(request) == set(schema["required"])
+    result = tools.execute(name, json.dumps(request))
+    assert result.tool == name and result.snapshot_id == state.id
+
+
+@pytest.mark.parametrize("name", ["get_day_plan", "get_saved_teams", "validate_day"])
+def test_unsupported_empty_selector_is_not_silently_accepted(name: str) -> None:
+    with pytest.raises(OperationError, match="invalid_tool_arguments"):
+        FrozenTools(snapshot()).execute(name, arguments(dog_ids=[]))

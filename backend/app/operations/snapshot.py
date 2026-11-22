@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
-from typing import cast
+from time import monotonic
+from typing import Any, cast
 from uuid import UUID, uuid4
 
+from psycopg import Error as PsycopgError
 from pydantic import ValidationError
-from sqlalchemy import func, select
+from sqlalchemy import event, func, select
+from sqlalchemy.engine import Connection
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import TimeoutError as PoolTimeout
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.demo_clock import DemoClock
@@ -57,7 +64,66 @@ class SnapshotReader:
     def __init__(self, sessions: sessionmaker[Session], clock: DemoClock, secret: str):
         self._sessions, self.clock, self._secret = sessions, clock, secret
 
-    def capture(self, cookie: str | None, selected_date: date) -> RunContext:
+    @staticmethod
+    def _checkpoint(
+        deadline: float | None, cancelled: Callable[[], bool] | None
+    ) -> int:
+        if cancelled is not None and cancelled():
+            raise OperationError("cancelled")
+        remaining = 8.0 if deadline is None else deadline - monotonic()
+        if remaining <= 0:
+            raise OperationError("timeout")
+        return max(1, min(8000, int(remaining * 1000)))
+
+    @contextmanager
+    def _read_session(
+        self, deadline: float | None, cancelled: Callable[[], bool] | None
+    ) -> Iterator[Session]:
+        self._checkpoint(deadline, cancelled)
+        try:
+            with self._sessions() as session, session.begin(), session.no_autoflush:
+                connection = session.connection()
+
+                def before_query(
+                    _: Connection,
+                    cursor: Any,
+                    statement: str,
+                    parameters: Any,
+                    context: Any,
+                    executemany: bool,
+                ) -> None:
+                    milliseconds = self._checkpoint(deadline, cancelled)
+                    # Transaction-local driver settings, never domain writes. Reapply
+                    # each query so a late query cannot inherit an earlier long wait.
+                    cursor.execute(f"SET LOCAL statement_timeout = '{milliseconds}ms'")
+                    cursor.execute(
+                        f"SET LOCAL lock_timeout = '{min(5000, milliseconds)}ms'"
+                    )
+
+                event.listen(connection, "before_cursor_execute", before_query)
+                try:
+                    yield session
+                    self._checkpoint(deadline, cancelled)
+                finally:
+                    event.remove(connection, "before_cursor_execute", before_query)
+        except PoolTimeout:
+            raise OperationError("timeout") from None
+        except (DBAPIError, PsycopgError) as error:
+            if cancelled is not None and cancelled():
+                raise OperationError("cancelled") from None
+            code = getattr(getattr(error, "orig", error), "sqlstate", None)
+            raise OperationError(
+                "timeout" if code in {"57014", "55P03"} else "database_unavailable"
+            ) from None
+
+    def capture(
+        self,
+        cookie: str | None,
+        selected_date: date,
+        *,
+        deadline: float | None = None,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> RunContext:
         if (
             type(selected_date) is not date
             or not self.clock.season_start <= selected_date <= self.clock.season_end
@@ -65,7 +131,7 @@ class SnapshotReader:
             raise OperationError("date_out_of_range")
         if not cookie:
             raise OperationError("session_required")
-        with self._sessions() as session, session.begin(), session.no_autoflush:
+        with self._read_session(deadline, cancelled) as session:
             workspace = resolve_workspace(session, cookie, self._secret)
             if workspace is None:
                 raise OperationError("session_expired")
@@ -329,11 +395,17 @@ class SnapshotReader:
         return RunContext(snapshot, binding)
 
     def check(
-        self, context: RunContext, cookie: str | None, *, cancelled: bool = False
+        self,
+        context: RunContext,
+        cookie: str | None,
+        *,
+        cancelled: bool | Callable[[], bool] = False,
+        deadline: float | None = None,
     ) -> None:
-        if cancelled:
+        cancel_check = cancelled if callable(cancelled) else lambda: cancelled
+        if cancel_check():
             raise OperationError("cancelled")
-        with self._sessions() as session, session.begin(), session.no_autoflush:
+        with self._read_session(deadline, cancel_check) as session:
             workspace = resolve_workspace(session, cookie, self._secret)
             if workspace is None:
                 raise OperationError("session_expired")

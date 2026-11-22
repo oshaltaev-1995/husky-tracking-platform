@@ -339,6 +339,52 @@ def test_solver_requests_share_existing_policy_and_safe_json_rejection() -> None
     assert "real_ip_recursive off;" in config
 
 
+@pytest.mark.parametrize(
+    ("method", "path", "limited"),
+    [
+        ("POST", "/api/v1/operations/review", True),
+        ("POST", "/api/v1/operations/review?new-cookie=1", True),
+        ("GET", "/api/v1/operations/review", False),
+        ("GET", "/api/v1/operations/capabilities", False),
+        ("GET", "/api/v1/daily-plans/2026-03-29", False),
+        ("POST", "/api/v1/demo/reset", False),
+        ("POST", "/api/v1/training-day-example/apply", False),
+        ("GET", "/", False),
+    ],
+)
+def test_operations_ingress_boundary_is_exact_and_cookie_independent(
+    method: str, path: str, limited: bool
+) -> None:
+    config = (REPOSITORY / "frontend/nginx.conf").read_text()
+    actual = mapped_rate_key(config, "operations_rate_key", method, path)
+    assert (actual == "$binary_remote_addr") is limited
+    assert re.search(
+        r"limit_req_zone\s+\$operations_rate_key\s+"
+        r"zone=operations_per_client:10m\s+rate=2r/m;",
+        config,
+    )
+    assert "limit_req zone=operations_per_client burst=1 nodelay;" in config
+    assert "limit_conn operations_concurrent_per_client 1;" in config
+    assert "limit_conn_status 429;" in config
+    assert "proxy_ignore_client_abort off;" in config
+    assert "proxy_next_upstream off;" in config
+    mapping = re.search(
+        r'map "\$request_method:\$uri" \$operations_rate_key \{([^}]+)\}', config
+    )
+    assert mapping and not re.search(r"cookie|session|http_x", mapping[1], re.I)
+
+
+def test_agent_compose_flags_remain_explicitly_disabled_and_keys_server_only() -> None:
+    config = render_compose("compose.ingress.yml")
+    services = config["services"]
+    assert isinstance(services, dict)
+    environment = services["backend"]["environment"]
+    assert environment["AGENT_ENABLED"] == "false"
+    assert environment["AGENT_GROQ_FREE_ACCOUNT_CONFIRMED"] == "false"
+    frontend = services["huskytracking-frontend"]["environment"]
+    assert not any(key.startswith("AGENT_") for key in frontend)
+
+
 def test_nginx_distinguishes_known_spa_routes_from_unknown_paths() -> None:
     config = (REPOSITORY / "frontend/nginx.conf").read_text()
     assert "location = / {" in config

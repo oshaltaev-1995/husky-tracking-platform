@@ -1,0 +1,105 @@
+<section class="operations-review" aria-labelledby="operations-review-title">
+  <header class="review-heading">
+    <div>
+      <p class="eyebrow">Read-only assistance</p>
+      <h2 id="operations-review-title">Operations review</h2>
+      <p>Selected day · <strong>{{ (selectedDate() + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</strong></p>
+    </div>
+    @if (capabilities()?.enabled) {
+      <div class="review-actions">
+        <button #reviewButton class="button secondary" type="button"
+          [disabled]="pending() || blocked() || sessionExpired() || retryAt() !== null"
+          (click)="review()">{{ pending() ? 'Reviewing…' : result() || error() ? 'Review again' : 'Review operations' }}</button>
+        @if (pending()) { <button #cancelButton class="button quiet" type="button" (click)="cancel()">Cancel review</button> }
+      </div>
+    }
+  </header>
+
+  @if (capabilities()?.enabled) {
+    <p class="review-disclosure">When you choose Review operations, selected fictional kennel data is processed by Groq or the free OpenRouter reserve. Notes, Contact messages and session details are excluded. The review does not change your saved day. <a routerLink="/privacy" fragment="operations-review">Privacy details</a></p>
+    @if (sessionExpired()) {
+      <p class="review-message" role="status">Open a current demo session before reviewing. Reload the demo if your session expired.</p>
+    } @else if (blocked() && !pending()) {
+      <p class="review-context">Finish the current edit or review first. Operations review uses saved data.</p>
+    }
+  } @else if (capabilitiesFailed()) {
+    <p class="review-message" role="status">Review availability could not be checked. You can continue planning normally.</p>
+    <button class="button quiet" type="button" (click)="loadCapabilities()">Check review availability</button>
+  } @else if (capabilities()) {
+    <p class="review-context">AI review is not enabled in this environment. Daily Plan and its other workflows remain available.</p>
+  } @else {
+    <p class="review-context" role="status">Checking review availability…</p>
+  }
+
+  @if (pending()) {
+    <p class="review-message" role="status">Reviewing the saved day. You can cancel this view; a provider request already sent may still finish and use quota.</p>
+  }
+  @if (error()) { <p class="review-message error" role="alert">{{ error() }}</p> }
+  @if (retryAt(); as retryTime) { <p class="review-context" role="status">You can start another review after {{ retryTime | date: 'HH:mm:ss' }}. Requests are not repeated automatically.</p> }
+  @if (notice()) { <p class="review-message" role="status">{{ notice() }}</p> }
+
+  @if (result(); as current) {
+    <div class="review-result">
+      <header class="result-heading">
+        <div><h3>Review of {{ (current.selected_date + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</h3><p>Snapshot · {{ current.captured_at | date: 'd MMM y, HH:mm:ss':'UTC' }} UTC</p></div>
+        <span class="provider-label">{{ providerLabel(current.provider) }} · {{ current.fallback ? 'Free reserve used' : 'Primary route' }}</span>
+      </header>
+      <p class="snapshot-context">This result describes saved data at the snapshot time. Later edits are not included. Checked facts do not guarantee a training session’s safety or confirm that planned work took place.</p>
+
+      <section class="model-explanation" aria-label="AI explanation">
+        <h4>AI explanation</h4><p>{{ current.explanation }}</p>
+        <small>The explanation is model-generated text. Its references are checked; its wording is not independently verified.</small>
+      </section>
+
+      <section class="checked-facts" aria-label="Checked operational facts">
+        <h4>Checked facts</h4>
+        @for (fact of current.facts; track fact.rule) {
+          <div class="fact-group"><strong>{{ ruleLabel(fact.rule) }}</strong>
+            <p>{{ fact.explanation }}</p>
+            @for (evidence of evidenceFor(fact); track evidence.id) {
+              <dl>@for (value of evidence.values; track value.name) { <div><dt>{{ valueLabel(value.name) }}</dt><dd>{{ displayValue(value) }}</dd></div> }</dl>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="findings" aria-label="Deterministic findings">
+        <header><h4>Findings</h4><p>{{ current.status_counts.violations }} {{ current.status_counts.violations === 1 ? 'issue' : 'issues' }} · {{ current.status_counts.attention }} attention · {{ current.status_counts.unverified }} not verified</p></header>
+        @if (!current.findings.length) { <p class="review-context">No attention or violation was found by the listed checks. This is not a guarantee about unverified conditions.</p> }
+        @if (current.findings.length) {
+          <details class="finding-details">
+            <summary>View {{ current.findings.length }} detailed {{ current.findings.length === 1 ? 'finding' : 'findings' }}</summary>
+            @for (finding of current.findings; track $index) {
+              <article class="finding" [attr.data-status]="finding.status">
+                <header><h5>{{ findingTitle(finding) }}</h5><span class="finding-status">{{ statusLabel(finding.status) }}</span></header>
+                <p>{{ finding.explanation }}</p>
+                @for (evidence of evidenceFor(finding); track evidence.id) {
+                  <dl>@for (value of evidence.values; track value.name) { <div><dt>{{ valueLabel(value.name) }}</dt><dd>{{ displayValue(value) }}</dd></div> }</dl>
+                }
+              </article>
+            }
+          </details>
+        }
+        @if (current.omitted_findings) { <p class="review-message">{{ current.omitted_findings }} additional {{ current.omitted_findings === 1 ? 'finding is' : 'findings are' }} not shown in this compact result. Review the existing operational screens for full detail.</p> }
+      </section>
+
+      @if (safeLinks().length) {
+        <nav class="review-links" aria-label="Related operational screens">
+          @for (link of safeLinks(); track $index) { <a [routerLink]="link.route" [queryParams]="link.query">{{ link.label }} <span aria-hidden="true">↗</span></a> }
+        </nav>
+      }
+
+      <details class="review-trace">
+        <summary>Review steps and provider details</summary>
+        <p>{{ providerLabel(current.provider) }} · {{ current.model }} · {{ current.http_calls }} model {{ current.http_calls === 1 ? 'request' : 'requests' }} · {{ current.tool_calls }} read {{ current.tool_calls === 1 ? 'tool' : 'tools' }}</p>
+        @if (current.fallback) { <p>The review restarted on the free reserve using the same snapshot. The primary transcript was not carried over.</p> }
+        <ol>@for (step of current.trace; track $index) { <li><strong>{{ toolLabel(step.tool_name) }}</strong><span>{{ providerLabel(step.provider) }} · {{ step.outcome === 'ok' ? 'Completed' : 'Stopped' }} · {{ step.elapsed_ms }} ms</span></li> }</ol>
+        <p class="checked-rule-list">Checks considered: @for (rule of current.checked_rules; track rule; let last = $last) { {{ ruleLabel(rule) }}{{ last ? '.' : ';' }} }</p>
+        @if (current.usage.known_prompt_tokens !== null || current.usage.known_completion_tokens !== null) {
+          <p>Known usage: {{ current.usage.known_prompt_tokens ?? 'unknown' }} input tokens · {{ current.usage.known_completion_tokens ?? 'unknown' }} output tokens.@if (current.usage.incomplete) { Some requests did not report usage, so these totals are incomplete. }</p>
+        } @else { <p>Token usage was not reported for this run.</p> }
+        <small>Account quota and billing are not measured here. No hidden reasoning or raw model transcript is displayed.</small>
+      </details>
+    </div>
+  }
+</section>

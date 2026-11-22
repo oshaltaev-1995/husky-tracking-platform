@@ -1,0 +1,292 @@
+import { DatePipe, DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationStart, Router, RouterLink } from '@angular/router';
+import { Subscription, filter, timeout } from 'rxjs';
+
+import { DemoSession, DemoSessionService } from '../../core/api/demo-session.service';
+import { OperationsCapabilities, OperationsReview, ReviewCheck, ReviewEvidence, ReviewProvider, ReviewStatus } from '../../core/api/operations.models';
+import { OperationsService } from '../../core/api/operations.service';
+
+interface LocalLink { label: string; route: string; query: Record<string, string> }
+
+const ROLE_LABELS: Record<string, string> = { lead: 'Lead', team: 'Team', wheel: 'Wheel' };
+// A local courtesy for the ingress 2/minute policy, not account/global quota state.
+const DEFAULT_RATE_LIMIT_WAIT_SECONDS = 30;
+
+const RULE_LABELS: Record<string, string> = {
+  PLAN_PRESENCE: 'Saved plan', ACTIVITY_DISTANCE: 'Activity distance',
+  PARTICIPANT_ELIGIBILITY: 'Participant eligibility', SAVED_LINEUP: 'Saved teams',
+  ACTUAL_RECORDING: 'Actual recording', PLANNED_DAILY_KM: 'Planned workload',
+  ACTUAL_DAILY_KM: 'Recorded workload', DATED_STATE_MISSING: 'Dated information',
+  DOG_STATE: 'Dog state', WORKLOAD_BEFORE: 'Previous actual workload',
+  HOUSING_INFORMATION: 'Housing', ACTUAL_LEDGER: 'Actual work recorded',
+};
+const VALUE_LABELS: Record<string, string> = {
+  activities: 'Activities', distance: 'Distance', ineligible_participants: 'Ineligible participants',
+  selected_participants: 'Selected dogs', saved_teams: 'Saved teams', validator_code: 'Lineup check',
+  recording_status: 'Recording state', total: 'Total', starts_or_activities: 'Starts or activities',
+  sessions: 'Sessions', dog_starts: 'Dog starts', dog_km: 'Dog-km', residents: 'Residents',
+  nominal_capacity: 'Nominal capacity', class: 'Class', availability: 'Availability',
+  housing: 'Housing', lifecycle: 'Lifecycle', born: 'Born on selected date', roles: 'Capabilities',
+  housing_source: 'Housing source', km_7d_before: 'Previous 7 days', km_14d_before: 'Previous 14 days',
+  season_km_before: 'Season before date', starts_14d_before: 'Previous 14-day starts',
+  days_since_work_before: 'Days since previous work', actual_km_on_date: 'Actual on this date',
+  starts_on_date: 'Starts on this date',
+};
+
+@Component({
+  selector: 'ht-operations-review',
+  imports: [DatePipe, RouterLink],
+  templateUrl: './operations-review.component.html',
+  styleUrl: './operations-review.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class OperationsReviewComponent {
+  readonly selectedDate = input.required<string>();
+  readonly blocked = input(false);
+  private readonly api = inject(OperationsService);
+  private readonly session = inject(DemoSessionService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly document = inject(DOCUMENT);
+  private readonly reviewButton = viewChild<ElementRef<HTMLButtonElement>>('reviewButton');
+  private readonly cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
+  private request: Subscription | null = null;
+  private capabilitiesRequest: Subscription | null = null;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private epoch = 0;
+  private destroyed = false;
+  private contextDate: string | null = null;
+  private contextSession: DemoSession | null | undefined;
+
+  protected readonly capabilities = signal<OperationsCapabilities | null>(null);
+  protected readonly capabilitiesFailed = signal(false);
+  protected readonly pending = signal(false);
+  protected readonly result = signal<OperationsReview | null>(null);
+  protected readonly error = signal('');
+  protected readonly notice = signal('');
+  protected readonly retryAt = signal<number | null>(null);
+  protected readonly sessionExpired = signal(false);
+  protected readonly safeLinks = computed(() => this.result()?.links.flatMap((link) => {
+    const parsed = this.localLink(link.path);
+    return parsed ? [{ ...parsed, label: link.label }] : [];
+  }) ?? []);
+
+  constructor() {
+    this.loadCapabilities();
+    for (const event of [this.session.resetReviewOpened$, this.session.resetStarted$, this.session.replaced$]) {
+      event.pipe(takeUntilDestroyed()).subscribe(() => this.invalidate());
+    }
+    this.router.events.pipe(filter((event) => event instanceof NavigationStart), takeUntilDestroyed())
+      .subscribe(() => this.invalidate());
+    effect((onCleanup) => {
+      const date = this.selectedDate(), currentSession = this.session.session();
+      this.synchronize(date, currentSession);
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      const checkExpiry = () => {
+        const remaining = currentSession ? new Date(currentSession.expires_at).getTime() - Date.now() : 0;
+        const expired = !Number.isFinite(remaining) || remaining <= 0;
+        this.sessionExpired.set(expired);
+        if (expired) {
+          this.invalidate();
+          return;
+        }
+        timer = setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
+      };
+      checkExpiry();
+      onCleanup(() => { if (timer) clearTimeout(timer); });
+    });
+    this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.invalidate();
+      this.capabilitiesRequest?.unsubscribe();
+      if (this.retryTimer) clearTimeout(this.retryTimer);
+    });
+  }
+
+  protected loadCapabilities(): void {
+    this.capabilitiesRequest?.unsubscribe();
+    this.capabilitiesFailed.set(false);
+    this.capabilitiesRequest = this.api.getCapabilities().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (capabilities) => this.capabilities.set(capabilities),
+      error: () => { this.capabilities.set(null); this.capabilitiesFailed.set(true); },
+    });
+  }
+
+  protected review(): void {
+    const currentSession = this.session.session();
+    this.synchronize(this.selectedDate(), currentSession);
+    if (!this.capabilities()?.enabled || this.pending() || this.blocked() || this.retryAt() || !this.validSession(currentSession)) return;
+    const date = this.selectedDate(), epoch = ++this.epoch;
+    this.result.set(null);
+    this.error.set('');
+    this.notice.set('');
+    this.pending.set(true);
+    this.request = this.api.review(date).pipe(timeout(50_000), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (response) => {
+        if (!this.isCurrent(epoch, date, currentSession)) return;
+        const restoreFocus = this.document.activeElement === this.cancelButton()?.nativeElement;
+        this.pending.set(false);
+        if (response.selected_date !== date) {
+          this.error.set('The review response did not match this day. No result was accepted.');
+        } else {
+          this.result.set(response);
+          this.notice.set('Operations review ready. The checked facts and model explanation are shown separately.');
+        }
+        if (restoreFocus) this.restoreReviewFocus(epoch);
+      },
+      error: (failure: unknown) => {
+        if (!this.isCurrent(epoch, date, currentSession)) return;
+        const restoreFocus = this.document.activeElement === this.cancelButton()?.nativeElement;
+        this.pending.set(false);
+        this.error.set(this.failureMessage(failure));
+        const wait = this.retrySeconds(failure);
+        if (wait > 0) {
+          this.retryAt.set(Date.now() + wait * 1000);
+          this.retryTimer = setTimeout(() => { this.retryAt.set(null); this.retryTimer = null; }, wait * 1000);
+        }
+        if (restoreFocus) this.restoreReviewFocus(epoch);
+      },
+    });
+  }
+
+  protected cancel(): void {
+    this.invalidate();
+    this.notice.set('Review cancelled here. A request already sent may still finish with the provider; no result will be shown. Cancelling does not return provider quota.');
+    this.restoreReviewFocus(this.epoch);
+  }
+
+  protected ruleLabel(rule: string): string { return RULE_LABELS[rule] ?? 'Operational check'; }
+  protected findingTitle(check: ReviewCheck): string {
+    const names = [...new Set(check.entities.filter((entity) => entity.kind === 'dog').map((entity) => entity.id))]
+      .flatMap((id) => {
+        const link = this.result()?.links.find((item) => item.entity.kind === 'dog' && item.entity.id === id && this.localLink(item.path));
+        return link ? [link.label] : [];
+      });
+    return names.length ? `${this.ruleLabel(check.rule)} · ${names.join(', ')}` : this.ruleLabel(check.rule);
+  }
+  protected valueLabel(name: string): string { return VALUE_LABELS[name] ?? name.replaceAll('_', ' '); }
+  protected statusLabel(status: ReviewStatus): string {
+    return { pass: 'Checked', violation: 'Issue', attention: 'Attention', unverified: 'Not verified' }[status];
+  }
+  protected providerLabel(provider: ReviewProvider): string { return provider === 'groq' ? 'Groq' : 'OpenRouter'; }
+  protected toolLabel(name: string): string {
+    return ({ get_day_plan: 'Read saved day plan', get_saved_teams: 'Read saved teams', get_dog_states: 'Read dated dog states', get_workload: 'Read actual workload', get_housing: 'Read dated housing', validate_day: 'Validate the selected day' } as Record<string, string>)[name] ?? 'Read operational facts';
+  }
+  protected evidenceFor(check: ReviewCheck): ReviewEvidence[] {
+    return this.result()?.evidence.filter((item) => check.evidence_ids.includes(item.id)) ?? [];
+  }
+  protected displayValue(value: ReviewEvidence['values'][number]): string {
+    const data = value.value;
+    if (data === null) return 'Not recorded';
+    if (typeof data === 'boolean') return data ? 'Yes' : 'No';
+    if (value.unit === 'km') return `${data} km`;
+    if (value.unit === 'days') return `${data} days`;
+    if (value.name === 'roles' && typeof data === 'string') {
+      return data.split(',').map((role) => ROLE_LABELS[role.trim()] ?? role.trim()).join(' · ');
+    }
+    return typeof data === 'string' ? data.replaceAll('_', ' ') : String(data);
+  }
+
+  private synchronize(date: string, currentSession: DemoSession | null): void {
+    if (this.contextDate !== date || this.contextSession !== currentSession) {
+      this.invalidate();
+      this.contextDate = date;
+      this.contextSession = currentSession;
+    }
+  }
+
+  private invalidate(): void {
+    this.epoch++;
+    this.request?.unsubscribe();
+    this.request = null;
+    this.pending.set(false);
+    this.result.set(null);
+    this.error.set('');
+    this.notice.set('');
+    // Retry-After belongs to this connection/provider, not the selected demo date.
+    // A date change or Reset must not make that waiting hint disappear.
+  }
+
+  private validSession(current: DemoSession | null): current is DemoSession {
+    return Boolean(current?.active && new Date(current.expires_at).getTime() > Date.now());
+  }
+  private isCurrent(epoch: number, date: string, currentSession: DemoSession): boolean {
+    return !this.destroyed && this.epoch === epoch && this.selectedDate() === date && this.session.session() === currentSession && this.validSession(currentSession);
+  }
+  private restoreReviewFocus(epoch: number): void {
+    // Signals change before Angular removes Cancel and re-enables this button.
+    // Restore focus after that render, not in an earlier microtask.
+    afterNextRender(() => {
+      if (!this.destroyed && epoch === this.epoch) {
+        const button = this.reviewButton()?.nativeElement;
+        if (button?.isConnected && !button.disabled) button.focus({ preventScroll: true });
+      }
+    }, { injector: this.injector });
+  }
+
+  private failureMessage(failure: unknown): string {
+    if (!(failure instanceof HttpErrorResponse)) return 'The review timed out. No result was accepted. Start another review only when you choose.';
+    const detail: unknown = failure.error?.detail;
+    const code = typeof detail === 'object' && detail !== null && 'code' in detail && typeof detail.code === 'string' ? detail.code : failure.status === 429 ? 'app_rate_limited' : '';
+    const messages: Record<string, string> = {
+      app_rate_limited: 'Too many reviews from this connection. Wait before starting another review.',
+      review_busy: 'Another review is already running. Wait for it to finish before starting another.',
+      ai_quota_exhausted: 'Both free AI routes are currently quota-limited. Wait before explicitly trying again.',
+      ai_temporarily_unavailable: 'The free AI service is temporarily unavailable. Your saved plan is unchanged.',
+      agent_disabled: 'AI review is not enabled in this environment. You can continue using Daily Plan.',
+      timeout: 'The review reached its time limit. No result was accepted.',
+      provider_timeout: 'The AI service did not respond in time. No result was accepted.',
+      run_budget_exhausted: 'This review reached its request or response budget. No result was accepted.',
+      invalid_provider_response: 'The AI response could not be validated. No result was accepted.',
+      invalid_evidence: 'The AI response did not match the checked evidence. No result was accepted.',
+      forbidden_tool: 'The AI requested an unsupported action. The review was stopped.',
+      policy_refusal: 'The AI service declined this review. No alternative route was used to bypass that decision.',
+      session_required: 'Open a current demo session before reviewing this day.',
+      session_expired: 'Your demo session expired. Reload the demo before starting a new review.',
+      context_changed: 'Your demo context changed. Start a new review of the current saved day.',
+      date_out_of_range: 'Choose a date within the demo season before reviewing.',
+      snapshot_too_large: 'This saved day has more detail than one compact review can read. Use the operational screens to inspect it.',
+      invalid_review_request: 'The review request could not be accepted. Reload the current day before trying again.',
+      origin_not_allowed: 'Start this review from the current Husky Tracking application.',
+      provider_configuration: 'AI review is unavailable because its provider configuration needs attention.',
+      provider_authentication: 'AI review is unavailable because its provider configuration needs attention.',
+      provider_access_denied: 'The AI provider did not permit this review. No bypass was attempted.',
+      provider_payment_required: 'A free AI route was not available. No paid request was attempted.',
+      cancelled: 'The review was cancelled. No result was accepted.',
+    };
+    return messages[code] ?? 'The review could not be completed. Your saved day is unchanged; no result was accepted.';
+  }
+
+  private retrySeconds(failure: unknown): number {
+    if (!(failure instanceof HttpErrorResponse)) return 0;
+    const header = failure.headers.get('Retry-After')?.trim();
+    const detail: unknown = failure.error?.detail;
+    const supplied = typeof detail === 'object' && detail !== null && 'retry_after_seconds' in detail && typeof detail.retry_after_seconds === 'number' ? detail.retry_after_seconds : null;
+    const parsed = header && /^\d+$/.test(header) ? Number(header)
+      : header && /GMT$/i.test(header) ? Math.max(0, Math.ceil((Date.parse(header) - Date.now()) / 1000)) : null;
+    // A valid explicit zero means no additional waiting hint. Invalid/missing
+    // headers may use the typed body hint, then the local generic-429 courtesy.
+    const wait = parsed !== null && Number.isFinite(parsed) ? parsed
+      : supplied !== null && Number.isFinite(supplied) && supplied >= 0 ? supplied
+      : failure.status === 429 ? DEFAULT_RATE_LIMIT_WAIT_SECONDS : 0;
+    return Math.min(86400, Math.ceil(wait));
+  }
+
+  private localLink(path: string): Omit<LocalLink, 'label'> | null {
+    if (!path.startsWith('/demo/') || path.includes('\\')) return null;
+    try {
+      const url = new URL(path, 'https://huskytracking.invalid');
+      if (url.origin !== 'https://huskytracking.invalid' || url.hash || !/^\/demo\/(?:daily(?:\/\d{4}-\d{2}-\d{2}\/activities\/[0-9a-f-]{32,36}\/teams)?|daily-entry|kennel|dogs\/[0-9a-f-]{32,36}|analytics|dashboard)\/?$/i.test(url.pathname)) return null;
+      const query: Record<string, string> = {};
+      for (const key of ['date', 'tab', 'layer', 'view', 'from', 'to']) {
+        const value = url.searchParams.get(key);
+        if (value !== null) query[key] = value;
+      }
+      return { route: url.pathname, query };
+    } catch { return null; }
+  }
+}

@@ -16,6 +16,7 @@ import {
 import { DailyPlansService } from '../../core/api/daily-plans.service';
 import { DemoSessionService } from '../../core/api/demo-session.service';
 import { ActivityEditorComponent } from './activity-editor.component';
+import { OperationsReviewComponent } from './operations-review.component';
 import { TrainingDayReviewComponent, TrainingDayReviewPhase } from './training-day-review.component';
 
 const DEFAULT_DATE = '2026-03-31';
@@ -24,7 +25,7 @@ const SEASON_END = '2026-03-31';
 
 @Component({
   selector: 'ht-daily-plan-page',
-  imports: [ActivityEditorComponent, DatePipe, FormsModule, RouterLink, TrainingDayReviewComponent],
+  imports: [ActivityEditorComponent, DatePipe, FormsModule, RouterLink, TrainingDayReviewComponent, OperationsReviewComponent],
   templateUrl: './daily-plan-page.component.html',
   styleUrl: './daily-plan-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

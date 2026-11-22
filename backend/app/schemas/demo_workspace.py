@@ -26,3 +26,4 @@ class PrivacyRead(BaseModel):
     mail_provider_name: str | None
     mail_provider_region: str | None
     demo_workspace_ttl_hours: int
+    operations_review_enabled: bool = False

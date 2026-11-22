@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies.demo_workspace import DemoWorkspaceContext, get_demo_workspace
 from app.core.config import Settings, get_settings
 from app.db.session import get_db
+from app.operations.provider_models import AgentFailure, get_provider_settings
 from app.schemas.demo_workspace import DemoResetRead, DemoSessionRead, PrivacyRead
 from app.services.demo_workspace_service import (
     DemoWorkspaceExpiredError,
@@ -47,6 +48,11 @@ def reset_demo_workspace(
 
 @router.get("/public/privacy", response_model=PrivacyRead)
 def privacy(settings: Annotated[Settings, Depends(get_settings)]) -> PrivacyRead:
+    try:
+        operations_enabled = get_provider_settings().enabled
+    except AgentFailure:
+        # Invalid optional agent settings cannot break the public privacy notice.
+        operations_enabled = False
     return PrivacyRead(
         controller_name=settings.privacy_controller_name,
         contact_email=settings.privacy_contact_email,
@@ -56,4 +62,5 @@ def privacy(settings: Annotated[Settings, Depends(get_settings)]) -> PrivacyRead
         mail_provider_name=settings.privacy_mail_provider_name,
         mail_provider_region=settings.privacy_mail_provider_region,
         demo_workspace_ttl_hours=settings.demo_workspace_ttl_hours,
+        operations_review_enabled=operations_enabled,
     )

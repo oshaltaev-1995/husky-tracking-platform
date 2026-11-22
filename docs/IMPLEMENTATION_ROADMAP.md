@@ -855,8 +855,8 @@ outside this local package; P14 is not started.
 
 ## P14A — Read-only Operations Agent foundation
 
-**Status:** local foundation implemented; independent acceptance and P14B remain
-separate. No push, merge, tag, deployment, live inference or public agent UI/endpoint.
+**Status:** accepted local foundation at `5489869ec589461983cc16bf3c8c4e5bcca0a4d7`.
+P14A itself performed no push, merge, tag, deployment, live inference or public agent UI/endpoint.
 The source base is accepted P13G `bdffe6f`; main/public-v1.2 remain protected.
 
 Includes strict immutable snapshot/tool/evidence/error DTOs; cookie-authorized dated
@@ -877,13 +877,35 @@ AI-provider processing claim. Actual tests/limits and results belong to the P14A
 See `OPERATIONS_AGENT_FOUNDATION.md` for architecture, official sources, byte/time/tool
 budgets, refusal contracts, data minimization and Free-only future setup prerequisites.
 
-## P14B — Limited live agent and UI (not started)
+## P14B — Limited live agent and UI
 
-One bounded serial tool loop and Review operations for selected date UI, tool trace,
-server evidence, current-session/cancellation and real admission boundary. Needs owner
-API keys, verified Free accounts, current model/options/filter compatibility and a few
-explicitly authorised live checks. Update public Privacy for actual processing before
-exposure. No local model or paid route. Unavailable free routing gives a clear failure.
+**Status:** local implementation READY FOR LIVE QA; independent acceptance and live
+provider proof remain pending. No push/merge/tag/deploy or production enablement.
+No project keys, confirmed account settings or completed live Groq/reserve run is
+claimed. P14C must not begin before B acceptance.
+
+Carries four accepted-A follow-ups: Groq GPT-OSS `include_reasoning:false`, deadline
+checks before construction/dispatch, strict finish-reason/tool consistency, and
+tool-specific argument schemas. Adds bounded TLS transport, one serial model→read-tool
+loop with required `validate_day` each provider attempt, exact default-disabled review
+API, current-context/disconnect/deadline protection, summed known/incomplete usage,
+and plain-text Operations review UI with facts, evidence, links and safe tool trace.
+No materialization, new tables, migration, seed edits, local model or paid route.
+
+The exact review POST is protected by the existing Nginx ingress with independent
+per-IP 2/minute, burst-1, one-concurrent-review limits; backend one-per-worker admission
+is explicitly not cross-worker/account quota accounting. Cancel/date/session/Reset/
+navigation/expiry discard late UI results. No automatic browser/proxy/client retry.
+Privacy describes external synthetic-data processing only when this environment's
+feature is enabled, with excluded notes/Contact/cookies and no zero-retention or
+EEA-only guarantee. Explicit private native/Compose configuration remains opt-in.
+
+Remaining live gate: owner-supplied server project keys; verified Groq Free Limits and
+OpenRouter no-purchase/privacy settings; current exact free-model/filter compatibility;
+at most 12 inference HTTP calls total for a completed primary and a completed reserve
+tool→result→final run, with safe usage metadata. Fake integration/UI responses do not
+satisfy this gate. If keys/routes are unavailable, report LIVE QA BLOCKED without
+upgrading, relaxing filters or claiming full PASS. See `OPERATIONS_AGENT_FOUNDATION.md`.
 
 ## P14C — Quality and adversarial evaluation (not started)
 

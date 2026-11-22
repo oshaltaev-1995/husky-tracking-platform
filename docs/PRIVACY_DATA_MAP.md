@@ -11,6 +11,7 @@ exist.
 | Demo workspace edits | User-entered plan/activity notes, selected fictional dogs, teams, actual-work edits, and temporary fictional dog housing destinations | Provide the interactive product workflow in an isolated workspace | Workspace-scoped `daily_plans` and `work_sessions`, with descendants; `demo_workspace_days` records copied dates; `demo_workspace_housing_overrides` and `housing_revision` track reference-date placements separately | Application and configured hosting/database providers | Same workspace lifetime. Reset removes only that visitor's edits, including housing overrides; expiration cascades them. Visitors are told not to enter real personal, confidential, customer, or health data. |
 | Technical/security logs | Hosting/web-server IP, timestamp, requested path, user agent, correlation/error/security metadata | Reliable operation, troubleshooting, and abuse prevention; legitimate interest in operating and protecting the service | Not stored on `demo_workspaces`; application logs must exclude cookie/token values, note bodies, contact bodies, and credentials | Configured hosting/logging operators | Husky container logs have bounded Docker rotation (10 MiB × 3 per container); maintenance logs use the shared size-bounded systemd journal. No exact time-based deletion period is guaranteed. |
 | Canonical demo data | Fictional dog names, pedigrees, housing, work, archive records, and AI-generated fictional dog portraits | Demonstrate product behavior | Shared baseline PostgreSQL rows and static WebP assets | Public demo visitors and hosting providers | Versioned product artifact. It contains no real kennel, customer, person, or dog data. |
+| Optional Operations review (P14B, enabled environments only) | Explicitly selected demo date; frozen synthetic plan/team/actual counts, bounded fictional dog identities and dated states, housing, workload and server evidence requested through closed read tools | Explain the saved fictional day at the visitor's explicit request; no operational writes or medical assessment | In-memory bounded snapshot/result only; no conversation/raw-transcript database or new browser storage. API responses are no-store. Logs contain allowlisted request/tool/provider metadata, not prompts/responses. | Server-side Groq Free; one exact free OpenRouter reserve when permitted. Browser calls only this application's same-origin API. | Provider processing can involve other countries and abuse/legal retention. Required disabled logging/training opt-ins and OpenRouter `data_collection:"deny"` do not prove universal zero retention or EEA-only processing. Live account compatibility remains pending verification. |
 
 ## Browser storage audit
 
@@ -55,15 +56,34 @@ acceptance items for P12B. P12A startup validation refuses placeholder controlle
 contact, and hosting-region values. The VPS/hosting location alone does not determine the
 controller's competent supervisory authority.
 
-## P14A technical boundary — no live AI processing
+## P14A/P14B boundary — optional server-side synthetic-data review
 
-The local Operations Agent foundation sends no inference requests and installs no
-public endpoint or network transport. No public Privacy claim of existing Groq or
-OpenRouter processing is appropriate yet. Tests use synthetic fixtures/fake HTTP only.
-`OPERATIONS_AGENT_FOUNDATION.md` records the prospective minimized fields, excluded
-notes/Contact/cookie/precondition/visitor data, account privacy checks and unverified
-provider region/retention for separately authorised P14B. No API keys/raw transcripts
-are included in logs, browser storage or review artifacts.
+P14A introduced no live transport or public endpoint; that historical restriction
+remains true for A. P14B adds an explicit default-disabled selected-day review and
+bounded transport, without enabling or publishing it in production. Fake/offline
+integration and UI acceptance do not prove live inference or account privacy controls.
+The public Privacy section is conditional on runtime `operations_review_enabled`;
+disabled production must not imply Groq/OpenRouter processing is already active.
+
+Only the explicit review click can send bounded synthetic fields to the server's
+configured providers. Excluded fields include free-text plan/activity/dog notes and
+labels, Contact messages, visitor details/IP/client headers, cookies, HMAC/preconditions,
+internal workspace IDs, API keys, database URLs, images/PDFs and complete histories.
+The server's network connection is visible to its provider; visitor identity is not
+forwarded. Provider/model/tool/count/error metadata is allowlisted; no raw prompts,
+responses, hidden reasoning, keys or session values enter logs/review artifacts.
+
+The UI explains external processing before the first action and distinguishes model
+text from checked facts. Date/session/Reset/navigation/expiry/Cancel invalidate results;
+cancellation cannot promise remote generation cancellation or quota return. It creates
+no additional cookie, consent banner, analytics or browser store. The capability GET
+and Privacy GET never initialize a workspace. Review requires an existing valid cookie
+and same-origin request; its response is no-store.
+
+Limited live QA requires owner-confirmed project keys, Groq Free and current
+OpenRouter free-route/privacy controls, with at most 12 inference HTTP calls total.
+No such live proof or account-level retention guarantee is claimed here. Exact setup
+and the remaining gate are in `OPERATIONS_AGENT_FOUNDATION.md`.
 
 Reset removes mutable workspace rows (including notes/housing changes), not its cookie,
 and does not extend the existing server expiry. The public notice uses runtime TTL

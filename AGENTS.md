@@ -103,16 +103,29 @@ These instructions apply to the entire repository.
   use actual `WorkSession`/`WorkParticipation` rows only. Planned/not-run work is never
   counted, weeks run Monday–Sunday, and attention rules normalize by eligible days and
   class peers rather than comparing Puppy/Junior dogs with working adults.
-- Operations Agent P14A is a disabled, local read-only foundation, without a public
-  endpoint, live model transport or automatic loop. Capture one bounded frozen snapshot
+- Operations Agent P14A established the disabled read-only foundation. P14B adds one
+  explicitly triggered, default-disabled selected-day review, not a chat or writer.
+  Capture one bounded frozen snapshot
   under the existing cookie-authorized workspace lock and shared HousingContext; close
   the transaction/Session before any provider wait. Tools never materialize or write.
   Recheck session/expiry/Reset/cancellation before fallback and final output. Keep private
   context, notes, cookies, preconditions and keys out of provider data/logs. Reuse existing
   eligibility, actual-work and lineup rules; evidence is server-created. Groq Free and
   exact OpenRouter `:free` contracts permit one bounded switch, zero-price/privacy filters
-  and no paid bypass. P14A tests use fake HTTP only, even if keys exist in the environment;
-  live accounts/loop/UI and actual provider Privacy belong to separately authorized P14B.
+  and no paid bypass. P14A tests use fake HTTP only, even if keys exist in the environment.
+  P14B's separately authorized live QA is limited to 12 inference HTTP calls in total,
+  only after owner-supplied project keys, Groq Free confirmation, and OpenRouter
+  free-route/account privacy checks. Missing keys or live proof means READY FOR LIVE QA,
+  not full PASS; P14C remains separately gated. Force a model-requested `validate_day`
+  on each provider attempt before accepting a final result. The production Nginx
+  exact review POST owns per-IP admission (2/minute, burst 1, one concurrent review);
+  the backend's one-slot-per-worker guard is concurrency control, not global rate or
+  account-quota accounting. Preserve the private backend boundary and no automatic
+  POST replay. Date/session/Reset/navigation/expiry/Cancel invalidate client results.
+  An already dispatched provider request may finish and use quota after cancellation.
+  Provider explanations are plain text, distinct from server-created facts/evidence.
+  Public Privacy names external AI only when this environment enables the feature;
+  never claim universal zero retention, EEA-only processing or unverified account controls.
 - Dashboard is the fixed-reference `/demo/dashboard` operational home. Its projection must
   compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
   services; do not persist dashboard totals or create alternate KPI/attention rules.

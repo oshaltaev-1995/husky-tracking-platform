@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(default=5, ge=1, le=20)
     db_max_overflow: int = Field(default=5, ge=0, le=20)
     db_pool_timeout_seconds: int = Field(default=30, ge=1, le=120)
+    db_connect_timeout_seconds: int = Field(default=8, ge=1, le=30)
     db_pool_recycle_seconds: int = Field(default=1800, ge=60, le=86400)
     demo_season_start: date = date(2025, 12, 1)
     demo_season_end: date = date(2026, 3, 31)

@@ -1,4 +1,4 @@
-"""Bounded single-provider run state; tool execution/agent loop belongs to P14B.
+"""Bounded single-provider run state shared by the read-only P14B agent loop.
 
 This state machine does not query a database, retain a DB session, execute tools,
 sleep, retry a provider, or emit a partial result. Admission and freshness are
@@ -13,6 +13,8 @@ from collections.abc import Callable
 from typing import NoReturn
 from uuid import uuid4
 
+from pydantic import ValidationError
+
 from app.operations.provider_models import (
     AgentFailure,
     ErrorCode,
@@ -20,6 +22,7 @@ from app.operations.provider_models import (
     ProviderName,
     ProviderResult,
     ProviderSettings,
+    ProviderUsage,
     RunMetadata,
     ToolContract,
     Usage,
@@ -46,6 +49,7 @@ class ProviderRun:
         admit: Callable[[], bool],
         monotonic: Callable[[], float] = time.monotonic,
         started_at: float | None = None,
+        force_validate_day: bool = False,
     ) -> None:
         self.settings = settings
         self._transport = transport
@@ -78,6 +82,13 @@ class ProviderRun:
         self._messages: tuple[Message, ...] = ()
         self._error: ErrorCode | None = None
         self._usage = Usage()
+        self._usage_history: list[tuple[ProviderName, Usage]] = []
+        self._provider_http_calls: dict[ProviderName, int] = {
+            "groq": 0,
+            "openrouter": 0,
+        }
+        self._force_validate_day = force_validate_day
+        self._validated_attempt: int | None = None
         self._primary_error: ErrorCode | None = None
         self.retry_after_seconds: int | None = None
         if not settings.enabled:
@@ -115,16 +126,36 @@ class ProviderRun:
         if self.http_calls >= self.settings.max_http_calls:
             self._fail("run_budget_exhausted", 429)
         remaining = self._deadline - self._clock()
-        request = build_request(
-            self.provider,
-            self.settings,
-            task=self._task,
-            snapshot_json=self._snapshot_json,
-            tools=self._tools,
-            messages=self._messages,
-            timeout_seconds=min(self.settings.http_timeout_seconds, remaining),
+        if remaining <= 0:
+            self._fail("timeout", 504)
+        try:
+            request = build_request(
+                self.provider,
+                self.settings,
+                task=self._task,
+                snapshot_json=self._snapshot_json,
+                tools=self._tools,
+                messages=self._messages,
+                timeout_seconds=min(self.settings.http_timeout_seconds, remaining),
+                required_tool=(
+                    "validate_day"
+                    if self._force_validate_day and not self.validated_current_attempt
+                    else None
+                ),
+            )
+        except ValidationError:
+            self._fail("provider_configuration")
+        # Serialization and validation consume the SAME run deadline too. Never
+        # dispatch a zero/expired timeout or leak HttpRequest's ValidationError.
+        remaining = self._deadline - self._clock()
+        if remaining <= 0:
+            self._fail("timeout", 504)
+        request = request.model_copy(
+            update={"timeout_seconds": min(request.timeout_seconds, remaining)}
         )
         self.http_calls += 1  # Failed attempts spend the same total budget.
+        self._provider_http_calls[self.provider] += 1
+        self._usage = Usage()  # Last dispatch may have an unknown/lost response.
         captured_attempt = self.attempt
         captured_provider = self.provider
         try:
@@ -144,6 +175,13 @@ class ProviderRun:
             self.settings.max_response_bytes,
         )
         self._usage = result.usage
+        self._usage_history.append((self.provider, result.usage))
+        if (
+            self._force_validate_day
+            and not self.validated_current_attempt
+            and (result.tool_call is None or result.tool_call.name != "validate_day")
+        ):
+            raise AgentFailure("invalid_provider_response", http_status=502)
         self._last_result = result
         self._pending_tool = result if result.tool_call else None
         return result
@@ -176,6 +214,7 @@ class ProviderRun:
                 # Restart original task/tools/SAME snapshot. No provider transcript/CoT.
                 self._messages = ()
                 self._last_result = None
+                self._validated_attempt = None
                 try:
                     return self._send()
                 except AgentFailure as reserve_failure:
@@ -212,7 +251,7 @@ class ProviderRun:
     def record_tool(self, result: ProviderResult, output_json: str) -> None:
         """Called only after a server tool succeeded; arguments validated by registry.
 
-        The future caller must terminally reject a registry/evidence error, using
+        The caller must terminally reject a registry/evidence error, using
         reject(), instead of asking another provider to bypass the rejected request.
         """
         self.check_tool(result)
@@ -225,6 +264,8 @@ class ProviderRun:
         except (TypeError, ValueError):
             self._fail("invalid_provider_response", 422)
         self.tool_calls += 1
+        if call.name == "validate_day":
+            self._validated_attempt = self.attempt
         self._messages += (
             Message(role="assistant", tool_call=call),
             Message(role="tool", tool_call_id=call.id, content=output_json),
@@ -235,6 +276,8 @@ class ProviderRun:
         self, result: ProviderResult, validate_evidence: Callable[[str], None]
     ) -> str:
         self._guard()
+        if self._force_validate_day and not self.validated_current_attempt:
+            self._fail("invalid_provider_response", 422)
         if (
             result != self._last_result
             or result.attempt != self.attempt
@@ -259,7 +302,53 @@ class ProviderRun:
         self._cancelled = True
         self.attempt += 1
 
+    @property
+    def validated_current_attempt(self) -> bool:
+        return self._validated_attempt == self.attempt
+
+    @staticmethod
+    def _known_usage(items: list[Usage]) -> Usage:
+        prompts = [
+            item.prompt_tokens for item in items if item.prompt_tokens is not None
+        ]
+        completions = [
+            item.completion_tokens
+            for item in items
+            if item.completion_tokens is not None
+        ]
+        return Usage(
+            prompt_tokens=sum(prompts) if prompts else None,
+            completion_tokens=sum(completions) if completions else None,
+        )
+
+    @staticmethod
+    def _complete_usage(items: list[Usage], calls: int) -> bool:
+        return (
+            calls > 0
+            and len(items) == calls
+            and all(
+                item.prompt_tokens is not None and item.completion_tokens is not None
+                for item in items
+            )
+        )
+
     def metadata(self) -> RunMetadata:
+        known = [item for _, item in self._usage_history]
+        per_provider = []
+        for provider in ("groq", "openrouter"):
+            typed_provider: ProviderName = provider
+            calls = self._provider_http_calls[typed_provider]
+            if not calls:
+                continue
+            items = [item for owner, item in self._usage_history if owner == provider]
+            per_provider.append(
+                ProviderUsage(
+                    provider=typed_provider,
+                    http_calls=calls,
+                    known_usage=self._known_usage(items),
+                    usage_complete=self._complete_usage(items, calls),
+                )
+            )
         return RunMetadata(
             run_id=self.run_id,
             provider=self.provider,
@@ -274,4 +363,8 @@ class ProviderRun:
             elapsed_seconds=max(0.0, self._clock() - self._started),
             error_code=self._error,
             usage=self._usage,
+            last_response_usage=self._usage,
+            known_run_usage=self._known_usage(known),
+            usage_complete=self._complete_usage(known, self.http_calls),
+            known_usage_by_provider=tuple(per_provider),
         )

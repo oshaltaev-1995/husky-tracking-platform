@@ -131,14 +131,25 @@ schema upgrade, isolated backup restore, and compatible workspace-draining rollb
 readiness belongs to the final report, not a deployment claim. Main/public-v1.2 remain
 unchanged. Push, release tagging and deployment require separate authorization.
 
-P14A adds a disabled, local-only Operations Agent foundation: a frozen cookie-authorized
-read snapshot, six read tools, deterministic evidence checks, and fake-transport-tested
-Groq Free → exact OpenRouter `:free` routing contracts. No agent endpoint, UI, live
-inference, new schema or model download is included. `AGENT_ENABLED=false` by default;
-existing keys do not authorize network calls. See
-[`OPERATIONS_AGENT_FOUNDATION.md`](docs/OPERATIONS_AGENT_FOUNDATION.md) for the explicit
-P14B live/account/privacy gates. Offline checks: backend
-`python -m app.operations.evals` (no API keys, provider or database needed).
+P14A supplies the accepted read-only Operations Agent foundation. P14B adds a compact
+**Operations review** block beside the selected Daily Plan date, a bounded server tool
+loop and Groq Free → exact OpenRouter `:free` reserve. It is disabled by default;
+existing keys alone never enable it. One explicit click reviews a frozen snapshot,
+shows server facts/evidence separately from model text, and never changes plans,
+housing, teams or actual work. Cancel/date/session/Reset/navigation discard late
+results, and no request is replayed automatically. API responses are no-store;
+production Nginx owns the narrow per-IP review limit.
+
+P14B implementation is **READY FOR LIVE QA**, not a fully live-accepted feature. No
+project keys/account verification or completed live provider proof is claimed. The
+owner's private server configuration, Free-account/privacy checks and at most 12
+inference HTTP calls are required before accepting live Groq and reserve runs. Native
+startup uses an explicit private `AGENT_ENV_FILE`; Compose explicitly forwards the
+`AGENT_*` values supplied through `--env-file`. The conditional Privacy disclosure is
+shown only in an enabled environment. No model download, new schema or conversation
+store is introduced. See [`OPERATIONS_AGENT_FOUNDATION.md`](docs/OPERATIONS_AGENT_FOUNDATION.md)
+for configuration, limits, privacy exclusions and the remaining live gate. Offline
+checks: backend `python -m app.operations.evals` (no keys, provider or database needed).
 
 QA clarification: the P13G pre/post-Training Day Apply comparison establishes unchanged
 **Work.summary / actual-work metrics for all 16 dogs**, not equality of full Work DTOs

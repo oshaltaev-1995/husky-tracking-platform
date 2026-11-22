@@ -23,6 +23,7 @@ services:
       target: development
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://husky_tracking:husky_tracking_dev@db:5432/husky_tracking}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:4300}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4300,http://localhost:8080}
       DEMO_SEASON_START: ${DEMO_SEASON_START:-2025-12-01}
       DEMO_SEASON_END: ${DEMO_SEASON_END:-2026-03-31}
@@ -37,6 +38,18 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
       SMTP_TIMEOUT_SECONDS: ${SMTP_TIMEOUT_SECONDS:-10}
+      AGENT_ENABLED: ${AGENT_ENABLED:-false}
+      AGENT_GROQ_FREE_ACCOUNT_CONFIRMED: ${AGENT_GROQ_FREE_ACCOUNT_CONFIRMED:-false}
+      AGENT_GROQ_API_KEY: ${AGENT_GROQ_API_KEY:-}
+      AGENT_OPENROUTER_API_KEY: ${AGENT_OPENROUTER_API_KEY:-}
+      AGENT_GROQ_MODEL: ${AGENT_GROQ_MODEL:-openai/gpt-oss-20b}
+      AGENT_OPENROUTER_MODEL: ${AGENT_OPENROUTER_MODEL:-openai/gpt-oss-20b:free}
+      AGENT_MAX_HTTP_CALLS: ${AGENT_MAX_HTTP_CALLS:-6}
+      AGENT_MAX_TOOL_CALLS: ${AGENT_MAX_TOOL_CALLS:-8}
+      AGENT_DEADLINE_SECONDS: ${AGENT_DEADLINE_SECONDS:-45}
+      AGENT_HTTP_TIMEOUT_SECONDS: ${AGENT_HTTP_TIMEOUT_SECONDS:-12}
+      AGENT_MAX_OUTPUT_TOKENS: ${AGENT_MAX_OUTPUT_TOKENS:-1024}
+      DB_CONNECT_TIMEOUT_SECONDS: ${DB_CONNECT_TIMEOUT_SECONDS:-8}
     command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       db:

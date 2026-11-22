@@ -562,10 +562,10 @@ boundary and operator consequences are in `P13_RELEASE_RUNBOOK.md`. Its rehearsa
 only task-owned synthetic databases. P13G itself makes no production, Caddy, DNS, SMTP,
 timer, main-branch or release-tag change.
 
-### Operations Agent foundation (P14A)
+### Operations Agent foundation and selected-day review (P14A/P14B)
 
-`app/operations` is an in-process read-only foundation, not a second domain service,
-public endpoint or autonomous workflow. `SnapshotReader` requires the existing valid
+`app/operations` is a read-only projection and one explicitly initiated review, not a
+second domain ledger or autonomous workflow. `SnapshotReader` requires the existing valid
 cookie-authorized workspace, locks it before domain reads, shares one HousingContext,
 and detaches a bounded frozen DTO before releasing its transaction/Session. It never
 materializes a day or flushes domain writes. All six tools use that same snapshot;
@@ -573,14 +573,51 @@ actual planning workloads exclude the selected date/future. Eligibility, saved-l
 and distance rules reuse existing services/domain helpers, with dated evidence.
 Private workspace/expiry/reset binding never enters provider projection.
 
-Provider adapters build/parse bounded HTTP contracts only through injected transport.
-No live transport, route, inference, model dependency or conversation persistence is
-installed. `AGENT_ENABLED=false` and explicit application admission/current-context
-callbacks are mandatory. One Groq Free → exact OpenRouter :free switch preserves the
-snapshot, overall budgets and cancellation; it discards primary transcript on restart.
-Fixed endpoints, zero-price/privacy filters and terminal error classes cannot be
-changed by model/data. P14B still needs actual Free-account verification, a limited live
-loop/UI, deployment admission and accurate provider-processing Privacy before exposure.
+P14B exposes public no-session `GET /api/v1/operations/capabilities` and a narrow
+`POST /api/v1/operations/review` accepting only `selected_date`. Review requires an
+existing valid workspace and exact configured Origin; it neither initializes an
+expired/missing session nor falls back to baseline. Both responses use the shared
+API no-store policy. `AGENT_ENABLED=false` remains the default even when keys exist.
+Native startup reads only runtime environment or an explicit private AGENT-only
+`AGENT_ENV_FILE`; Compose forwards the declared `AGENT_*` values from `--env-file`.
+No new table, migration, model runtime or conversation store is required.
+
+The server loop runs synchronous capture/model/tool work outside the event loop and
+forces a model-requested `validate_day` before accepting a final answer on **each**
+provider attempt. It returns bounded deterministic facts/findings/evidence and trusted
+links, with separate plain-text model explanation, snapshot date/time, provider/model,
+reserve indicator, successful tool trace and known/incomplete token usage. Structured
+reference validation does not prove arbitrary prose true. One Groq Free → exact
+OpenRouter `:free` switch preserves snapshot, counters and the overall 45-second budget;
+reserve restarts without the primary transcript. Fixed endpoints, zero-price/privacy
+filters and terminal error classes cannot be changed by model/data.
+
+The standard-library HTTPS transport verifies TLS, permits only the two fixed hosts,
+does not follow redirects/retry, and bounds response bytes **while reading**. A
+whole-call socket watchdog limits blocked reads; the API owns the whole-run watchdog
+and a disconnect signal. System DNS cannot be forcibly interrupted by Python's
+synchronous resolver: a late connection must pass the deadline check before dispatch.
+Cancellation stops further steps/result acceptance but cannot refund remote quota or
+promise an already sent generation has stopped. Database connection, lock and query
+waits are bounded; no provider wait retains the capture transaction or Session.
+
+Production Nginx is the admission authority: only exact `POST /api/v1/operations/review`
+uses the client-IP 2/minute, burst-1 and one-concurrent-review zones. Cookie replacement
+cannot reset those keys; queries do not change the mapped URI. It never retries this
+POST upstream. The backend also allows one active review per worker; with N workers
+that is at most N backend review workers, **not** a global account limit or persistent
+quota counter. Direct development access bypasses production Nginx admission and is
+not the public security boundary; the production backend remains private.
+
+The feature-local Daily Plan component sends one POST only on explicit action. It
+clears requests/results on date/session/Reset-open/Reset-start/navigation/expiry/Cancel,
+checks the current generation again before publication, honors Retry-After, and never
+auto-retries. Ordinary later edits are disclosed as outside the captured snapshot.
+The optional external-AI notice precedes the action; Privacy metadata enables the
+provider-processing section only in an enabled environment. Notes, Contact content,
+visitor/cookie/workspace identifiers, credentials, images and whole histories never
+enter provider data. Account privacy/Free checks and completed Groq/reserve live runs
+remain a release gate: P14B is READY FOR LIVE QA, not full live PASS. P14C is unstarted.
 
 P13G QA wording is scoped to unchanged Work.summary / actual-work metrics of all16
 dogs after Training Day Apply, not entire Work DTO history/weekly-array equality.
