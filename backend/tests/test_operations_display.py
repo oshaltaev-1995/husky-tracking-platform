@@ -320,6 +320,7 @@ def test_response_keeps_verified_facts_when_explanation_cannot_be_presented() ->
             context=SimpleNamespace(snapshot=frozen),
             tools=tools,
             run=SimpleNamespace(
+                quota_retries=0,
                 metadata=lambda: SimpleNamespace(
                     provider="groq",
                     model="openai/gpt-oss-20b",
@@ -328,7 +329,7 @@ def test_response_keeps_verified_facts_when_explanation_cannot_be_presented() ->
                     tool_calls=1,
                     known_run_usage=Usage(prompt_tokens=12, completion_tokens=10),
                     usage_complete=True,
-                )
+                ),
             ),
         ),
     )
@@ -342,6 +343,7 @@ def test_response_keeps_verified_facts_when_explanation_cannot_be_presented() ->
         and result.presentation.segments == ()
     )
     assert result.summary.activities[0].selected_pool_count == 4
+    assert result.quota_retries == 0
     assert len(result.facts) == 2
     assert all(link.entity.kind != "dog" for link in result.links)
     assert sum(len(group.findings) for group in result.finding_groups) == len(

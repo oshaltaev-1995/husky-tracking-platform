@@ -28,8 +28,8 @@ independently of retained keys, and the feature itself remains disabled by defau
 The optional adapter and meaningful opt-in tests retain all exact-free price/privacy
 filters. Capabilities and Privacy derive the same active provider list. No OpenRouter
 metadata/inference/account changes were made in C. Groq-only429 preserves known
-Retry-After; temporary failure is503, auth/configuration stays distinct. No retry or
-switch occurs in this mode.
+Retry-After; temporary failure is503, auth/configuration stays distinct. No provider
+switch occurs; only the explicitly bounded after-validation429 exception below may retry.
 
 Known exact snapshot entities become typed escaped text/link segments after strict
 model reference validation. UUIDs remain internal identities/routes; no extra dog
@@ -48,20 +48,48 @@ Targeted backend172 and frontend47 tests, Ruff/mypy and Node24 build pass. These
 not evidence that free model prose is true. The old UUID-heavy Groq explanation is
 used as a deterministic presentation fixture, not regenerated for style.
 
-**P14C LIVE QUALITY INCOMPLETE / FREE QUOTA BLOCKED.** The separately authorized
-Groq-only campaign closed at2/8: one HTTP200 requested mandatory validate_day, then
-HTTP429 prevented the final. The API preserved429/Retry-After1 and made no reserve
-switch. Safe headers observed1000RPD and8000TPM; they do not prove daily exhaustion
-or an invoice. No raw upstream error body or precise unobserved cause is claimed.
-No further generation was used to wait for a lucky pass. Empty-plan and actual-only
-expected cases were fixed before inference (Mar31 actual2sessions/16starts/120dog-km),
-but not run after the rate-limit failure. Three genuine quality outcomes remain
-NOT VERIFIED. A fake quota UI fixture separately verifies copy/Retry-After/no replay.
+**P14C READY FOR INDEPENDENT RELEASE REVIEW — GROQ-ONLY DEMO.** This is a candidate
+for independent review, not deployment or a general certification of model prose.
+The earlier P14C campaign stopped at2/8 after a confirmed after-tool429. The owner
+explicitly authorized a narrow follow-up, preserving that closed ledger and total15.
 
-Old11/12 and2/6 ledgers/closures are immutable; new2/8 makes cumulative15/21 ceiling.
-Unused slots do not transfer. New known tokens1148prompt/39completion cover only
-HTTP200;429 usage is unknown. Free account/privacy attestation is reused, not a measured
-billing guarantee. No new payment, model, account relaxation, deployment or P14D.
+Provider context now aggregates repetitive unverified archived DOG_STATE detail only
+outside both selected plan and Actual participants. Full canonical checks/counts and
+truthful omitted totals remain; selected/Actual problems and genuine violations are
+retained. Client groups/summary are not reduced. Fixed four-dog ToolResult bytes:
+15,564→7,261; whole serialized after-tool Groq request25,787→15,126. These are bytes,
+not tokenizer estimates or a promise that rate limits disappear. Max output1024 and
+strict final/reference validation remain unchanged.
+
+One Groq-only quota retry/run is now permitted only after successful required
+validate_day, confirmed HTTP429 and valid Retry-After1–5 seconds. The pause respects
+the header, polls freshness at≤100ms intervals, and requires enough remaining HTTP
+budget and a full configured call timeout before/after wait. It holds no Session/lock,
+shares the same45-second deadline, and repeats the cached request with unchanged
+body/provider/model/snapshot/transcript. Only timeout is clipped. No new UI POST or
+snapshot/tool replay. Initial/second/invalid/long-header, auth/payment/refusal/unknown
+network/output/evidence errors gain no retry. Transport/SDK still add none. The
+per-run retry count is shown in collapsed technical details and safe logs; unknown429
+usage is not zero. Deterministic fake-clock tests and real API/fake-model integration
+prove the path, including Cancel/Reset/expiry/deadline/budget fencing.
+
+The new authorized cap-six campaign completed exactly six genuine Groq requests:
+three required validate_day→final flows, one tool and twoHTTP200 each. Required facts
+passed for four selected working dogs/5km/no teams/noActual; empty29March; and actual-only
+31March2sessions/16dogs/16starts/120dog-km. Client names/links match frozen identity.
+No live429 occurred, so live recovery-path proof is not claimed. Some prose retains
+technical wording; screenshots preserve exact text for independent review. No stylistic
+regeneration, claim repair or judge model was used. All21 table counts and value hashes
+matched before/after each review. Separate reviews were paced at least60s per safe
+headers; request counters are RPD and token counters TPM.
+
+Old11/12,2/6 and2/8 ledgers/closures remain byte-identical. Recovery6/6 gives total21/21,
+all campaigns closed with no unused transfer or further inference authorization.
+Known recovery usage is10,177prompt/1,568completion tokens; historical failed usage
+remains unknown. Free/privacy attestation is reused, not an invoice guarantee. No new
+OpenRouter metadata/inference, payment/model/account change, production activation or
+P14D. Targeted gates:279 distinct backend cases,70 QA tests,43 frontend cases, Ruff/mypy
+and Node24 build; unchanged print/native/full suites are source-bound/reused.
 The historical sections below describe their original stage; they grant no live budget.
 
 
@@ -160,7 +188,8 @@ result reaches neither provider, even if reserve capacity remains.
 
 `ProviderRun` permits one Groq→OpenRouter switch, never a cycle. Upstream429 means
 rate/quota restriction, not necessarily exhausted daily tokens. Valid Retry-After is
-propagated; no same-provider retry, sleeping loop or hidden HTTP retries. Transport
+propagated. The original no-same-provider-retry rule is superseded only by the narrow
+current429 exception above; transport still has no hidden retries. Transport
 failure/timeout/5xx can switch within the common deadline. After a tool followed by
 Groq429, reserve restarts the original task/contracts/same snapshot; primary raw
 transcript/reasoning/partial text is not transferred. Final output is withheld until

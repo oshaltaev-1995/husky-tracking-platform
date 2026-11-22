@@ -535,6 +535,32 @@ def test_required_validation_retains_four_dog_pool_without_saved_teams_or_actual
     assert len(report["selected_dog_states"]) == 4
     assert all(dog["lifecycle"] == "active" for dog in report["selected_dog_states"])
     assert report["finding_counts_by_scope"]["other_snapshot_dogs"] == 10
+    assert report["status_counts"]["unverified"] == 10
+    assert report["omitted_detail_count"] == 10
+    assert {check["rule"] for check in report["checks"]} == {
+        "SAVED_LINEUP",
+        "ACTUAL_RECORDING",
+    }
+    assert len(state.checks) == sum(report["status_counts"].values())
+    assert (
+        len(
+            FrozenTools(state)
+            .execute("validate_day", arguments())
+            .model_dump_json()
+            .encode()
+        )
+        < 8192
+    )
+    # Canonical state/evidence remains available when an explicit read is useful.
+    archived = state.dogs[-1]
+    detail = json.loads(
+        FrozenTools(state)
+        .execute("get_dog_states", arguments(dog_ids=[str(archived.id)]))
+        .data_json
+    )
+    assert detail[0]["id"] == str(archived.id)
+    assert detail[0]["lifecycle"] == "archived"
+    assert str(archived.id) not in json.dumps(report["evidence"])
     for check in report["checks"]:
         if check["rule"] == "DOG_STATE":
             assert check["scope"] == "other_snapshot_dogs"
@@ -686,3 +712,85 @@ def test_validation_evidence_is_frozen_scoped_bounded_and_omissions_are_truthful
             ]
     assert "Excluded free-text name" not in output.data_json
     assert not {"notes", "title", "history", "dogs", "locations"} & set(report)
+
+
+def test_archived_actual_participant_state_is_not_compacted_as_unrelated() -> None:
+    state = context_snapshot(selected_archived=True, activity_count=0, with_actual=True)
+    before = state.model_dump_json()
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    archived_id = str(state.dogs[-1].id)
+    actual_state = next(
+        row
+        for row in report["checks"]
+        if row["rule"] == "DOG_STATE"
+        and row["entities"] == [{"kind": "dog", "id": archived_id}]
+    )
+    assert actual_state["status"] == "unverified"
+    assert actual_state["scope"] == "actual"
+    assert report["finding_counts_by_scope"]["actual"] == 1
+    assert report["finding_counts_by_scope"]["other_snapshot_dogs"] == 9
+    assert report["omitted_detail_count"] == 9
+    assert report["actual"] == {
+        "sessions": 1,
+        "dog_starts": 4,
+        "dog_km": 40,
+        "unique_dogs": 4,
+        "evidence_ids": [state.evidence[-1].id],
+    }
+    assert report["plan"]["selected_unique_dogs"] == 0
+    assert state.model_dump_json() == before
+
+
+def test_actual_violations_and_unrelated_missing_active_state_remain_visible() -> None:
+    base = context_snapshot(activity_count=0, with_actual=True)
+    # Four real starts on the date exceed the existing per-dog30km rule.
+    actual = tuple(
+        base.actual[0].model_copy(update={"id": UUID(int=200 + index)})
+        for index in range(4)
+    )
+    missing = base.dogs[-1].model_copy(update={"lifecycle": "active"})
+    dogs = (*base.dogs[:-1], missing)
+    checks, evidence = evaluate(
+        base.selected_date,
+        day=Entity(kind="day", id=str(base.selected_date)),
+        activities=(),
+        dogs=dogs,
+        actual=actual,
+        locations=(),
+        plan_exists=False,
+    )
+    state = base.model_copy(
+        update={
+            "dogs": dogs,
+            "actual": actual,
+            "checks": checks,
+            "evidence": evidence,
+        }
+    )
+    report = json.loads(
+        FrozenTools(state).execute("validate_day", arguments()).data_json
+    )
+    violations = [row for row in report["checks"] if row["status"] == "violation"]
+    assert len(violations) == 4
+    assert all(
+        row["rule"] == "ACTUAL_DAILY_KM" and row["scope"] == "actual"
+        for row in violations
+    )
+    missing_checks = [
+        row
+        for row in report["checks"]
+        if row["entities"] == [{"kind": "dog", "id": str(missing.id)}]
+    ]
+    assert {row["rule"] for row in missing_checks} == {
+        "DOG_STATE",
+        "DATED_STATE_MISSING",
+    }
+    assert all(row["scope"] == "other_snapshot_dogs" for row in missing_checks)
+    assert report["actual"]["sessions"] == 4
+    assert report["actual"]["dog_starts"] == 16
+    assert report["actual"]["dog_km"] == 160
+    assert report["omitted_detail_count"] == 9
+    emitted = {row["id"] for row in report["evidence"]}
+    assert all(set(row["evidence_ids"]) <= emitted for row in report["checks"])

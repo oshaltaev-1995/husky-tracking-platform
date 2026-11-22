@@ -128,6 +128,7 @@ class OperationsReviewRead(Frozen):
     model: str
     fallback: bool
     http_calls: int = Field(ge=1, le=6)
+    quota_retries: int = Field(default=0, ge=0, le=1)
     tool_calls: int = Field(ge=1, le=8)
     trace: tuple[ReviewTrace, ...] = Field(min_length=1, max_length=8)
     usage: ReviewUsage

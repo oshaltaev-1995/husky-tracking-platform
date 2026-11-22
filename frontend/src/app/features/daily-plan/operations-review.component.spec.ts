@@ -147,6 +147,18 @@ describe('OperationsReviewComponent', () => {
     http.expectNone('/api/v1/operations/review');
   });
 
+  it('shows the counted internal quota retry without starting another review', async () => {
+    await setup();
+    const request = start();
+    request.flush({ ...result(), http_calls: 3, quota_retries: 1 });
+    fixture.detectChanges();
+    const details = fixture.nativeElement.querySelector('.review-trace') as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(details.textContent).toContain('3 model requests');
+    expect(details.textContent).toContain('One short rate-limit response was retried');
+    http.expectNone('/api/v1/operations/review');
+  });
+
   it('sends only the selected date after an explicit click and prevents duplicate submission', async () => {
     await setup();
     const trigger = button('Review operations');
@@ -157,6 +169,7 @@ describe('OperationsReviewComponent', () => {
     expect(request.request.body).toEqual({ selected_date: '2026-03-31' });
     expect(button('Reviewing…').disabled).toBe(true);
     expect(button('Cancel review').disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('one brief pause and retry');
     request.flush(result());
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Operations review ready');

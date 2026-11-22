@@ -1,9 +1,9 @@
 """Bounded single-provider run state shared by the read-only P14B agent loop.
 
-This state machine does not query a database, retain a DB session, execute tools,
-sleep, retry a provider, or emit a partial result. Admission and freshness are
-injected server checks. Groq-only is the default; one explicit restart is possible
-only when the operator separately enables the retained free reserve.
+This state machine never owns a DB session or executes tools. Admission and
+freshness are injected checks. Groq-only permits one short confirmed after-tool
+quota recovery within the original deadline; it never restarts the review. The
+retained optional reserve still requires explicit operator opt-in.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from pydantic import ValidationError
 from app.operations.provider_models import (
     AgentFailure,
     ErrorCode,
+    HttpRequest,
     Message,
     ProviderName,
     ProviderResult,
@@ -49,6 +50,7 @@ class ProviderRun:
         check_context: Callable[[], None],
         admit: Callable[[], bool],
         monotonic: Callable[[], float] = time.monotonic,
+        waiter: Callable[[float], None] = time.sleep,
         started_at: float | None = None,
         force_validate_day: bool = False,
     ) -> None:
@@ -60,6 +62,7 @@ class ProviderRun:
         self._tools = tools
         self._check_context = check_context
         self._clock = monotonic
+        self._waiter = waiter
         now = monotonic()
         if not math.isfinite(now) or (
             started_at is not None
@@ -91,6 +94,10 @@ class ProviderRun:
         self._force_validate_day = force_validate_day
         self._validated_attempt: int | None = None
         self._primary_error: ErrorCode | None = None
+        self._last_request: HttpRequest | None = None
+        self._last_reply_status: int | None = None
+        self._quota_retry_used = False
+        self._quota_retries = 0
         self.retry_after_seconds: int | None = None
         if not settings.enabled:
             self._fail("agent_disabled", 503)
@@ -122,7 +129,8 @@ class ProviderRun:
         if self._clock() >= self._deadline:
             self._fail("timeout", 504)
 
-    def _send(self) -> ProviderResult:
+    def _send(self, request: HttpRequest | None = None) -> ProviderResult:
+        quota_retry = request is not None
         self._guard()
         if (
             self.provider == "openrouter"
@@ -134,25 +142,28 @@ class ProviderRun:
         remaining = self._deadline - self._clock()
         if remaining <= 0:
             self._fail("timeout", 504)
-        try:
-            request = build_request(
-                self.provider,
-                self.settings,
-                task=self._task,
-                snapshot_json=self._snapshot_json,
-                tools=self._tools,
-                messages=self._messages,
-                timeout_seconds=min(self.settings.http_timeout_seconds, remaining),
-                required_tool=(
-                    "validate_day"
-                    if self._force_validate_day and not self.validated_current_attempt
-                    else None
-                ),
-            )
-        except ValidationError:
-            self._fail("provider_configuration")
+        if request is None:
+            try:
+                request = build_request(
+                    self.provider,
+                    self.settings,
+                    task=self._task,
+                    snapshot_json=self._snapshot_json,
+                    tools=self._tools,
+                    messages=self._messages,
+                    timeout_seconds=min(self.settings.http_timeout_seconds, remaining),
+                    required_tool=(
+                        "validate_day"
+                        if self._force_validate_day
+                        and not self.validated_current_attempt
+                        else None
+                    ),
+                )
+            except ValidationError:
+                self._fail("provider_configuration")
         # Serialization and validation consume the SAME run deadline too. Never
         # dispatch a zero/expired timeout or leak HttpRequest's ValidationError.
+        self._guard()  # Recheck current context immediately before dispatch.
         remaining = self._deadline - self._clock()
         if remaining <= 0:
             self._fail("timeout", 504)
@@ -160,8 +171,11 @@ class ProviderRun:
             update={"timeout_seconds": min(request.timeout_seconds, remaining)}
         )
         self.http_calls += 1  # Failed attempts spend the same total budget.
+        self._quota_retries += int(quota_retry)
         self._provider_http_calls[self.provider] += 1
         self._usage = Usage()  # Last dispatch may have an unknown/lost response.
+        self._last_request = request
+        self._last_reply_status = None
         captured_attempt = self.attempt
         captured_provider = self.provider
         try:
@@ -170,6 +184,7 @@ class ProviderRun:
             raise AgentFailure("provider_timeout") from None
         except OSError:
             raise AgentFailure("provider_transport") from None
+        self._last_reply_status = reply.status
         self._guard()
         if captured_attempt != self.attempt or captured_provider != self.provider:
             self._fail("stale_attempt", 409)
@@ -193,7 +208,7 @@ class ProviderRun:
         return result
 
     def call(self) -> ProviderResult:
-        """One model turn, at most one restart; never executes returned tools."""
+        """One model turn, one narrow quota recovery/run; never executes tools."""
         self._guard()
         if self._pending_tool is not None:
             self._fail("provider_bad_request", 409)
@@ -208,6 +223,14 @@ class ProviderRun:
                 self._error = failure.code
                 raise
             self.retry_after_seconds = failure.retry_after_seconds
+            if self._short_quota_wait(failure):
+                # Retry the rejected serialized request, not a new prompt/review.
+                # _short_quota_wait has checked this exact request and context.
+                assert self._last_request is not None
+                try:
+                    return self._send(self._last_request)
+                except AgentFailure as retry_failure:
+                    self._finish_failure(retry_failure)
             if (
                 self.settings.openrouter_reserve_enabled
                 and self.provider == "groq"
@@ -231,6 +254,45 @@ class ProviderRun:
                     self._finish_failure(reserve_failure)
             self._finish_failure(failure)
         raise AssertionError("unreachable")
+
+    def _short_quota_wait(self, failure: AgentFailure) -> bool:
+        """One confirmed short Groq-only after-validation 429, never a retry loop.
+
+        Every freshness check completes before the next wait chunk, so no injected
+        database transaction/lock is held during the pause. Default chunks bound
+        cancellation observation to 100 ms plus a freshness check.
+        """
+        delay = failure.retry_after_seconds
+        if (
+            self.settings.openrouter_reserve_enabled
+            or self.provider != "groq"
+            or not self._force_validate_day
+            or not self.validated_current_attempt
+            or self._quota_retry_used
+            or failure.code != "provider_quota"
+            or failure.http_status != 429
+            or self._last_reply_status != 429
+            or type(delay) is not int
+            or not 1 <= delay <= 5
+            or self._last_request is None
+            or self.http_calls >= self.settings.max_http_calls
+        ):
+            return False
+        self._guard()
+        # Preserve a full configured call timeout after the promised wait. An
+        # already nearly-expired run must not begin recovery with a token window.
+        if self._deadline - self._clock() < delay + self.settings.http_timeout_seconds:
+            return False
+        self._quota_retry_used = True
+        ready_at = self._clock() + delay
+        while True:
+            self._guard()
+            remaining = ready_at - self._clock()
+            if remaining <= 0:
+                break
+            self._waiter(min(0.1, remaining))
+        self._guard()
+        return self._deadline - self._clock() >= self.settings.http_timeout_seconds
 
     def _finish_failure(self, failure: AgentFailure) -> NoReturn:
         if self._finished:
@@ -318,6 +380,11 @@ class ProviderRun:
     @property
     def validated_current_attempt(self) -> bool:
         return self._validated_attempt == self.attempt
+
+    @property
+    def quota_retries(self) -> int:
+        """Dispatched bounded recoveries, not merely an interrupted wait."""
+        return self._quota_retries
 
     @staticmethod
     def _known_usage(items: list[Usage]) -> Usage:

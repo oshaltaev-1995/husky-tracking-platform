@@ -49,6 +49,12 @@ def _validation_result(snapshot: Snapshot) -> ToolResult:
         dog_id for activity in snapshot.activities for dog_id in activity.participants
     }
     selected_strings = {str(item) for item in selected_ids}
+    actual_strings = {
+        str(dog_id) for row in snapshot.actual for dog_id in row.participants
+    }
+    archived_strings = {
+        str(dog.id) for dog in snapshot.dogs if dog.lifecycle == "archived"
+    }
     evidence = {row.id: row.model_dump(mode="json") for row in snapshot.evidence}
 
     def evidence_for(rule: str, kind: str, entity_id: str) -> list[str]:
@@ -75,6 +81,11 @@ def _validation_result(snapshot: Snapshot) -> ToolResult:
             for entity in check.entities
         ):
             return "plan_participants"
+        if any(
+            entity.kind == "dog" and entity.id in actual_strings
+            for entity in check.entities
+        ):
+            return "actual"
         if any(entity.kind == "activity" for entity in check.entities):
             return "plan_activity"
         if any(entity.kind == "dog" for entity in check.entities):
@@ -125,7 +136,9 @@ def _validation_result(snapshot: Snapshot) -> ToolResult:
         "evidence": [],
         "qualification": "Counts cover the full frozen snapshot; omitted detail "
         "is unknown, not zero. Selected pools, saved teams and actual work are "
-        "independent. Other snapshot dogs are not plan participants. Only these "
+        "independent. Other snapshot dogs are outside selected and actual pools. "
+        "Repetitive unrelated archived states are counted without detail; "
+        "get_dog_states remains available. Only these "
         "checks, not a guarantee of training safety; no inference that a plan ran.",
     }
     issued_ids = set(plan_evidence + actual_evidence)
@@ -236,6 +249,22 @@ def _validation_result(snapshot: Snapshot) -> ToolResult:
         "other_snapshot_dogs": 5,
     }
     for check in sorted(findings, key=lambda check: priority[scope(check)]):
+        # Repeated incomplete archive state is not a participant issue. Keep its
+        # canonical check in counts and omitted totals instead of filling spare
+        # context with per-dog copies/evidence. Actual participants, selected dogs,
+        # genuine violations and all other rules remain eligible for detail.
+        if (
+            check.rule == "DOG_STATE"
+            and check.status == "unverified"
+            and check.entities
+            and all(
+                entity.kind == "dog"
+                and entity.id in archived_strings
+                and entity.id not in selected_strings | actual_strings
+                for entity in check.entities
+            )
+        ):
+            continue
         if len(result["checks"]) == 32:
             break
         row = {**check.model_dump(mode="json"), "scope": scope(check)}

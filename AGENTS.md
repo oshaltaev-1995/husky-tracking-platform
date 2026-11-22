@@ -111,13 +111,22 @@ These instructions apply to the entire repository.
   the optional adapter/tests and its exact-free zero-price/privacy controls, but label
   reserve DEFERRED, never live PASS. Capabilities/Privacy disclose only active providers.
   Groq-only quota returns honest 429 with known Retry-After; temporary failures return
-  503, without retries/switches or auth/configuration being called quota.
+  503; auth/configuration are never called quota. No automatic new UI POST/review.
+  The sole same-provider retry exception is one confirmed Groq-only429 after successful
+  mandatory validate_day with Retry-After1–5 seconds. Wait interruptibly, recheck
+  Cancel/Reset/expiry/context before/during/after and dispatch, hold no DB lock across
+  wait, retain the exact request/snapshot/transcript, and share HTTP/time budgets.
+  Initial/second/long-header/unknown/network/auth/output failures do not gain retries.
+  Every429/retry counts; unknown usage stays unknown. Technical details expose retry count.
   Capture one bounded frozen snapshot under the cookie-authorized workspace lock and
   shared HousingContext; close Session before provider waits. Tools never materialize
   or write. Preserve six HTTP/eight tools/45 seconds/1024 output tokens, strict JSON,
   one model-requested validate_day per attempt, evidence/entity binding and context
   fencing. Its bounded projection retains selected pool/eligibility/states, unique
   versus participations, independent teams/actuals, scoped findings and honest omissions.
+  Repetitive unverified archived DOG_STATE outside both selected and Actual participants
+  belongs in provider aggregate/omitted counts, not per-dog detail filling spare bytes.
+  Preserve selected/Actual warnings and all canonical checks; do not compact client facts.
   Resolve display identities only from the same frozen snapshot: escaped real names,
   typed local links, no post-review refetch, no model HTML or meaning/reference repair.
   Unknown display references suppress unusable prose while retaining facts. Main summary
@@ -127,9 +136,11 @@ These instructions apply to the entire repository.
   of provider data/logs. Reuse canonical eligibility/actual/lineup/housing rules.
   Live QA needs separate owner authorization and Free/privacy attestation; tests use
   fake HTTP even if keys exist. The original campaigns remain closed at 11/12 and2/6;
-  the Groq-only P14C campaign closed at2/8 after a genuine429, cumulative15/21 ceiling.
-  No unused slots transfer or implicit new budget. Live quality is NOT VERIFIED, not
-  complete release acceptance. No account/privacy/payment relaxation or new model.
+  the first Groq-only P14C campaign closed at2/8 after429. The separately authorized
+  recovery campaign closed at6/6, cumulative21/21, with three genuine required cases
+  passed (zero live retries); retry-path proof is fake/offline. No unused transfer or
+  implicit new budget. P14C is ready for independent release review, not deployment or
+  general prose correctness. No account/privacy/payment relaxation, new model or P14D.
   Production Nginx owns the narrow review POST per-IP admission (2/minute, burst1,
   one concurrent); backend worker slot is concurrency control, not global quota state.
   Preserve private backend/no automatic POST replay. Cancel/date/session/Reset/expiry/

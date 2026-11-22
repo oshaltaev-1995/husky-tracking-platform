@@ -417,7 +417,7 @@ def test_midrun_restart_uses_same_snapshot_without_primary_transcript_or_writes(
         ("invalid-arguments", 422, "invalid_provider_response", 1),
         ("invalid-evidence", 422, "invalid_evidence", 2),
         ("premature-final", 502, "invalid_provider_response", 1),
-        ("tool-loop", 422, "run_budget_exhausted", None),
+        ("tool-loop", 429, "run_budget_exhausted", 6),
     ],
 )
 def test_loop_failures_are_typed_safe_and_not_safety_bypassed(
@@ -707,4 +707,35 @@ def test_two_workspaces_remain_isolated_and_notes_never_enter_model_requests() -
         first.cookies.get("ht_demo_session") not in request.body_json
         for request in model.calls
     )
+    assert counts() == before
+
+
+def test_short_after_tool_quota_retry_is_counted_once_in_same_read_only_review() -> (
+    None
+):
+    class ShortQuotaModel(FakeModel):
+        sent_quota = False
+
+        def __call__(self, request: HttpRequest) -> HttpReply:
+            body = json.loads(request.body_json)
+            after_tool = any(row["role"] == "tool" for row in body["messages"])
+            if after_tool and not self.sent_quota:
+                self.sent_quota = True
+                self.calls.append(request)
+                return HttpReply(status=429, retry_after="1")
+            return super().__call__(request)
+
+    model = ShortQuotaModel()
+    install(model)
+    client = visitor()
+    before = counts()
+    response = client.post(REVIEW, json={"selected_date": DAY})
+    assert response.status_code == 200
+    result = response.json()
+    assert result["quota_retries"] == 1 and result["http_calls"] == 3
+    assert result["tool_calls"] == 1 and len(result["trace"]) == 1
+    assert result["usage"]["incomplete"] is True
+    assert len(model.calls) == 3
+    assert model.calls[1].body_json == model.calls[2].body_json
+    assert model.calls[1].url == model.calls[2].url
     assert counts() == before

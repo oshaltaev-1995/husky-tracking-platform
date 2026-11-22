@@ -93,6 +93,7 @@ export interface OperationsReview {
   model: string;
   fallback: boolean;
   http_calls: number;
+  quota_retries?: number;
   tool_calls: number;
   trace: { tool_name: string; provider: ReviewProvider; outcome: string; elapsed_ms: number }[];
   usage: {

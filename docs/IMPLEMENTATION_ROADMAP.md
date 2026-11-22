@@ -927,29 +927,33 @@ See `OPERATIONS_AGENT_FOUNDATION.md` and the incremental live review evidence.
 
 ## P14C — Groq-only client review and bounded quality evaluation
 
-**Status:** local implementation/offline gates complete; **LIVE QUALITY INCOMPLETE /
-FREE QUOTA BLOCKED**. Not READY FOR INDEPENDENT RELEASE REVIEW yet. The owner explicitly
-changed the first-demo scope to Groq Free only, deferred OpenRouter, and accepted the
-B context/diagnostic fixes. No reserve metadata/inference or account changes in C.
+**Status:** **P14C READY FOR INDEPENDENT RELEASE REVIEW — GROQ-ONLY DEMO**.
+The owner independently accepted the Groq-only/display/summary implementation, then
+explicitly authorized narrow context compaction and one short after-tool429 retry.
+The old two-provider gate is not claimed passed; OpenRouter is DEFERRED/disabled.
 
-Adds explicit default-false reserve control at policy/serialization boundaries;
-capabilities and Privacy list active providers. Frozen typed display segments replace
-known UUIDs with real dog names/links, retain identity/evidence, and fail unresolved
-prose safely. Compact activity pool/teams/actual summaries are factual; other-dog
-findings are secondary. No new tables, provider fields, domain workflow or post-review
-identity fetch. Offline quality matrix covers twelve grouped scenarios, including
-unknown/HTML/duplicate/long names, eligibility, omissions, stale/reset and quota paths.
-Targeted backend172 tests, frontend47 tests, Ruff/mypy, lint/Node24 build and responsive
-1440/768/390 fixture UI pass. Reused unchanged gates remain source-bound.
+Mandatory validate_day omits repetitive unverified archived DOG_STATE detail only when
+outside both plan and actual participants. Checks/full counts/omissions remain true;
+selected/Actual warnings, UI names/groups/summary and evidence binding stay intact.
+Four-dog ToolResult15,564→7,261B; serialized after-tool request25,787→15,126B.
+Only Groq-only, confirmed429 after successful validate_day, Retry-After1–5s can retry
+once/run. Same serialized request/snapshot/transcript, no tool replay or new UI POST;
+interruptible wait shares45s and6HTTP budget with context guards. Invalid/second/initial/
+long/unknown failures stay terminal. Counters and technical details include the retry.
 
-The separate cap-eight genuine Groq campaign stopped at2/8: forced validate_day
-succeeded, then Groq returned429 with Retry-After1. No final/reference result was
-accepted; empty-plan and recorded-Actual live cases were not attempted. All three
-remain NOT VERIFIED for current model factual quality. No automatic retry, paid
-fallback, model change or quota escalation. Historical11+2 plus new2 =15 attempts,
-21 combined ceiling; all campaigns closed, no unused transfer. Own loopback resources
-are cleaned up, canonical checksum/schema/media preserved. No push/merge/tag/deploy,
-production enablement or P14D. The old two-provider gate is not claimed passed.
+Three genuine cases pass protocol/final references and required facts: four dogs/
+Training5km/no teams/noActual; empty29March; actual-only31March2sessions/16starts/120dog-km.
+Each used2HTTP/tool1/retries0. Live429 recovery was not needed or claimed verified;
+27 deterministic policy cases and API integration exercise it. Related gates:
+279 distinct affected backend tests,70 QA harness tests,43 frontend tests, Ruff/mypy,
+lint/Node24 build. The initial compact tool-loop regression now explicitly tests the
+HTTP cap429 and exactly6dispatches; no core assertion was weakened.
+
+Historical11+2+2 remain closed and immutable; recovery6/6 closes at cumulative21/21,
+no transferred unused slots. All21 table value/count fingerprints matched each review;
+UI temporary state reset, own guarded runtime removed, foreign container state unchanged.
+Schema b7e13a9d4c20, immutable checksum and media60/60 unchanged. No production enablement,
+push/merge/tag/deploy/account changes or P14D. Independent release acceptance remains next.
 
 ## P14D — Presentation and final candidate acceptance (not started)
 

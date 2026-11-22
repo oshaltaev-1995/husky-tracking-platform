@@ -32,10 +32,10 @@
   }
 
   @if (pending()) {
-    <p class="review-message" role="status">Reviewing the saved day. You can cancel this view; a provider request already sent may still finish and use quota.</p>
+    <p class="review-message" role="status">Reviewing the saved day. A short rate limit may cause one brief pause and retry. You can cancel this view; a provider request already sent may still finish and use quota.</p>
   }
   @if (error()) { <p class="review-message error" role="alert">{{ error() }}</p> }
-  @if (retryAt(); as retryTime) { <p class="review-context" role="status">You can start another review after {{ retryTime | date: 'HH:mm:ss' }}. Requests are not repeated automatically.</p> }
+  @if (retryAt(); as retryTime) { <p class="review-context" role="status">You can start another review after {{ retryTime | date: 'HH:mm:ss' }}. A new review starts only when you choose.</p> }
   @if (notice()) { <p class="review-message" role="status">{{ notice() }}</p> }
 
   @if (result(); as current) {
@@ -109,6 +109,7 @@
       <details class="review-trace">
         <summary>Review steps and provider details</summary>
         <p>{{ providerLabel(current.provider) }} · {{ current.model }} · {{ current.http_calls }} model {{ current.http_calls === 1 ? 'request' : 'requests' }} · {{ current.tool_calls }} read {{ current.tool_calls === 1 ? 'tool' : 'tools' }}</p>
+        @if (current.quota_retries === 1) { <p>One short rate-limit response was retried within this review. All requests are included above.</p> }
         @if (current.fallback) { <p>The review restarted on the free reserve using the same snapshot. The primary transcript was not carried over.</p> }
         <ol>@for (step of current.trace; track $index) { <li><strong>{{ toolLabel(step.tool_name) }}</strong><span>{{ providerLabel(step.provider) }} · {{ step.outcome === 'ok' ? 'Completed' : 'Stopped' }} · {{ step.elapsed_ms }} ms</span></li> }</ol>
         @for (fact of current.facts; track fact.rule) {

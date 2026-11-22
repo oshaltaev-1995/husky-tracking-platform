@@ -137,7 +137,9 @@ explicit Operations review beside the selected Daily Plan. For the first demo,
 **DEFERRED by owner scope decision**, not a passed two-provider live gate.
 `AGENT_ENABLED=false` and `AGENT_OPENROUTER_RESERVE_ENABLED=false` are defaults.
 A saved reserve key never enables switching. Quota/rate limits return honest 429;
-network/provider failures return 503, with no automatic retry or paid fallback.
+network/provider failures return 503. No new review starts automatically. A single
+short confirmed after-tool429 may be retried within the same bounded Groq-only review;
+there is no paid fallback.
 Capabilities and conditional Privacy describe only the active providers.
 
 Accepted B context fixes preserve selected pools/eligibility and independent teams/
@@ -147,14 +149,21 @@ findings. Unknown/malformed display identities suppress only the unusable AI pro
 checked facts stay available. Raw UUID prose is not rendered. No extra provider
 fields, post-review profile fetch, domain writes or reference repair are involved.
 
-**P14C local implementation/offline checks pass; LIVE QUALITY is INCOMPLETE due to
-Free quota/rate limiting.** The first genuine four-dog review requested `validate_day`
-but its next HTTP request returned Groq 429 (`Retry-After: 1`). No final was accepted.
-The empty-plan and recorded-Actual model scenarios are NOT VERIFIED; no retry or
-reserve was dispatched. Historical campaigns remain closed at 11 and 2; the new
-cap-eight campaign closed at **2/8**, cumulative **15/21 ceiling**, no unused transfer.
-Offline responsive/name/error fixtures are distinct from genuine model-quality proof.
-No production activation, push, merge, tagging, deployment or P14D occurred.
+**P14C READY FOR INDEPENDENT RELEASE REVIEW — GROQ-ONLY DEMO.** The narrow follow-up
+compacts only unrelated archived-state detail in provider context (four-dog ToolResult
+15,564 →7,261 bytes), preserving selected/Actual facts and client display. One confirmed
+Groq-only429 after successful validate_day may wait Retry-After1–5 seconds and retry
+that exact request once per run. Wait is interruptible and shares the45-second deadline;
+all requests count. Initial/second/long/unknown errors are not generally retried.
+
+Three genuine Groq finals now pass required factual checks: four selected dogs with
+no teams/Actual; an empty day; and Mar31 actual2sessions/16starts/120dog-km without a plan.
+Each used2HTTP, one tool and zero retries; the retry branch is covered by fake tests,
+not claimed exercised live. All three kept21-table values/counts unchanged. Historical
+campaigns11+2+2 stay closed; the recovery campaign closed at6/6, cumulative **21/21**.
+No unused-slot transfer, new model, production activation, push, merge, tag or deployment.
+This is readiness for independent review, not release/deployment acceptance. P14D has
+not started. Free quotas and all future prose remain outside a general guarantee.
 
 Native startup uses explicit private `AGENT_ENV_FILE`; Compose forwards the declared
 `AGENT_*` values through `--env-file`. Existing owner keys are not source code or

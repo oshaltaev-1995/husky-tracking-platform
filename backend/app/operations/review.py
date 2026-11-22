@@ -108,13 +108,14 @@ class OperationsReviewService:
                 # model explanation/reasoning, provider bodies or credentials.
                 logger.info(
                     "operations_review run=%s provider=%s model=%s requests=%s "
-                    "tools=%s switches=%s error=%s",
+                    "tools=%s switches=%s quota_retries=%s error=%s",
                     metadata.run_id,
                     metadata.provider,
                     metadata.model,
                     metadata.http_calls,
                     metadata.tool_calls,
                     metadata.switches,
+                    prepared.run.quota_retries,
                     error_code or metadata.error_code or "none",
                 )
 
@@ -193,6 +194,7 @@ class OperationsReviewService:
             model=metadata.model,
             fallback=metadata.switches > 0,
             http_calls=metadata.http_calls,
+            quota_retries=prepared.run.quota_retries,
             tool_calls=metadata.tool_calls,
             trace=trace,
             usage=ReviewUsage(
