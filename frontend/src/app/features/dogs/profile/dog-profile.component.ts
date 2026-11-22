@@ -1,6 +1,6 @@
 import { AsyncPipe, DatePipe, DOCUMENT, TitleCasePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, distinctUntilChanged, map, merge, of, startWith, Subject, switchMap, tap } from 'rxjs';
@@ -50,9 +50,10 @@ export class DogProfileComponent {
   private readonly document = inject(DOCUMENT);
   protected readonly summaryPrint = inject(DogSummaryPrintService);
   private readonly context = new Subject<'reload' | 'invalidate'>();
+  private readonly media = viewChild(DogMediaComponent);
 
   constructor() {
-    this.session.resetReviewOpened$.pipe(takeUntilDestroyed()).subscribe(() => this.summaryPrint.close(false));
+    this.session.resetReviewOpened$.pipe(takeUntilDestroyed()).subscribe(() => this.closeOverlays());
     this.session.resetStarted$.pipe(takeUntilDestroyed()).subscribe(() => this.invalidateContext());
     this.session.resetCompleted$.pipe(takeUntilDestroyed()).subscribe(() => this.context.next('reload'));
     this.session.replaced$.pipe(takeUntilDestroyed()).subscribe(() => this.invalidateContext());
@@ -69,8 +70,13 @@ export class DogProfileComponent {
   }
 
   private invalidateContext(): void {
-    this.summaryPrint.close(false);
+    this.closeOverlays();
     this.context.next('invalidate');
+  }
+
+  private closeOverlays(): void {
+    this.media()?.closeViewer(false);
+    this.summaryPrint.close(false);
   }
 
   protected reloadProfile(): void {
@@ -111,10 +117,10 @@ export class DogProfileComponent {
   protected readonly state$ = this.route.paramMap.pipe(
     map((params) => params.get('dogId') ?? ''),
     distinctUntilChanged(),
-    tap(() => this.summaryPrint.close(false)),
+    tap(() => this.closeOverlays()),
     switchMap((id) => merge(of('reload' as const), this.context).pipe(
       switchMap((action) => {
-        this.summaryPrint.close(false);
+        this.closeOverlays();
         if (action === 'invalidate') return of({ kind: 'context-changed' as const });
         const routeId = canonicalUuid(id);
         if (!routeId) return of({ kind: 'not-found' as const });

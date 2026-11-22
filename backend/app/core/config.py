@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     privacy_contact_email: str = "privacy@example.invalid"
     privacy_controller_country: str = "Not configured"
     privacy_hosting_region: str = "Not configured"
-    privacy_effective_date: date = date(2026, 9, 18)
+    privacy_effective_date: date = date(2026, 11, 22)
     privacy_mail_provider_name: str | None = None
     privacy_mail_provider_region: str | None = None
     contact_delivery_mode: str = "sink"

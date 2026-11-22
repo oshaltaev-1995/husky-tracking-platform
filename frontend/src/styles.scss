@@ -51,8 +51,13 @@ a:focus-visible {
   outline-offset: var(--focus-ring-offset);
 }
 
-body.dialog-open {
+body.dialog-open,
+body.ht-dog-photo-open {
   overflow: hidden;
+}
+
+@media print {
+  body.ht-dog-photo-open { overflow: visible; }
 }
 
 @media (prefers-reduced-motion: reduce) {

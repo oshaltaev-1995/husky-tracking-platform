@@ -62,6 +62,34 @@
   object-fit: cover;
 }
 
+.photo-enlarge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  width: 100%;
+  padding: var(--space-3);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.photo-enlarge > span {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-primary);
+  background: var(--surface-card);
+  font-size: var(--font-label);
+  font-weight: 650;
+}
+
+.photo-enlarge:focus-visible { outline-offset: calc(-1 * var(--space-2)); }
+
+@media print { .photo-enlarge { display: none !important; } }
+
 .dog-media.compact .dog-media-fallback::after {
   right: 0.35rem;
   bottom: 0.3rem;

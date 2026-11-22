@@ -927,7 +927,8 @@ See `OPERATIONS_AGENT_FOUNDATION.md` and the incremental live review evidence.
 
 ## P14C — Groq-only client review and bounded quality evaluation
 
-**Status:** **P14C READY FOR INDEPENDENT RELEASE REVIEW — GROQ-ONLY DEMO**.
+**Status:** **INDEPENDENTLY ACCEPTED — GROQ-ONLY DEMO**, at
+`0b602970df7d2b0263b055abcf5b462626ba2f08` (owner acceptance, 22 November 2026).
 The owner independently accepted the Groq-only/display/summary implementation, then
 explicitly authorized narrow context compaction and one short after-tool429 retry.
 The old two-provider gate is not claimed passed; OpenRouter is DEFERRED/disabled.
@@ -942,23 +943,51 @@ interruptible wait shares45s and6HTTP budget with context guards. Invalid/second
 long/unknown failures stay terminal. Counters and technical details include the retry.
 
 Three genuine cases pass protocol/final references and required facts: four dogs/
-Training5km/no teams/noActual; empty29March; actual-only31March2sessions/16starts/120dog-km.
+Training5km/no teams/noActual; empty29March; actual-only31March2sessions/16starts/120 dog-km.
 Each used2HTTP/tool1/retries0. Live429 recovery was not needed or claimed verified;
 27 deterministic policy cases and API integration exercise it. Related gates:
 279 distinct affected backend tests,70 QA harness tests,43 frontend tests, Ruff/mypy,
 lint/Node24 build. The initial compact tool-loop regression now explicitly tests the
 HTTP cap429 and exactly6dispatches; no core assertion was weakened.
 
-Historical11+2+2 remain closed and immutable; recovery6/6 closes at cumulative21/21,
+Historical11+2+2 remain closed and immutable; recovery6/6 closes at cumulative 21/21,
 no transferred unused slots. All21 table value/count fingerprints matched each review;
 UI temporary state reset, own guarded runtime removed, foreign container state unchanged.
 Schema b7e13a9d4c20, immutable checksum and media60/60 unchanged. No production enablement,
-push/merge/tag/deploy/account changes or P14D. Independent release acceptance remains next.
+push/merge/tag/deploy/account changes occurred in C. Independent acceptance covers the
+Groq-only demo and required factual results, not universal model truth or future quotas.
 
-## P14D — Presentation and final candidate acceptance (not started)
+## P14D — Presentation, photo viewing and independent UX/UI handoff
 
-Present the evaluated result and independent release candidate. Publication remains a
-separate final owner-authorized action; no automatic push/deploy/tag from these stages.
+**Status:** **READY FOR UX/UI REVIEW — LOCAL GROQ-ONLY CANDIDATE, STAND RETAINED**.
+This is the first reviewable handoff; final D acceptance and candidate fixation follow
+an independent UX/UI pass and any necessary narrow corrections. It is not self-accepted.
+
+Client prose labels internal tools only from the executed allowed trace, and evidence
+only from validated same-snapshot references. Identity segments take priority, raw
+explanation and strict reference validation remain unchanged, and unusable prose cannot
+hide the trusted saved-plan/pool/teams/Actual summary. Provider inputs, compaction,
+retry policy and 45s/6HTTP/8tools/1024output limits are unchanged.
+
+Profile-only viewing reuses the existing synthetic image, media version and fallback.
+A visible keyboard action/zoom-in cursor opens the full uncropped frame in a modal,
+with Close/Escape, focus/scroll restoration, context fencing and print exclusion.
+Active/archive profiles share this; cards/map keep their existing actions. Dog creation,
+galleries, uploads, media changes, new schema and domain workflow changes are out of scope.
+
+Privacy keeps runtime enabled-provider disclosure, explains same-origin portrait use,
+and moves operator-only logging/training instructions to the operations documentation.
+Candidate effective-date defaults/templates are 22 November 2026; future publication must
+confirm the real effective date without treating this template as live-site evidence.
+A short walkthrough, source-bound acceptance matrix, offline-fixture screenshots and
+`UX_UI_HANDOFF.md` accompany the review ZIP. Fresh affected tests are distinguished
+from inherited unchanged gates. No new full-suite/live/native campaign is claimed.
+
+One retained own stand contains synthetic data and QA-only accepted P14C prose fixtures,
+without mounting owner provider keys or using live transport. New live HTTP: 0;
+historical21/21 ledgers remain CLOSED, OpenRouter DEFERRED, production agent disabled.
+No GitHub jobs, paid runners, push/merge/tag/deploy or production changes occur.
+Publication remains a separate owner-authorized action after independent acceptance.
 
 ## Completion discipline
 

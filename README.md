@@ -149,7 +149,8 @@ findings. Unknown/malformed display identities suppress only the unusable AI pro
 checked facts stay available. Raw UUID prose is not rendered. No extra provider
 fields, post-review profile fetch, domain writes or reference repair are involved.
 
-**P14C READY FOR INDEPENDENT RELEASE REVIEW — GROQ-ONLY DEMO.** The narrow follow-up
+**P14C independently accepted — GROQ-ONLY DEMO**, at
+`0b602970df7d2b0263b055abcf5b462626ba2f08`. The narrow follow-up
 compacts only unrelated archived-state detail in provider context (four-dog ToolResult
 15,564 →7,261 bytes), preserving selected/Actual facts and client display. One confirmed
 Groq-only429 after successful validate_day may wait Retry-After1–5 seconds and retry
@@ -157,13 +158,23 @@ that exact request once per run. Wait is interruptible and shares the45-second d
 all requests count. Initial/second/long/unknown errors are not generally retried.
 
 Three genuine Groq finals now pass required factual checks: four selected dogs with
-no teams/Actual; an empty day; and Mar31 actual2sessions/16starts/120dog-km without a plan.
+no teams/Actual; an empty day; and Mar31 actual2sessions/16starts/120 dog-km without a plan.
 Each used2HTTP, one tool and zero retries; the retry branch is covered by fake tests,
 not claimed exercised live. All three kept21-table values/counts unchanged. Historical
 campaigns11+2+2 stay closed; the recovery campaign closed at6/6, cumulative **21/21**.
 No unused-slot transfer, new model, production activation, push, merge, tag or deployment.
-This is readiness for independent review, not release/deployment acceptance. P14D has
-not started. Free quotas and all future prose remain outside a general guarantee.
+This acceptance is bounded to the three required cases, not a guarantee of all future
+prose or Free availability. **P14D READY FOR UX/UI REVIEW — LOCAL GROQ-ONLY CANDIDATE**
+is the first presentation handoff, not final UX/UI acceptance or deployment. It adds
+verified human labels for internal prose references, profile-only portrait viewing and
+a targeted Privacy revision. The profile portrait has a visible enlargement action,
+`zoom-in` cursor, full-frame modal view and keyboard Close/Escape with focus return.
+Cards and map retain their navigation/selection behavior. The retained synthetic review
+stand uses clearly marked offline presentation fixtures, no provider keys or live
+transport; its exact URL/build/stop instructions belong to `UX_UI_HANDOFF.md` in the
+review bundle. New live HTTP: 0; historical21/21 CLOSED. OpenRouter remains DEFERRED.
+Production agent remains disabled. Final candidate identity follows independent UX/UI
+review and any small corrections. No push, merge, tag or deployment is included.
 
 Native startup uses explicit private `AGENT_ENV_FILE`; Compose forwards the declared
 `AGENT_*` values through `--env-file`. Existing owner keys are not source code or

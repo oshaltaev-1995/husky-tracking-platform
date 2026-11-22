@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, input, signal, viewChild, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, input, signal, untracked, viewChild, ChangeDetectorRef } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { DogPhotoViewerComponent } from './dog-photo-viewer.component';
 
 export const DOG_MEDIA_VERSION = 'dog-media-v1';
 export const DOG_MEDIA_PRINT_TIMEOUT_MS = 8000;
@@ -7,6 +9,7 @@ const CANONICAL_PHOTO_KEY =
 
 @Component({
   selector: 'ht-dog-media',
+  imports: [DogPhotoViewerComponent],
   template: `
     <div
       class="dog-media"
@@ -24,6 +27,11 @@ const CANONICAL_PHOTO_KEY =
           decoding="async"
           (error)="handleImageError()"
         />
+        @if (expandable()) {
+          <button class="photo-enlarge" type="button" [attr.aria-label]="'Enlarge portrait of ' + name()" (click)="openViewer()">
+            <span>Enlarge photo <span aria-hidden="true">↗</span></span>
+          </button>
+        }
       } @else {
         <div class="dog-media-fallback" role="img" [attr.aria-label]="altText()">
           <span aria-hidden="true">{{ initial() }}</span>
@@ -31,6 +39,9 @@ const CANONICAL_PHOTO_KEY =
         </div>
       }
     </div>
+    @if (viewer(); as photo) {
+      <ht-dog-photo-viewer [name]="photo.name" [source]="photo.source" (closed)="closeViewer(true)" />
+    }
   `,
   styleUrl: './dog-media.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +50,10 @@ export class DogMediaComponent {
   readonly name = input.required<string>();
   readonly photoKey = input<string | null>(null);
   readonly size = input<'card' | 'compact' | 'profile'>('card');
+  readonly expandable = input(false);
+  protected readonly viewer = signal<{ name: string; source: string } | null>(null);
+  private readonly photoViewer = viewChild(DogPhotoViewerComponent);
+  private readonly document = inject(DOCUMENT);
   private readonly portrait = viewChild<ElementRef<HTMLImageElement>>('portrait');
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -46,10 +61,28 @@ export class DogMediaComponent {
   private destroyed = false;
 
   constructor() {
+    effect(() => {
+      this.name();
+      this.photoKey();
+      this.expandable();
+      // Identity/media replacement invalidates the frozen view, never retargets it.
+      untracked(() => this.closeViewer(false));
+    });
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       for (const cancel of this.pending) cancel();
     });
+  }
+
+  protected openViewer(): void {
+    const source = this.imageSource();
+    if (!this.expandable() || !source || this.destroyed || this.document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+    this.viewer.set({ name: this.name(), source });
+  }
+
+  closeViewer(restoreFocus = false): void {
+    if (!restoreFocus) this.photoViewer()?.dismissForContextChange();
+    this.viewer.set(null);
   }
 
   /** Opt-in print readiness. Ordinary registry media remains lazy and unchanged. */
@@ -104,6 +137,7 @@ export class DogMediaComponent {
   }
 
   protected handleImageError() {
+    this.closeViewer(false);
     this.failedPhotoKey.set(this.photoKey());
   }
 }

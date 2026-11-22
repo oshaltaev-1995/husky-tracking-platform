@@ -11,7 +11,7 @@ exist.
 | Demo workspace edits | User-entered plan/activity notes, selected fictional dogs, teams, actual-work edits, and temporary fictional dog housing destinations | Provide the interactive product workflow in an isolated workspace | Workspace-scoped `daily_plans` and `work_sessions`, with descendants; `demo_workspace_days` records copied dates; `demo_workspace_housing_overrides` and `housing_revision` track reference-date placements separately | Application and configured hosting/database providers | Same workspace lifetime. Reset removes only that visitor's edits, including housing overrides; expiration cascades them. Visitors are told not to enter real personal, confidential, customer, or health data. |
 | Technical/security logs | Hosting/web-server IP, timestamp, requested path, user agent, correlation/error/security metadata | Reliable operation, troubleshooting, and abuse prevention; legitimate interest in operating and protecting the service | Not stored on `demo_workspaces`; application logs must exclude cookie/token values, note bodies, contact bodies, and credentials | Configured hosting/logging operators | Husky container logs have bounded Docker rotation (10 MiB × 3 per container); maintenance logs use the shared size-bounded systemd journal. No exact time-based deletion period is guaranteed. |
 | Canonical demo data | Fictional dog names, pedigrees, housing, work, archive records, and AI-generated fictional dog portraits | Demonstrate product behavior | Shared baseline PostgreSQL rows and static WebP assets | Public demo visitors and hosting providers | Versioned product artifact. It contains no real kennel, customer, person, or dog data. |
-| Optional Operations review (P14B, enabled environments only) | Explicitly selected demo date; frozen synthetic plan/team/actual counts, bounded fictional dog identities and dated states, housing, workload and server evidence requested through closed read tools | Explain the saved fictional day at the visitor's explicit request; no operational writes or medical assessment | In-memory bounded snapshot/result only; no conversation/raw-transcript database or new browser storage. API responses are no-store. Logs contain allowlisted request/tool/provider metadata, not prompts/responses. | Server-side Groq Free; one exact free OpenRouter reserve when permitted. Browser calls only this application's same-origin API. | Provider processing can involve other countries and abuse/legal retention. Required disabled logging/training opt-ins and OpenRouter `data_collection:"deny"` do not prove universal zero retention or EEA-only processing. Live account compatibility remains pending verification. |
+| Optional Operations review (P14B, enabled environments only) | Explicitly selected demo date; frozen synthetic plan/team/actual counts, bounded fictional dog identities and dated states, housing, workload and server evidence requested through closed read tools | Explain the saved fictional day at the visitor's explicit request; no operational writes or medical assessment | In-memory bounded snapshot/result only; no conversation/raw-transcript database or new browser storage. API responses are no-store. Logs contain allowlisted request/tool/provider metadata, not prompts/responses. | Server-side Groq Free in the accepted first-demo scope; OpenRouter remains disabled/DEFERRED. Browser calls only this application's same-origin API. | Provider processing can involve other countries and abuse/legal retention. Required disabled logging/training opt-ins and OpenRouter `data_collection:"deny"` do not prove universal zero retention or EEA-only processing. The earlier owner Free/privacy attestation is reused; D does not re-inspect account controls or prove universal retention guarantees. |
 
 ## Browser storage audit
 
@@ -51,8 +51,9 @@ This decision must be revisited if non-essential storage is introduced.
 - Browser initialization/reset: `frontend/src/app/core/api/demo-session.service.ts`
   and `frontend/src/app/layout/demo-shell/`
 
-Final provider, transfer, mailbox, and log-retention facts are live-deployment
-acceptance items for P12B. P12A startup validation refuses placeholder controller,
+Production Contact uses Brevo; incoming domain mail uses Cloudflare Email Routing.
+Private recipients/forwarding addresses are not part of this document. Any future provider,
+transfer, mailbox or retention changes require a separate deployment/privacy review. P12A startup validation refuses placeholder controller,
 contact, and hosting-region values. The VPS/hosting location alone does not determine the
 controller's competent supervisory authority.
 
@@ -80,11 +81,30 @@ no additional cookie, consent banner, analytics or browser store. The capability
 and Privacy GET never initialize a workspace. Review requires an existing valid cookie
 and same-origin request; its response is no-store.
 
-Limited live QA requires owner-confirmed project keys, Groq Free and current
-OpenRouter free-route/privacy controls, with at most 12 inference HTTP calls total.
-No such live proof or account-level retention guarantee is claimed here. Exact setup
-and the remaining gate are in `OPERATIONS_AGENT_FOUNDATION.md`.
+Historical limited live campaigns are CLOSED at cumulative 21/21. P14C recovery was
+independently accepted at `0b602970df7d2b0263b055abcf5b462626ba2f08` in Groq-only
+demo scope with three required genuine results. P14D is local presentation/Privacy
+review only, with no new inference or provider metadata calls. Accepted live results
+do not prove universal prose correctness, future Free availability or account-level
+retention guarantees. Exact history is in `OPERATIONS_AGENT_FOUNDATION.md`.
 
 Reset removes mutable workspace rows (including notes/housing changes), not its cookie,
 and does not extend the existing server expiry. The public notice uses runtime TTL
 metadata rather than a fixed-duration promise.
+
+
+## P14D portrait and notice revision
+
+The profile viewer reuses the existing same-origin versioned synthetic WebP. Opening,
+closing and zoom-in cursor presentation create no image-processing request, provider
+image input, workspace mutation, recipient, analytics or browser store. Existing image
+caching remains ordinary browser behavior. No new consent mechanism is added for this
+viewer; reassess if non-essential storage or other processing is introduced.
+
+The optional AI notice describes possible provider metadata/request retention instead
+of instructing visitors to change operator account controls. Required disabled optional
+logging/training settings remain operator requirements in `OPERATIONS_AGENT_FOUNDATION.md`.
+P14D reuses earlier owner attestation; it does not assert a fresh ZDR-account inspection.
+The candidate notice date is 2026-11-22 in settings/templates; confirm the actual effective
+date when publishing. Production environment and real controller/contact/hosting/mail/
+TTL values are untouched by this local package.

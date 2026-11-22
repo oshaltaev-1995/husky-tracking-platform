@@ -48,8 +48,9 @@ Targeted backend172 and frontend47 tests, Ruff/mypy and Node24 build pass. These
 not evidence that free model prose is true. The old UUID-heavy Groq explanation is
 used as a deterministic presentation fixture, not regenerated for style.
 
-**P14C READY FOR INDEPENDENT RELEASE REVIEW — GROQ-ONLY DEMO.** This is a candidate
-for independent review, not deployment or a general certification of model prose.
+**P14C recovery independently accepted — GROQ-ONLY DEMO**, at
+`0b602970df7d2b0263b055abcf5b462626ba2f08`. Acceptance covers the three required
+genuine results and bounded implementation, not deployment or universal model truth.
 The earlier P14C campaign stopped at2/8 after a confirmed after-tool429. The owner
 explicitly authorized a narrow follow-up, preserving that closed ledger and total15.
 
@@ -76,7 +77,7 @@ prove the path, including Cancel/Reset/expiry/deadline/budget fencing.
 The new authorized cap-six campaign completed exactly six genuine Groq requests:
 three required validate_day→final flows, one tool and twoHTTP200 each. Required facts
 passed for four selected working dogs/5km/no teams/noActual; empty29March; and actual-only
-31March2sessions/16dogs/16starts/120dog-km. Client names/links match frozen identity.
+31March2sessions/16dogs/16starts/120 dog-km. Client names/links match frozen identity.
 No live429 occurred, so live recovery-path proof is not claimed. Some prose retains
 technical wording; screenshots preserve exact text for independent review. No stylistic
 regeneration, claim repair or judge model was used. All21 table counts and value hashes
@@ -87,10 +88,55 @@ Old11/12,2/6 and2/8 ledgers/closures remain byte-identical. Recovery6/6 gives to
 all campaigns closed with no unused transfer or further inference authorization.
 Known recovery usage is10,177prompt/1,568completion tokens; historical failed usage
 remains unknown. Free/privacy attestation is reused, not an invoice guarantee. No new
-OpenRouter metadata/inference, payment/model/account change, production activation or
-P14D. Targeted gates:279 distinct backend cases,70 QA tests,43 frontend cases, Ruff/mypy
+OpenRouter metadata/inference, payment/model/account change or production activation
+occurred in C. Targeted gates:279 distinct backend cases,70 QA tests,43 frontend cases, Ruff/mypy
 and Node24 build; unchanged print/native/full suites are source-bound/reused.
 The historical sections below describe their original stage; they grant no live budget.
+
+## P14D local presentation candidate — independent UX/UI review pending
+
+First handoff: **P14D READY FOR UX/UI REVIEW — LOCAL GROQ-ONLY CANDIDATE,
+STAND RETAINED**. This is not final acceptance. Known tool/evidence tokens receive
+plain-language labels only through the frozen display boundary and validated trace/
+evidence. Dog-name segments take priority even if a name resembles a technical token.
+Raw explanation, provider inputs, compaction, validation, budgets and retry are unchanged.
+Unknown/ambiguous presentation stays fail-closed with checked facts still available.
+The UI keeps selected dogs, saved teams and Actual distinct;120 dog-km is aggregate
+participation distance, and 16 dogs/16 starts are separate metrics. An empty saved day
+makes no claim that the kennel contains no dogs.
+
+Profile enlargement uses the existing same-origin synthetic portrait, with no LLM image
+input, tracking, extra browser store, image mutation or new recipient. It supports
+active/archive profiles; placeholder/error/context and keyboard/print behavior remain
+bounded. See the review bundle's walkthrough, source bindings, acceptance matrix and
+`UX_UI_HANDOFF.md` for the exact retained build/URLs and controlled stop/restart commands.
+The stand uses QA-only saved presentation fixtures, no project keys or live transport.
+All live campaigns remain CLOSED at 21/21; new inferenceHTTP 0 and no provider metadata
+probe. OpenRouter DEFERRED, production feature default-off, no publication commands run.
+
+### Privacy operator requirements, kept outside visitor policy
+
+Optional input/output logging and training controls must remain disabled under the
+owner-confirmed Free/privacy setup. A stored key is no evidence of current account
+settings. D reuses the earlier owner attestation and does not re-inspect account/ZDR
+switches or relax them for availability. [Groq's data documentation](https://console.groq.com/docs/your-data)
+distinguishes usage metadata from request data and describes reliability/abuse retention
+and optional controls; this is not proof that this account has universal ZDR or EEA-only
+processing. Visitor policy therefore describes possible retention without an operator TODO
+or an unverified non-retention promise. The optional reserve retains its stricter denial
+filters and is not active.
+
+Candidate Privacy defaults/templates are2026-11-22. Before future publication confirm
+`PRIVACY_EFFECTIVE_DATE` for the actual substantive notice release; do not overwrite real
+controller, contact, hosting, mail or TTL values. This local date is not a claim about
+the current production notice. [Traficom cookie guidance](https://kyberturvallisuuskeskus.fi/en/our-activities/regulation-and-supervision/cookies)
+distinguishes necessary requested-service storage from non-essential storage. The current
+single necessary workspace cookie and same-origin photo viewer add no consent banner;
+reassess if analytics or other non-essential processing/storage is introduced.
+
+Manual delivery without GitHub-hosted compute is documented in
+[`P13_RELEASE_RUNBOOK.md`](P13_RELEASE_RUNBOOK.md). Actual remote gate/budget visibility
+is recorded there; local affected tests must never be represented as remote checks.
 
 
 ## Context and consistency

@@ -175,7 +175,11 @@ class OperationsReviewService:
             selected_date=snapshot.selected_date,
             captured_at=snapshot.captured_at,
             explanation=answer.explanation,
-            presentation=display.explanation(answer.explanation),
+            presentation=display.explanation(
+                answer.explanation,
+                executed_tools=tuple(row.tool_name for row in trace),
+                references=answer.references,
+            ),
             summary=display.summary(),
             finding_groups=groups,
             facts=facts,

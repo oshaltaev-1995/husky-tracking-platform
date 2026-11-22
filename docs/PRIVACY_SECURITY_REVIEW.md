@@ -69,3 +69,23 @@ CSRF framework is needed for an anonymous, non-privileged workspace. Contact doe
 act on cookie-owned state; honeypot, payload bounds, validation, and P12B proxy rate
 limits address its spam/resource-abuse boundary. All API responses are `no-store`, so a
 shared proxy cannot replay one visitor's workspace projection to another.
+
+
+## P14D local presentation/privacy review
+
+The independently accepted P14C Groq-only scope remains default-off in production.
+P14D changes only client presentation, existing-photo viewing and notice/default-date
+copy. Provider inputs, tool/reference validation, compact projection, bounded retry,
+admission, no-store, cookie/origin/workspace fences and secret handling remain in force.
+All historical live ledgers remain CLOSED 21/21; offline tests/fixtures are not new
+provider runs or account-control inspection. OpenRouter remains DEFERRED.
+
+The photo viewer requests the same versioned same-origin synthetic image. It sends no
+image to a model, adds no tracking/storage/recipient and does not require a new cookie
+banner under the current strictly necessary cookie boundary. The conditional AI notice
+still appears only for an enabled environment and lists its active providers. It makes
+no universal ZDR, EEA-only, training-safety or medical guarantee. Operator-only disabled
+logging/training requirements are documented outside visitor policy. Candidate notice
+revision 2026-11-22 must be reconciled with the actual effective date before future
+publication; no real production settings are changed in D. Independent UX/UI acceptance
+and deployment remain future gates, not completed security acceptance claims.

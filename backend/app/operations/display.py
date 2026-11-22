@@ -21,7 +21,8 @@ from app.operations.api_schemas import (
     ReviewOperationalSummary,
     ReviewStatusCounts,
 )
-from app.operations.schemas import Check, Entity, Snapshot
+from app.operations.schemas import Check, ClaimReference, Entity, Snapshot, ToolName
+from app.operations.tools import READ_TOOLS
 
 # Boundaries matter: replacing a substring of an unknown identifier is guessing.
 _UUID = r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -39,6 +40,32 @@ _UNRESOLVED = (
     "The AI explanation contains a reference that could not be matched to this "
     "snapshot. The saved-day summary and checked facts remain available."
 )
+_TOOL_LABELS: dict[str, str] = {
+    "get_day_plan": "saved day plan",
+    "get_saved_teams": "saved teams",
+    "get_dog_states": "dated dog states",
+    "get_workload": "actual workload",
+    "get_housing": "dated housing",
+    "validate_day": "saved-day check",
+}
+_EVIDENCE_LABELS = {
+    "PLAN_PRESENCE": "saved-plan record",
+    "ACTIVITY_DISTANCE": "activity distance",
+    "PARTICIPANT_ELIGIBILITY": "participant eligibility",
+    "SAVED_LINEUP": "saved-team check",
+    "ACTUAL_RECORDING": "actual-recording state",
+    "PLANNED_DAILY_KM": "planned workload",
+    "ACTUAL_DAILY_KM": "recorded workload",
+    "DATED_STATE_MISSING": "dated information",
+    "DOG_STATE": "dated dog state",
+    "WORKLOAD_BEFORE": "previous actual workload",
+    "HOUSING_INFORMATION": "dated housing",
+    "ACTUAL_LEDGER": "recorded-work totals",
+}
+_TECHNICAL_TOKEN = re.compile(
+    r"(?<![\w-])(?:" + "|".join(READ_TOOLS) + r"|e-\d+)(?![\w-])"
+)
+_PRESENTATION_TOKEN = re.compile(_TOKEN.pattern + "|" + _TECHNICAL_TOKEN.pattern)
 _KIND_LABELS = {
     "training": "Training",
     "open_space_walk": "Open-space walk",
@@ -128,10 +155,42 @@ class FrozenDisplay:
             None,
         )
 
-    def explanation(self, text: str) -> ReviewDisplay:
+    def _evidence_label(
+        self, identity: str, references: tuple[ClaimReference, ...]
+    ) -> str | None:
+        # Reference validation remains authoritative. Presentation additionally
+        # requires one unambiguous frozen record/check; the number encodes nothing.
+        evidence = [row for row in self.snapshot.evidence if row.id == identity]
+        checks = [row for row in self.snapshot.checks if identity in row.evidence_ids]
+        refs = [row for row in references if row.evidence_id == identity]
+        if len(evidence) != 1 or len(checks) != 1 or not refs:
+            return None
+        record, check = evidence[0], checks[0]
+        if (
+            record.selected_date != self.snapshot.selected_date
+            or check.selected_date != self.snapshot.selected_date
+            or any(
+                ref.snapshot_id != self.snapshot.id
+                or ref.selected_date != self.snapshot.selected_date
+                or ref.entity not in record.entities
+                for ref in refs
+            )
+        ):
+            return None
+        return _EVIDENCE_LABELS.get(check.rule)
+
+    def explanation(
+        self,
+        text: str,
+        *,
+        executed_tools: tuple[ToolName, ...] = (),
+        references: tuple[ClaimReference, ...] = (),
+    ) -> ReviewDisplay:
         def unresolved() -> ReviewDisplay:
             return ReviewDisplay(status="unresolved", segments=(), message=_UNRESOLVED)
 
+        if len(text) > 4000:
+            return unresolved()
         if not text.strip():
             return ReviewDisplay(
                 status="unresolved",
@@ -172,18 +231,45 @@ class FrozenDisplay:
         text = _ID_LIST.sub(list_names, text)
         segments: list[ReviewDisplaySegment] = []
         offset = 0
-        for match in _TOKEN.finditer(text):
-            if offset < match.start():
-                segments.append(ReviewDisplaySegment(text=text[offset : match.start()]))
-            found = labels[match.group()]
-            segments.append(
-                ReviewDisplaySegment(
-                    text=found.label, entity=found.entity, path=found.path
+        plain = ""
+
+        def flush_plain() -> None:
+            nonlocal plain
+            # Replacement can expand a bounded raw explanation. Keep existing DTO
+            # bounds without turning a presentation failure into a lost summary.
+            while plain:
+                segments.append(ReviewDisplaySegment(text=plain[:4000]))
+                plain = plain[4000:]
+
+        for match in _PRESENTATION_TOKEN.finditer(text):
+            plain += text[offset : match.start()]
+            token = match.group()
+            if token in labels:
+                flush_plain()
+                found = labels[token]
+                segments.append(
+                    ReviewDisplaySegment(
+                        text=found.label, entity=found.entity, path=found.path
+                    )
                 )
-            )
+            elif token in self._names:
+                # Identity takes priority, including literal names that resemble
+                # internal tokens. Resolved dog-name segments are never rescanned.
+                plain += token
+            elif token in READ_TOOLS:
+                if token not in executed_tools:
+                    return unresolved()
+                plain += _TOOL_LABELS[token]
+            else:
+                label = self._evidence_label(token, references)
+                if label is None:
+                    return unresolved()
+                plain += label
             offset = match.end()
-        if offset < len(text) or not segments:
-            segments.append(ReviewDisplaySegment(text=text[offset:]))
+        plain += text[offset:]
+        flush_plain()
+        if len(segments) > 256:
+            return unresolved()
         return ReviewDisplay(status="ready", segments=tuple(segments), message=None)
 
     def summary(self) -> ReviewOperationalSummary:

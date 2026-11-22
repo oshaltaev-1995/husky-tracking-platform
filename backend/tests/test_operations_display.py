@@ -19,7 +19,7 @@ from app.operations.display import FrozenDisplay
 from app.operations.foundation import PreparedReview
 from app.operations.provider_models import Usage
 from app.operations.review import OperationsReviewService
-from app.operations.schemas import Entity, Snapshot
+from app.operations.schemas import ClaimReference, Entity, Snapshot
 from app.operations.tools import FrozenTools
 
 
@@ -351,3 +351,251 @@ def test_response_keeps_verified_facts_when_explanation_cannot_be_presented() ->
     )
     # Display mapping does not modify or manufacture claim/evidence references.
     assert answer.references[0].entity == evidence.entities[0]
+
+    # The actual response path supplies executed trace and validated references,
+    # while raw explanation and technical trace retain their existing contract.
+    raw = f"validate_day did not record actual work; see {evidence.id}."
+    accepted = answer.model_copy(update={"explanation": raw})
+    presented = OperationsReviewService._response(
+        prepared,
+        accepted,
+        (ReviewTrace(tool_name="validate_day", provider="groq", elapsed_ms=1),),
+    )
+    assert presented.explanation == raw and accepted.references == answer.references
+    assert flattened(presented.presentation) == (
+        "saved-day check did not record actual work; see saved-plan record."
+    )
+    assert presented.trace[0].tool_name == "validate_day"
+    assert presented.facts == result.facts and presented.summary == result.summary
+    assert presented.http_calls == 2 and presented.tool_calls == 1
+
+
+# These exact prose fixtures are manually transcribed from the accepted recovery
+# PNGs (22 Nov 2026), not captured HTTP payloads or new model responses. The empty
+# case is intentionally not rewritten to improve its qualitative claims.
+_P14C_GENUINE_EMPTY_TRANSCRIPTION = (
+    "The validate_day tool reports that on 2026-03-29 no plan was present and no "
+    "actual sessions or dog starts occurred. The evidence entries e-001 and "
+    "e-144 both record the day entity with zero activities, sessions, dog starts, "
+    "and distance. No dogs, activities, or actual work are indicated for that "
+    "date. Thus the day’s operational snapshot contains no scheduled or "
+    "completed work."
+)
+_P14C_GENUINE_FOUR_DOGS_TRANSCRIPTION = (
+    "The snapshot for 2026-03-29 reports one planned activity (distance 5 km) with "
+    "four selected dogs and no saved teams or recorded actual work. No actual "
+    "sessions or distance were logged for that day. All data come directly from "
+    "the server-issued evidence; no inference is made that the plan was "
+    "executed. Selected dogs are listed in the plan’s selected pool and each "
+    "has availability, born, lifecycle, class, and role attributes as provided "
+    "by the evidence."
+)
+_P14C_GENUINE_ACTUAL_TRANSCRIPTION = (
+    "The validated snapshot for 2026-03-31 reports zero planned activities and "
+    "two actual training sessions involving 16 dog starts totaling 120 km. The "
+    "plan check indicates no saved plan exists, so no inference of planned work "
+    "can be made. All counts are based on the frozen snapshot; omitted details "
+    "are unknown, not zero. No saved teams or dog state details are present."
+)
+
+
+def references_for(snapshot: Snapshot, *rules: str) -> tuple[ClaimReference, ...]:
+    evidence_ids = {
+        identity
+        for check in snapshot.checks
+        if check.rule in rules
+        for identity in check.evidence_ids
+    }
+    return tuple(
+        ClaimReference(
+            snapshot_id=snapshot.id,
+            selected_date=snapshot.selected_date,
+            evidence_id=row.id,
+            entity=row.entities[0],
+        )
+        for row in snapshot.evidence
+        if row.id in evidence_ids
+    )
+
+
+def with_evidence_names(snapshot: Snapshot, names: dict[str, str]) -> Snapshot:
+    return snapshot.model_copy(
+        update={
+            "evidence": tuple(
+                row.model_copy(update={"id": names.get(row.id, row.id)})
+                for row in snapshot.evidence
+            ),
+            "checks": tuple(
+                check.model_copy(
+                    update={
+                        "evidence_ids": tuple(
+                            names.get(identity, identity)
+                            for identity in check.evidence_ids
+                        )
+                    }
+                )
+                for check in snapshot.checks
+            ),
+        }
+    )
+
+
+def test_genuine_empty_prose_labels_only_exact_executed_validated_tokens() -> None:
+    frozen = state(activity_count=0, pool_size=0)
+    plan = references_for(frozen, "PLAN_PRESENCE")[0]
+    actual = references_for(frozen, "ACTUAL_LEDGER")[0]
+    frozen = with_evidence_names(
+        frozen, {plan.evidence_id: "e-001", actual.evidence_id: "e-144"}
+    )
+    original = frozen.model_dump_json()
+    result = display(frozen).explanation(
+        _P14C_GENUINE_EMPTY_TRANSCRIPTION,
+        executed_tools=("validate_day",),
+        references=references_for(frozen, "PLAN_PRESENCE", "ACTUAL_LEDGER"),
+    )
+    assert result.status == "ready"
+    assert flattened(result) == (
+        "The saved-day check tool reports that on 2026-03-29 no plan was present "
+        "and no actual sessions or dog starts occurred. The evidence entries "
+        "saved-plan record and recorded-work totals both record the day entity "
+        "with zero activities, sessions, dog starts, and distance. No dogs, "
+        "activities, or actual work are indicated for that date. Thus the day’s "
+        "operational snapshot contains no scheduled or completed work."
+    )
+    assert all(part.path is None and part.entity is None for part in result.segments)
+    assert frozen.model_dump_json() == original
+    # No presentation layer inference that an empty plan means an empty kennel.
+    assert len(frozen.dogs) == 14 and display(frozen).summary().plan_exists is False
+    for text in (
+        _P14C_GENUINE_FOUR_DOGS_TRANSCRIPTION,
+        _P14C_GENUINE_ACTUAL_TRANSCRIPTION,
+    ):
+        assert flattened(display(frozen).explanation(text)) == text
+
+
+def test_evidence_label_comes_from_check_not_ordinal_or_model_claim() -> None:
+    frozen = state(with_actual=True)
+    plan = references_for(frozen, "PLAN_PRESENCE")[0]
+    actual = references_for(frozen, "ACTUAL_LEDGER")[0]
+    frozen = with_evidence_names(
+        frozen, {plan.evidence_id: "e-987", actual.evidence_id: "e-001"}
+    )
+    text = "e-001 reports 4 starts, 40 km; e-987 does not prove completion."
+    result = display(frozen).explanation(
+        text, references=references_for(frozen, "PLAN_PRESENCE", "ACTUAL_LEDGER")
+    )
+    assert flattened(result) == (
+        "recorded-work totals reports 4 starts, 40 km; saved-plan record does "
+        "not prove completion."
+    )
+    assert display(frozen).summary().actual.dog_starts == 4
+    assert display(frozen).summary().actual.dog_km == 40
+    # Known-but-unreferenced frozen evidence and known-but-unexecuted tools fail
+    # closed, rather than becoming a verified looking label.
+    assert display(frozen).explanation("e-987").status == "unresolved"
+    assert display(frozen).explanation("validate_day").status == "unresolved"
+    assert (
+        display(frozen)
+        .explanation("get_saved_teams", executed_tools=("validate_day",))
+        .status
+        == "unresolved"
+    )
+    assert display(frozen).explanation("e-999999").status == "unresolved"
+    # Exact boundaries: dates/numbers and larger ordinary tokens are unchanged.
+    literal = "prefixe-987suffix validate_day_extra 2026-03-29 16 starts / 120 dog-km."
+    assert flattened(display(frozen).explanation(literal)) == literal
+
+
+def test_ambiguous_or_stale_evidence_does_not_hide_trusted_summary() -> None:
+    frozen = state()
+    refs = references_for(frozen, "PLAN_PRESENCE")
+    identity = refs[0].evidence_id
+    duplicate_record = frozen.model_copy(
+        update={"evidence": (*frozen.evidence, frozen.evidence[0])}
+    )
+    duplicate_check = frozen.model_copy(
+        update={"checks": (*frozen.checks, frozen.checks[0])}
+    )
+    unknown_rule = frozen.model_copy(
+        update={
+            "checks": (
+                frozen.checks[0].model_copy(update={"rule": "NEW_UNLABELLED_CHECK"}),
+                *frozen.checks[1:],
+            )
+        }
+    )
+    stale_ref = refs[0].model_copy(update={"snapshot_id": UUID(int=55555)})
+    wrong_entity = refs[0].model_copy(
+        update={"entity": Entity(kind="dog", id=str(frozen.dogs[0].id))}
+    )
+    for source, references in [
+        (duplicate_record, refs),
+        (duplicate_check, refs),
+        (unknown_rule, refs),
+        (frozen, (stale_ref,)),
+        (frozen, (wrong_entity,)),
+    ]:
+        result = display(source).explanation(identity, references=references)
+        assert result.status == "unresolved" and result.segments == ()
+        assert display(source).summary().activities[0].selected_pool_count == 4
+        assert display(source).summary().activities[0].saved_teams == 0
+        assert display(source).summary().actual.sessions == 0
+
+
+def test_token_shaped_names_have_identity_priority_without_a_second_regex_pass() -> (
+    None
+):
+    frozen = state()
+    names = ("e-001", "validate_day", "validate_day", "<e-999>")
+    frozen = frozen.model_copy(
+        update={
+            "dogs": tuple(
+                dog.model_copy(
+                    update={"name": names[index], "housing_code": f"A1-0{index + 1}"}
+                )
+                if index < 4
+                else dog
+                for index, dog in enumerate(frozen.dogs)
+            )
+        }
+    )
+    text = "Dog " + "; dog ".join(str(dog.id) for dog in frozen.dogs[:4])
+    text += ". e-001 and validate_day are literal dog names. No extra dogs."
+    result = display(frozen).explanation(text)
+    assert result.status == "ready"
+    dog_parts = [part for part in result.segments if part.entity is not None]
+    assert [part.text for part in dog_parts] == [
+        "e-001",
+        "validate_day · A1-02 · standard",
+        "validate_day · A1-03 · standard",
+        "<e-999>",
+    ]
+    assert [part.entity.id for part in dog_parts] == [
+        str(dog.id) for dog in frozen.dogs[:4]
+    ]
+    assert "e-001 and validate_day are literal dog names. No extra dogs." in flattened(
+        result
+    )
+    assert all(part.path and part.path.startswith("/demo/dogs/") for part in dog_parts)
+    # HTML and model URLs remain inert plain text; they create no links.
+    html = '<img src="https://elsewhere.invalid/a"> No 5 km session was recorded.'
+    literal = display(frozen).explanation(html)
+    assert flattened(literal) == html and all(
+        part.path is None for part in literal.segments
+    )
+
+
+def test_presentation_expansion_stays_bounded_without_changing_raw_explanation() -> (
+    None
+):
+    frozen = state()
+    ref = references_for(frozen, "PLAN_PRESENCE")[0]
+    # A 4,000-character answer may grow through readable labels; DTO chunks stay
+    # bounded, and the original text/facts are never shortened or rewritten.
+    text = (ref.evidence_id + " ") * 500
+    result = display(frozen).explanation(text, references=(ref,))
+    assert result.status == "ready"
+    assert flattened(result) == "saved-plan record " * 500
+    assert all(len(part.text) <= 4000 for part in result.segments)
+    assert len(result.segments) <= 256
+    assert text == (ref.evidence_id + " ") * 500

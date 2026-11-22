@@ -139,8 +139,13 @@ These instructions apply to the entire repository.
   the first Groq-only P14C campaign closed at2/8 after429. The separately authorized
   recovery campaign closed at6/6, cumulative21/21, with three genuine required cases
   passed (zero live retries); retry-path proof is fake/offline. No unused transfer or
-  implicit new budget. P14C is ready for independent release review, not deployment or
-  general prose correctness. No account/privacy/payment relaxation, new model or P14D.
+  implicit new budget. P14C recovery was independently accepted at `0b602970df7d2b0263b055abcf5b462626ba2f08`
+  in the Groq-only demo scope, without a general prose-correctness guarantee. P14D is
+  a local presentation/photo/Privacy candidate pending independent UX/UI acceptance.
+  No new inference is authorized: all live ledgers stay CLOSED at 21/21. Keep the
+  retained review stand offline, without project provider keys; fixture provenance
+  belongs in QA tooling, never production success logic. No account/privacy/payment
+  relaxation, new model, push, merge, tag or deployment.
   Production Nginx owns the narrow review POST per-IP admission (2/minute, burst1,
   one concurrent); backend worker slot is concurrency control, not global quota state.
   Preserve private backend/no automatic POST replay. Cancel/date/session/Reset/expiry/
@@ -154,7 +159,9 @@ These instructions apply to the entire repository.
   placeholder. The `dog-media-v1` manifest is separate from the domain dataset, and
   real, stock, scraped, or reference-repository dog photographs are prohibited. The
   canonical seed activates all 60 validated portraits; media keys remain outside the
-  domain semantic checksum.
+  domain semantic checksum. Profile-only large portrait viewing uses the same asset
+  and media resolver; placeholders do not open, modal context/focus/scroll are fenced,
+  and the overlay never becomes part of a printed Dog Summary. No gallery or upload.
 - Dog identity routes use stable `public_id` UUIDs. Archived dogs use the same profile
   and pedigree system as active dogs and must remain navigable.
 - Contact delivery is non-persistent and plain-text. Local `sink` mode logs only

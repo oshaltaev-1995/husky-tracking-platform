@@ -168,6 +168,71 @@ describe('DogProfileComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('This dog profile is unavailable');
   });
 
+  for (const lifecycle of ['active', 'archived'] as const) {
+    it(`enlarges the existing ${lifecycle} portrait without a second bundle request and keeps print view-only`, async () => {
+      vi.spyOn(DogMediaComponent.prototype, 'whenReady').mockResolvedValue();
+      const dog = structuredClone(bundle);
+      dog.profile.state.lifecycle = lifecycle;
+      if (lifecycle === 'archived') {
+        dog.profile.state.availability = null;
+        dog.profile.archive = { archive_date: '2025-12-15', reason: 'deceased', note: null };
+      }
+      const getBundle = vi.fn(() => of(dog));
+      try {
+        const fixture = await setup(getBundle);
+        const trigger = fixture.nativeElement.querySelector('.photo-enlarge') as HTMLButtonElement;
+        trigger.focus();
+        trigger.click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(fixture.nativeElement.querySelector('ht-dog-photo-viewer img').getAttribute('src')).toContain(dog.profile.photo_key!);
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(document.activeElement).toBe(trigger);
+        (fixture.nativeElement.querySelector('.profile-actions button') as HTMLButtonElement).click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+        const documentPreview = document.querySelector('ht-dog-summary-preview')!;
+        expect(documentPreview.querySelector('ht-dog-summary-document')).not.toBeNull();
+        expect(documentPreview.querySelector('.photo-enlarge')).toBeNull();
+        expect(documentPreview.querySelector('ht-dog-photo-viewer')).toBeNull();
+        expect(getBundle).toHaveBeenCalledTimes(1);
+      } finally { vi.restoreAllMocks(); }
+    });
+  }
+
+  it('closes a portrait on route and workspace invalidation without retargeting a late image', async () => {
+    const next = structuredClone(bundle);
+    next.profile.id = next.pedigree.dog_id = next.work.dog_id = next.history.dog_id = relativeId;
+    next.profile.name = 'Cedar';
+    next.profile.photo_key = `${relativeId}.webp`;
+    const getBundle = vi.fn((dogId: string) => of(dogId === id ? bundle : next));
+    const fixture = await setup(getBundle);
+    (fixture.nativeElement.querySelector('.photo-enlarge') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const oldImage = fixture.nativeElement.querySelector('ht-dog-photo-viewer img') as HTMLImageElement;
+    params.next(convertToParamMap({ dogId: relativeId }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    oldImage.dispatchEvent(new Event('load'));
+    expect(fixture.nativeElement.querySelector('ht-dog-photo-viewer')).toBeNull();
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toBe('Cedar');
+    (fixture.nativeElement.querySelector('.photo-enlarge') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    TestBed.inject(DemoSessionService).resetReviewOpened$.next();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('ht-dog-photo-viewer')).toBeNull();
+    (fixture.nativeElement.querySelector('.photo-enlarge') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    TestBed.inject(DemoSessionService).replaced$.next();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('ht-dog-photo-viewer')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Reload this dog profile');
+    expect(getBundle).toHaveBeenCalledTimes(2);
+  });
+
   for (const routeId of [id, id.toUpperCase(), id.replace(/-/g, '')]) {
     it(`accepts equivalent UUID route identity ${routeId} for profile and summary`, async () => {
       vi.spyOn(DogMediaComponent.prototype, 'whenReady').mockResolvedValue();

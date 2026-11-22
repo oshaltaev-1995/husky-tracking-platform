@@ -33,7 +33,11 @@ describe('Privacy workspace disclosure', () => {
   it('names the necessary cookie, edits and exact Reset behaviour without introducing AI processing', () => {
     const fixture = TestBed.createComponent(PrivacyPageComponent);
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController).expectOne('/api/v1/public/privacy').flush(metadata);
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/public/privacy').flush({
+      ...metadata,
+      operations_review_enabled: false,
+      operations_review_providers: ['groq', 'openrouter'],
+    });
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -43,6 +47,9 @@ describe('Privacy workspace disclosure', () => {
     expect(text).toContain('No advertising or analytics tracking');
     expect(text).toContain('no localStorage, sessionStorage, IndexedDB');
     expect(text).not.toMatch(/Groq|OpenRouter/);
+    expect(text).toContain('Opening a portrait displays the existing synthetic image from this site');
+    expect(text).toContain('does not send photographs to an AI provider');
+    expect(fixture.nativeElement.querySelector('#operations-review')).toBeNull();
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
 
@@ -93,6 +100,9 @@ describe('Privacy workspace disclosure', () => {
     expect(text).not.toContain('OpenRouter');
     expect(text).toContain('Free-text notes, Contact messages');
     expect(text).toContain('do not guarantee zero retention or EEA-only');
+    expect(text).toContain('may retain usage metadata and request data');
+    expect(text).not.toContain('must remain disabled');
+    expect(text).not.toMatch(/never retain|guaranteed zero retention|EEA-only processing is guaranteed/);
     expect(text).toContain('A request already sent may still finish');
     TestBed.inject(HttpTestingController).expectNone((request) => request.url.startsWith('/api/v1/demo/'));
   });

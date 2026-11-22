@@ -1,16 +1,79 @@
-# P13 release candidate: upgrade and rollback
+# P13/P14 release candidate: upgrade and rollback
 
-This is a procedure for a **future, separately authorized deployment**. P13G prepares
-and rehearses it locally; it does not publish code or change production. Independent
-acceptance of the final P13G report and an explicit owner deployment instruction are
-required before running these commands on the VPS. No release tag is created by P13G.
+This is a procedure for a **future, separately authorized deployment**. P13G prepared
+and rehearsed the upgrade locally. P14D prepares a presentation candidate and retains
+an offline synthetic UX/UI stand; it does not publish code or change production.
+Independent acceptance of the final candidate report and an explicit owner deployment
+instruction are required before running these commands on the VPS. No release tag is
+created by these local stages.
 
 The expected installed public release is `public-v1.2`, commit
 `bc8c91098e156411f40b39112a9e930e3a65904b`, schema `5c82f32e5d8a`. The P13 candidate
 schema is `b7e13a9d4c20`; it adds workspace housing overrides without changing the
 canonical seed. P13A–F are accepted local work, not evidence of an existing deployment.
-Use the exact final commit and image identities from the accepted P13G report, not a
-moving branch name. A different installed commit/schema/topology is a stop condition.
+Use the exact final commit and image identities from the independently accepted report,
+not a moving branch name or the first P14D handoff. P14C recovery is independently
+accepted at `0b602970df7d2b0263b055abcf5b462626ba2f08` in Groq-only demo scope.
+P14D is **READY FOR UX/UI REVIEW**, not finally accepted: after that review insert its
+final accepted 40-character SHA at the prompt below and retain the matching source/build
+bindings. P14 adds no migration; the existing P13 schema upgrade/rollback still applies.
+A different installed commit/schema/topology is a stop condition.
+
+## P14 default-off/privacy gate
+
+Do not mount local QA keys or fixture harnesses into production. Keep
+`AGENT_ENABLED=false` and `AGENT_OPENROUTER_RESERVE_ENABLED=false` in the real private
+runtime environment for this future deployment. Existing non-AI features must work
+with both disabled. A saved reserve key never activates the reserve. OpenRouter is
+DEFERRED, not a passed fallback. Any later owner-authorized activation is Groq Free
+`openai/gpt-oss-20b` only with confirmed account/privacy controls and existing secret
+handling. D adds no inference authorization: all historical ledgers remain CLOSED
+at 21/21, and no live smoke may reuse their budgets.
+
+To disable a previously authorized agent, set the existing `AGENT_ENABLED=false`
+privately and recreate only Husky backend via the documented explicit Compose
+invocation; configuration changes take effect on restart. Leave reserve disabled.
+Do this only as part of an authorized deployment/operation, never while following this
+local review package. Do not print environment files, keys or recipient values.
+
+Retain same-origin cookie/origin fences, private backend/DB, API no-store, admission
+limits, deadline/cancellation guards and path-only logs. Check conditional Privacy with
+the actual active provider list; a disabled agent must not promise ongoing AI processing.
+Confirm `PRIVACY_EFFECTIVE_DATE` at the future substantive notice publication. The local
+2026-11-22 template/default is not evidence that production already carries that date.
+Preserve real controller/contact/hosting/mail/TTL configuration and account opt-outs.
+
+## Delivery and GitHub-hosted compute (read-only check, 22 November 2026)
+
+At the P14D source HEAD there is no `.github/workflows` directory. Existing delivery is
+exact Git commit plus Docker Compose builds/artifacts, not a mandatory Actions/ghcr
+pipeline. Read-only authenticated GitHub queries returned: repository public, default
+branch main; repository rulesets empty; main branch protection 404 "Branch not protected";
+Actions workflows total 0. Commands used (no settings or jobs changed):
+
+```bash
+gh api repos/oshaltaev-1995/husky-tracking-platform --jq '{full_name,visibility,default_branch,archived}'
+gh api repos/oshaltaev-1995/husky-tracking-platform/rulesets --jq '[.[] | {name,enforcement,target}]'
+gh api repos/oshaltaev-1995/husky-tracking-platform/branches/main/protection --jq '{required_status_checks: .required_status_checks, enforce_admins: .enforce_admins.enabled}'
+gh api repos/oshaltaev-1995/husky-tracking-platform/actions/workflows --jq '{total_count,workflows:[.workflows[] | {name,path,state}]}'
+```
+
+These observations are not a guarantee that remote rules will remain unchanged.
+Recheck before a future merge/release; if a required check appears, satisfy it rather
+than bypassing/disabling it or calling a local test a GitHub check. Account balance,
+budget and reset date were **NOT VERIFIED**. No workflow/rerun/runner/build was launched.
+[GitHub's billing documentation](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+distinguishes standard public-repository runner compute from included private/internal
+usage, larger runners and storage. Do not infer an account reset on 1 December.
+
+The existing manual path below requires no GitHub-hosted compute: retain accepted local
+quality logs/source bindings, deliver the exact accepted commit through separately
+authorized Git/archive transfer, preserve actual old images/backup, then build backend
+and frontend sequentially on an explicitly authorized VPS with measured headroom.
+Alternatively use independently verified exact-commit linux/amd64 artifacts if already
+available. No requirement to publish a private repository, buy compute, add a self-hosted
+runner on the Mac/shared VPS, or use ghcr is introduced. Runtime/image acceptance,
+backup and the compatible P13 workspace-draining rollback remain mandatory.
 
 ## Fixed boundaries
 
@@ -41,7 +104,7 @@ ht() {
     -f /etc/huskytracking/compose.vps-runtime.yml "$@"
 }
 release_base=bc8c91098e156411f40b39112a9e930e3a65904b
-read -r -p 'Exact accepted P13G commit from the review report: ' release_candidate
+read -r -p 'Exact independently accepted candidate commit from the final review report: ' release_candidate
 [[ "$release_candidate" =~ ^[0-9a-f]{40}$ ]] || exit 1
 test -z "$(git status --porcelain)" || exit 1
 test "$(git rev-parse HEAD)" = "$release_base" || exit 1
@@ -51,8 +114,9 @@ git merge-base --is-ancestor "$release_base" "$release_candidate" || exit 1
 ht config --quiet
 ```
 
-Confirm that `release_candidate` equals the report's final `git rev-parse HEAD` from
-`codex/p13g-release-gate`; merely existing in Git is insufficient. Do not amend or move
+Confirm that `release_candidate` equals the independently accepted report's final
+`git rev-parse HEAD` and its source bindings; merely existing on a P13/P14 branch is
+insufficient. For P14D the first reviewable SHA may change after UX/UI corrections. Do not amend or move
 the accepted commit. Record non-secret evidence under a root-only release directory:
 commit, timestamp, schema, full container IDs, image IDs, project/network/volume labels,
 and the prior states of Husky timers. Do not save rendered environment/Compose secrets.
