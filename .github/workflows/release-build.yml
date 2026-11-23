@@ -22,7 +22,6 @@ jobs:
       APP_SHA: 00c21f6a174021d4f15b2cd4f403cec6e79ab224
       IMAGE_PREFIX: ghcr.io/oshaltaev-1995/husky-tracking-platform
       SOURCE_URL: https://github.com/oshaltaev-1995/husky-tracking-platform
-      DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
     steps:
       - name: Checkout exact accepted application source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # official v4.2.2
@@ -109,6 +108,7 @@ jobs:
       - name: Authenticate scoped package publication
         shell: bash
         env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
@@ -116,6 +116,8 @@ jobs:
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
 
       - name: Build and push backend then frontend serially
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
         shell: bash
         run: |
           set -euo pipefail
@@ -131,6 +133,8 @@ jobs:
           done
 
       - name: Verify published digests and emit small release manifest
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
         shell: bash
         run: |
           set -euo pipefail
@@ -212,6 +216,8 @@ jobs:
           PY
 
       - name: Remove ephemeral registry authentication
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
         if: always()
         shell: bash
         run: |
