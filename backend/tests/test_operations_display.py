@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from typing import cast
 from uuid import UUID
 
+import pytest
 from test_operations_tools import context_snapshot
 
 from app.operations.api_schemas import ReviewTrace
@@ -127,6 +128,159 @@ def test_mentions_repeat_and_exact_typed_entities_keep_distinct_local_identity()
         }
     )
     assert display(ambiguous).explanation(first).status == "unresolved"
+
+
+@pytest.mark.parametrize(
+    "separators",
+    [
+        "-",
+        "\u2010",
+        "\u2011",
+        "\u2012",
+        "\u2013",
+        "\u2014",
+        "\u2015",
+        "\u2212",
+        "\ufe63",
+        "\uff0d",
+        "-\u2011\u2013\u2212",
+    ],
+)
+def test_unicode_uuid_candidates_resolve_only_from_frozen_entities(
+    separators: str,
+) -> None:
+    frozen = state()
+    before = frozen.model_dump_json()
+
+    def represented(identity: UUID) -> str:
+        groups = str(identity).upper().split("-")
+        return groups[0] + "".join(
+            separators[index % len(separators)] + group
+            for index, group in enumerate(groups[1:])
+        )
+
+    ids = [represented(dog.id) for dog in frozen.dogs[:4]]
+    text = (
+        f"Selected dogs (IDs {ids[0]}, {ids[1]}, {ids[2]}, and {ids[3]}). "
+        f"Dog {ids[0]} again. On 2026-03-29 — 4 dogs, 5–10 km, no actual work."
+    )
+    result = display(frozen).explanation(text)
+    assert result.status == "ready"
+    assert flattened(result) == (
+        "Selected dogs (Atlas, Aurora, Clover, and Cosmo). Dog Atlas again. "
+        "On 2026-03-29 — 4 dogs, 5–10 km, no actual work."
+    )
+    linked = [part for part in result.segments if part.entity]
+    expected = [*frozen.dogs[:4], frozen.dogs[0]]
+    assert [part.text for part in linked] == [dog.name for dog in expected]
+    assert [part.entity.id for part in linked if part.entity] == [
+        str(dog.id) for dog in expected
+    ]
+    assert [part.path for part in linked] == [
+        f"/demo/dogs/{dog.id}?tab=work" for dog in expected
+    ]
+    assert frozen.model_dump_json() == before
+
+
+def test_unicode_typed_entities_and_id_lists_do_not_guess_kind() -> None:
+    frozen = state(with_actual=True)
+    dog = str(frozen.dogs[0].id).replace("-", "\u2011")
+    activity = str(frozen.activities[0].id).replace("-", "\u2212")
+    actual = str(frozen.actual[0].id).replace("-", "\u2013")
+    result = display(frozen).explanation(
+        f"Dog {dog}; Activity {activity}; Session {actual}."
+    )
+    assert result.status == "ready"
+    assert [part.entity.kind for part in result.segments if part.entity] == [
+        "dog",
+        "activity",
+        "actual",
+    ]
+    for text in (
+        f"Activity {dog}.",
+        f"Dog {activity}.",
+        f"Session {dog}.",
+        f"Dog IDs {dog}, {activity}.",
+        f"Dog IDs {dog}, and {actual}.",
+    ):
+        result = display(frozen).explanation(text)
+        assert result.status == "unresolved" and not result.segments
+    ambiguous = frozen.model_copy(
+        update={
+            "activities": (
+                frozen.activities[0].model_copy(update={"id": frozen.dogs[0].id}),
+            )
+        }
+    )
+    assert display(ambiguous).explanation(dog).status == "unresolved"
+
+
+@pytest.mark.parametrize(
+    "control",
+    [
+        "\u00ad",
+        "\u034f",
+        "\u061c",
+        "\u180e",
+        "\u200b",
+        "\u200d",
+        "\u202e",
+        "\u2066",
+        "\ufeff",
+    ],
+)
+def test_controls_inside_uuid_candidates_are_unresolved_not_repaired(
+    control: str,
+) -> None:
+    frozen = state()
+    known = str(frozen.dogs[0].id).replace("-", "\u2011")
+    for position in (1, 8, 9, len(known) - 1):
+        token = known[:position] + control * 12 + known[position:]
+        result = display(frozen).explanation(f"Dog {token} — 5 km.")
+        assert result.status == "unresolved" and result.segments == ()
+        assert result.message and token not in result.message
+    summary = display(frozen).summary()
+    assert summary.activities[0].selected_pool_count == 4
+    assert summary.activities[0].saved_teams == 0
+    assert summary.activities[0].actual_status == "not_recorded"
+    assert summary.actual.sessions == 0
+
+
+def test_unicode_unknown_malformed_embedded_candidates_and_names_are_safe() -> None:
+    frozen = state()
+    known = str(frozen.dogs[0].id).replace("-", "\u2010")
+    for token in (
+        str(UUID(int=99999)).replace("-", "\u2013"),
+        "00000000\u20110000-0000\u22120000\u201300000000000Z",
+        "0000000\u20110000-0000\u22120000\u2013000000000000",
+        f"prefix{known}suffix",
+        f"prefix{known[:-1]}Zsuffix",
+    ):
+        result = display(frozen).explanation(f"Dog {token} is selected.")
+        assert result.status == "unresolved" and not result.segments
+    names = (
+        "Север — Звезда",
+        "Éclair",
+        '<img src=x onerror="bad()">',
+        "Север — Звезда",
+    )
+    frozen = frozen.model_copy(
+        update={
+            "dogs": tuple(
+                dog.model_copy(update={"name": names[index]}) if index < 4 else dog
+                for index, dog in enumerate(frozen.dogs)
+            )
+        }
+    )
+    result = display(frozen).explanation(
+        ", ".join(str(dog.id).replace("-", "\u2011") for dog in frozen.dogs[:4])
+    )
+    assert result.status == "ready"
+    linked = [part for part in result.segments if part.entity]
+    assert linked[0].text.startswith(names[0]) and linked[3].text.startswith(names[3])
+    assert linked[0].path != linked[3].path
+    assert linked[1].text == names[1] and linked[2].text == names[2]
+    assert all(part.path and part.path.startswith("/demo/dogs/") for part in linked)
 
 
 def test_unknown_malformed_or_embedded_identity_is_unresolved() -> None:
@@ -295,14 +449,24 @@ def test_large_snapshot_omissions_are_truthful_and_frozen() -> None:
     assert frozen.model_dump_json() == before
 
 
-def test_response_keeps_verified_facts_when_explanation_cannot_be_presented() -> None:
+@pytest.mark.parametrize(
+    "raw_identity",
+    [
+        str(UUID(int=99999)),
+        str(UUID(int=99999)).replace("-", "\u2011"),
+        "00000000-0000\u200b-0000-0000-00000001869f",
+    ],
+)
+def test_response_keeps_verified_facts_when_explanation_cannot_be_presented(
+    raw_identity: str,
+) -> None:
     frozen = state()
     tools = FrozenTools(frozen)
     evidence = frozen.evidence[0]
     answer = tools.validate_references(
         json.dumps(
             {
-                "explanation": f"Dog {UUID(int=99999)} was selected.",
+                "explanation": f"Dog {raw_identity} was selected.",
                 "references": [
                     {
                         "snapshot_id": str(frozen.id),

@@ -12,7 +12,15 @@ import { OperationsService } from '../../core/api/operations.service';
 interface LocalLink { label: string; route: string; query: Record<string, string> }
 interface DisplaySegment { text: string; link: Omit<LocalLink, 'label'> | null }
 
-const UUID_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+// Detection only: the server resolves identities from its frozen snapshot. Keep
+// the same bounded dash family as that boundary, including mixed separators.
+// Invisible/bidi characters inside a near-UUID are rejected, never stripped from
+// prose or names. Count alphanumerics so interleaved controls cannot hide an ID.
+const UUID_CONTROLS = '\\u00ad\\u034f\\u061c\\u180e\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u206f\\ufeff';
+const UUID_DASH = '[-\\u2010-\\u2015\\u2212\\ufe63\\uff0d]';
+const uuidGroup = (min: number, max: number): string =>
+  `[a-z0-9](?:[${UUID_CONTROLS}]*[a-z0-9]){${min - 1},${max - 1}}[${UUID_CONTROLS}]*`;
+const UUID_TEXT = new RegExp(`${uuidGroup(7, 9)}(?:${UUID_DASH}[${UUID_CONTROLS}]*${uuidGroup(3, 5)}){3}${UUID_DASH}[${UUID_CONTROLS}]*${uuidGroup(10, 14)}`, 'i');
 
 const ROLE_LABELS: Record<string, string> = { lead: 'Lead', team: 'Team', wheel: 'Wheel' };
 // A local courtesy for the ingress 2/minute policy, not account/global quota state.
@@ -174,7 +182,7 @@ export class OperationsReviewComponent {
     const names = [...new Set(check.entities.filter((entity) => entity.kind === 'dog').map((entity) => entity.id))]
       .flatMap((id) => {
         const link = links.find((item) => item.entity.kind === 'dog' && item.entity.id === id && this.localLink(item.path));
-        return link && !UUID_TEXT.test(link.label) ? [link.label] : [];
+        return link && typeof link.label === 'string' && !UUID_TEXT.test(link.label) ? [link.label] : [];
       });
     return names.length ? `${this.ruleLabel(check.rule)} · ${names.join(', ')}` : this.ruleLabel(check.rule);
   }
@@ -204,7 +212,10 @@ export class OperationsReviewComponent {
       if (!link || (segment.entity.kind === 'dog' && link.route !== `/demo/dogs/${segment.entity.id}`)) return null;
       output.push({ text: segment.text, link });
     }
-    return output.some((segment) => segment.text.trim()) ? output : null;
+    // Segments render adjacently. Reject identifiers split across plain/link
+    // segments as well as complete ones; adding spaces here would mask a bypass.
+    const visibleText = output.map((segment) => segment.text).join('');
+    return visibleText.trim() && !UUID_TEXT.test(visibleText) ? output : null;
   }
   protected valueLabel(name: string): string { return VALUE_LABELS[name] ?? name.replaceAll('_', ' '); }
   protected statusLabel(status: ReviewStatus): string {

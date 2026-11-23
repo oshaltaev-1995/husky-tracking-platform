@@ -621,6 +621,84 @@ describe('OperationsReviewComponent', () => {
     });
   }
 
+  const residualUuid = dogs[0].entity.id;
+  const residualVariants = [
+    ['ASCII', residualUuid],
+    ...['\u2010', '\u2011', '\u2012', '\u2013', '\u2014', '\u2015', '\u2212', '\ufe63', '\uff0d']
+      .map((dash) => [`dash U+${dash.codePointAt(0)?.toString(16)}`, residualUuid.replaceAll('-', dash)]),
+    ['mixed separators', residualUuid.replace('-', '\u2011').replace('-', '\u2212').replace('-', '\uff0d')],
+    ['embedded', `prefix${residualUuid}suffix`],
+    ['malformed group', residualUuid.replace('00000000-', '0000000Z-')],
+    ['zero width', residualUuid.replace('00000000', '0000\u200b0000')],
+    ['many interleaved controls', residualUuid.replaceAll('0', '0\u034f\u200b\u2060')],
+    ['bidi control', residualUuid.replace('00000000', '0000\u202e0000')],
+  ];
+  for (const [name, identity] of residualVariants) {
+    it(`rejects residual ${name} identity prose without resolving or losing saved facts`, async () => {
+      await setup();
+      const response = result();
+      response.explanation = 'Raw explanation must not become the fallback';
+      response.presentation.segments = [{ text: `Selected ${identity}.`, entity: null, path: null }];
+      start().flush(response); fixture.detectChanges();
+      const content = fixture.nativeElement as HTMLElement;
+      expect(content.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+      expect(content.textContent).not.toContain('Operations review ready.');
+      expect(content.textContent).not.toContain(identity);
+      expect(content.textContent).not.toContain(response.explanation);
+      expect(content.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
+      expect(content.querySelector('.checked-facts')?.textContent).toContain('Not saved');
+      expect(content.querySelector('.checked-facts')?.textContent).toContain('Not recorded');
+      expect(content.querySelectorAll('.selected-dogs a').length).toBe(4);
+      http.expectNone('/api/v1/operations/review');
+    });
+  }
+
+  for (const linked of [false, true]) {
+    it(`rejects a UUID split between adjacent ${linked ? 'plain/link' : 'plain'} segments`, async () => {
+      await setup();
+      const response = result();
+      const identity = residualUuid.replaceAll('-', '\u2011');
+      response.presentation.segments = [
+        { text: `Selected ${identity.slice(0, 17)}`, entity: null, path: null },
+        { text: identity.slice(17), entity: linked ? dogs[0].entity : null, path: linked ? dogs[0].path : null },
+      ];
+      start().flush(response); fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+      expect(fixture.nativeElement.textContent).not.toContain(identity);
+      expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+      expect(fixture.nativeElement.querySelectorAll('.selected-dogs a').length).toBe(4);
+      http.expectNone('/api/v1/operations/review');
+    });
+  }
+
+  it('filters Unicode UUID-like labels from local links and finding titles independently', async () => {
+    await setup();
+    const response = result();
+    const identity = residualUuid.replaceAll('-', '\u2212').replace('00000000', '0000\u200b0000');
+    const badLabel = { ...dogs[0], label: identity };
+    response.links = response.links.filter((link) => link.entity.kind !== 'dog');
+    response.summary.activities[0].selected_dogs = [badLabel, ...dogs.slice(1)];
+    response.finding_groups[0].findings = [{ ...response.findings[0], rule: 'DOG_STATE', entities: [dogs[0].entity] }];
+    response.finding_groups[0].links = [badLabel];
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain(identity);
+    expect(fixture.nativeElement.querySelector('.finding h5')?.textContent).toBe('Dog state');
+    expect(fixture.nativeElement.querySelectorAll('.selected-dogs a').length).toBe(3);
+    expect(fixture.nativeElement.querySelectorAll('.finding > a').length).toBe(0);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('preserves normal Unicode names, dates, ranges and dashes without global normalization', async () => {
+    await setup();
+    const response = result();
+    const prose = '29 March 2026 — 2026-03-29; 5–10 km. Снежный ветер — Åsa, A1-01.';
+    response.presentation.segments = [{ text: prose, entity: null, path: null }];
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(prose);
+    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    http.expectNone('/api/v1/operations/review');
+  });
+
   it('keeps duplicate, long Cyrillic and HTML-like labels escaped with distinct identity links', async () => {
     await setup();
     const response = result();

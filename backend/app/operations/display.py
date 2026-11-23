@@ -24,18 +24,38 @@ from app.operations.api_schemas import (
 from app.operations.schemas import Check, ClaimReference, Entity, Snapshot, ToolName
 from app.operations.tools import READ_TOOLS
 
-# Boundaries matter: replacing a substring of an unknown identifier is guessing.
-_UUID = r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+# Only identifier candidates accept these explicit dash/minus representations.
+# Never normalize prose or names. Invisible/bidi controls are detected, not repaired.
+_DASHES = "-\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe63\uff0d"
+_CONTROLS = (
+    "\u00ad\u034f\u061c\u180e\u200b\u200c\u200d\u200e\u200f"
+    "\u202a\u202b\u202c\u202d\u202e"
+    "\u2060\u2061\u2062\u2063\u2064\u2065\u2066\u2067\u2068"
+    "\u2069\u206a\u206b\u206c\u206d\u206e\u206f\ufeff"
+)
+_DASH = f"[{re.escape(_DASHES)}]"
+_CONTROL = f"[{re.escape(_CONTROLS)}]"
+_IDENTIFIER_BOUNDARY = rf"[\w{re.escape(_DASHES + _CONTROLS)}]"
+_UUID = (
+    rf"[0-9a-fA-F]{{8}}(?:{_DASH}[0-9a-fA-F]{{4}}){{3}}"
+    rf"{_DASH}[0-9a-fA-F]{{12}}"
+)
 _UUID_ANYWHERE = re.compile(_UUID)
-_TOKEN = re.compile(rf"(?<![\w-]){_UUID}(?![\w-])")
+_TOKEN = re.compile(rf"(?<!{_IDENTIFIER_BOUNDARY}){_UUID}(?!{_IDENTIFIER_BOUNDARY})")
+# Near-UUID group lengths catch malformed and embedded candidates too. Count the
+# alphanumerics, allowing detection of controls between them, regardless of count.
+# A controlled candidate never shares a valid token span, so it fails closed below.
+_ID_CHAR = rf"[A-Za-z0-9]{_CONTROL}*"
 _UUID_LIKE = re.compile(
-    r"(?<![\w-])[A-Za-z0-9]{7,9}(?:-[A-Za-z0-9]{3,5}){3}"
-    r"-[A-Za-z0-9]{10,14}(?![\w-])"
+    rf"(?:{_ID_CHAR}){{7,9}}(?:{_DASH}{_CONTROL}*(?:{_ID_CHAR}){{3,5}}){{3}}"
+    rf"{_DASH}{_CONTROL}*(?:{_ID_CHAR}){{10,14}}"
 )
 _ID_LIST = re.compile(
-    rf"\bIDs?(?:\s*:\s*|\s+)(?P<list>{_UUID}(?:\s*(?:,|and)\s*{_UUID})*)",
+    rf"\bIDs?(?:\s*:\s*|\s+)(?P<list>{_UUID}"
+    rf"(?:\s*(?:,\s*(?:and\s+)?|\band\s+){_UUID})*)",
     re.I,
 )
+_CANONICAL_DASHES = str.maketrans(dict.fromkeys(_DASHES, "-"))
 _UNRESOLVED = (
     "The AI explanation contains a reference that could not be matched to this "
     "snapshot. The saved-day summary and checked facts remain available."
@@ -207,13 +227,26 @@ class FrozenDisplay:
             return unresolved()
         if any(match.span() not in spans for match in _UUID_LIKE.finditer(text)):
             return unresolved()
+        lists = tuple(_ID_LIST.finditer(text))
         labels: dict[str, ReviewLink] = {}
         for match in matches:
             identity = match.group()
-            found = self._entity_link(identity.lower())
+            found = self._entity_link(identity.translate(_CANONICAL_DASHES).lower())
             if found is None:
                 return unresolved()
             expected = self._expected_kind(text[: match.start()])
+            if expected is None:
+                # An explicit typed ID list keeps its kind for every member;
+                # commas/"and" must not let an activity masquerade as a dog.
+                expected = next(
+                    (
+                        self._expected_kind(text[: group.start()])
+                        for group in lists
+                        if group.start("list") <= match.start()
+                        and match.end() <= group.end("list")
+                    ),
+                    None,
+                )
             if expected is not None and found.entity.kind != expected:
                 return unresolved()
             labels[identity] = found
