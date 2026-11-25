@@ -657,3 +657,50 @@ show one saved activity and zero actual work, and references passed strict bindi
 No validator or facts were changed to accept the wording. This limitation is recorded
 for later review at that time. The subsequent accepted context fix removed that
 observed loss; current C scope/outcome are stated at the top of this document.
+
+## REL-FINAL-01 — selected-day Groq final contract
+
+For the existing explicitly requested Groq-only saved-day review, the first request
+still forces `validate_day`. Only a successfully executed and recorded validation
+unlocks the ordinary second request. That request is now final-only: no tools,
+`tool_choice`, parallel-tool controls or tool transcript; non-streaming strict
+`json_schema` for the same explanation/references contract. Normal system/user
+messages carry the same snapshot and the exact complete bounded server tool result
+as data, including evidence, unknown values and omitted counts. No new fact read,
+snapshot, invented reference, repair call or provider switch is involved. The optional
+opt-in reserve adapter retains its prior tool-capable path and remains deferred.
+
+Groq documents strict Structured Outputs for `openai/gpt-oss-20b`, with all object
+properties required and `additionalProperties: false`; tool use/streaming are not
+supported together with that mode. The small hand-written provider schema uses this
+subset. Server length/count/schema, snapshot/date/evidence/entity-membership checks
+remain authoritative, followed by the existing frozen name/link resolver and client
+residual UUID guard. Strict formatting does not certify prose or prevent truncation;
+`finish_reason=length` is rejected. Final prose must distinguish selected pool, saved
+teams and Actual, qualify unknown/omitted detail, and avoid treating unrelated
+archived dogs as selected. Server facts remain separate from generated explanation.
+
+This changes no limits: 1024 output tokens, low/hidden reasoning, existing byte caps,
+45-second overall deadline and production cap4. Only the existing one short confirmed
+after-validation Groq-only429 retry is permitted; it reuses the identical serialized
+final request within the same run. Cancel/expiry/Reset/context fencing remain active.
+No extra UI POST, repair retry, model, paid route or reserve activation is added.
+
+Internal diagnostics retain only fixed stage/reason/shape enums, bounded sizes,
+verified optional token counts, actual known upstream status, upstream ordinal and
+phase, recorded-tool/mandatory-validation state. The independently generated server
+HTTP request ID is directly linked to the ProviderRun ID in metadata-only logs; a
+client-supplied request ID is not trusted. Parser failures keep available metadata
+even without a ProviderResult. Raw bodies, reasoning, prose, prompts, tool arguments,
+headers, cookies, keys, dog identifiers/names and exception input dumps are excluded.
+Diagnostic construction/log emission is best-effort and cannot replace the main
+failure. Public error codes/messages and DTO shapes remain unchanged. Unknown usage
+stays unknown. These diagnostics do not establish the lost historical502's cause.
+
+Official contracts checked25November2026:
+[Structured Outputs](https://console.groq.com/docs/structured-outputs),
+[Chat API](https://console.groq.com/docs/api-reference),
+[reasoning controls](https://console.groq.com/docs/reasoning).
+Offline/fake-transport success is not genuine provider acceptance. The owner-authorized
+release run has its own one-POST/four-upstream ledger outside source; all prior
+campaigns remain closed and unused budget never transfers.

@@ -52,6 +52,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
         request_id = uuid.uuid4().hex
+        # Server-generated correlation only; never trust a visitor-supplied ID.
+        request.state.request_id = request_id
         started = time.perf_counter()
         if (
             active.demo_origin_check_enabled

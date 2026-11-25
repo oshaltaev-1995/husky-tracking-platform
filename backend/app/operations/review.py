@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import logging
+import re
 from collections import Counter
 from collections.abc import Callable
 from datetime import date
@@ -44,6 +46,8 @@ class OperationsReviewService:
         selected_date: date,
         cancelled: Callable[[], bool],
         started_at: float,
+        *,
+        request_id: str | None = None,
     ) -> OperationsReviewRead:
         prepared: PreparedReview | None = None
         error_code: str | None = None
@@ -107,9 +111,14 @@ class OperationsReviewService:
                 # Fixed allowlisted metadata only. Never log task, data, arguments,
                 # model explanation/reasoning, provider bodies or credentials.
                 logger.info(
-                    "operations_review run=%s provider=%s model=%s requests=%s "
+                    "operations_review run=%s request_id=%s provider=%s "
+                    "model=%s requests=%s "
                     "tools=%s switches=%s quota_retries=%s error=%s",
                     metadata.run_id,
+                    request_id
+                    if request_id is not None
+                    and re.fullmatch(r"[a-f0-9]{32}", request_id)
+                    else "none",
                     metadata.provider,
                     metadata.model,
                     metadata.http_calls,
@@ -118,6 +127,28 @@ class OperationsReviewService:
                     prepared.run.quota_retries,
                     error_code or metadata.error_code or "none",
                 )
+                # Only typed enums, bounded numbers and server-generated IDs.
+                # Instrumentation must never replace the operation's outcome.
+                try:
+                    for observation in prepared.run.diagnostics:
+                        logger.info(
+                            "operations_diagnostic %s",
+                            json.dumps(
+                                {
+                                    **observation,
+                                    "run_id": metadata.run_id,
+                                    "request_id": request_id
+                                    if request_id is not None
+                                    and re.fullmatch(r"[a-f0-9]{32}", request_id)
+                                    else None,
+                                },
+                                sort_keys=True,
+                                separators=(",", ":"),
+                            ),
+                        )
+                except Exception:
+                    # No raw exception, fallback body, or serialization repr.
+                    pass
 
     @staticmethod
     def _response(

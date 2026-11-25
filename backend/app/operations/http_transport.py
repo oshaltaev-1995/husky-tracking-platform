@@ -18,6 +18,7 @@ from contextlib import suppress
 from typing import Protocol
 from urllib.parse import urlsplit
 
+from app.operations.diagnostics import FailureReason, annotate_failure, bounded_size
 from app.operations.provider_models import AgentFailure, HttpReply, HttpRequest
 
 ENDPOINTS = {
@@ -104,6 +105,7 @@ class HTTPSProviderTransport:
                 raise AgentFailure("provider_timeout")
             return value
 
+        metadata: dict[str, object] = {}
         connection: Connection | None = None
         response: Response | None = None
         timer: threading.Timer | None = None
@@ -144,27 +146,50 @@ class HTTPSProviderTransport:
             )
             channel.settimeout(remaining())
             response = connection.getresponse()
+            if 100 <= response.status <= 599:
+                metadata["upstream_http_status"] = response.status
             remaining()
             retry_after = response.getheader("Retry-After")
             if retry_after is not None and len(retry_after) > 100:
                 retry_after = None
             if not 100 <= response.status <= 599:
-                raise AgentFailure("invalid_provider_response", http_status=502)
+                raise annotate_failure(
+                    AgentFailure("invalid_provider_response", http_status=502),
+                    "transport",
+                    "transport_status",
+                    **metadata,
+                )
             if not 200 <= response.status < 300:
                 # Error bodies are unnecessary for routing and could contain
                 # provider internals. Close without reading/logging them.
                 return HttpReply(status=response.status, retry_after=retry_after)
             encoding = response.getheader("Content-Encoding")
             if encoding not in {None, "identity"}:
-                raise AgentFailure("invalid_provider_response", http_status=502)
+                raise annotate_failure(
+                    AgentFailure("invalid_provider_response", http_status=502),
+                    "transport",
+                    "transport_encoding",
+                    **metadata,
+                )
             length = response.getheader("Content-Length")
             expected_length = None
             if length is not None:
                 if len(length) > 20 or not length.isascii() or not length.isdecimal():
-                    raise AgentFailure("invalid_provider_response", http_status=502)
+                    raise annotate_failure(
+                        AgentFailure("invalid_provider_response", http_status=502),
+                        "transport",
+                        "response_length",
+                        **metadata,
+                    )
                 expected_length = int(length)
                 if expected_length > request.response_limit_bytes:
-                    raise AgentFailure("invalid_provider_response", http_status=502)
+                    # Declared bytes have not been read; do not report them as read.
+                    raise annotate_failure(
+                        AgentFailure("invalid_provider_response", http_status=502),
+                        "transport",
+                        "response_size",
+                        **metadata,
+                    )
             chunks = bytearray()
             while True:
                 channel.settimeout(remaining())
@@ -176,24 +201,62 @@ class HTTPSProviderTransport:
                 if not part:
                     break
                 chunks.extend(part)
+                metadata["response_bytes"] = bounded_size(len(chunks))
                 if len(chunks) > request.response_limit_bytes:
-                    raise AgentFailure("invalid_provider_response", http_status=502)
+                    raise annotate_failure(
+                        AgentFailure("invalid_provider_response", http_status=502),
+                        "transport",
+                        "response_size",
+                        **metadata,
+                    )
             if expected_length is not None and len(chunks) != expected_length:
-                raise AgentFailure("provider_transport")
+                raise annotate_failure(
+                    AgentFailure("provider_transport"),
+                    "transport",
+                    "transport_fragmentation",
+                    **metadata,
+                )
             return HttpReply(
                 status=response.status, body=bytes(chunks), retry_after=retry_after
             )
-        except AgentFailure:
+        except AgentFailure as error:
+            if error.diagnostic is None:
+                reason: FailureReason = (
+                    "cancelled" if error.code == "cancelled" else "unknown"
+                )
+                if error.code == "provider_timeout":
+                    reason = "transport_timeout"
+                annotate_failure(error, "transport", reason, **metadata)
             raise
         except TimeoutError:
-            raise AgentFailure("provider_timeout") from None
+            raise annotate_failure(
+                AgentFailure("provider_timeout"),
+                "transport",
+                "transport_timeout",
+                **metadata,
+            ) from None
         except (OSError, http.client.HTTPException):
             if expired.is_set():
-                raise AgentFailure("provider_timeout") from None
-            raise AgentFailure("provider_transport") from None
+                raise annotate_failure(
+                    AgentFailure("provider_timeout"),
+                    "transport",
+                    "transport_timeout",
+                    **metadata,
+                ) from None
+            raise annotate_failure(
+                AgentFailure("provider_transport"),
+                "transport",
+                "transport_network",
+                **metadata,
+            ) from None
         except ValueError:
             # Includes rejected header values; no key or raw exception escapes.
-            raise AgentFailure("provider_configuration") from None
+            raise annotate_failure(
+                AgentFailure("provider_configuration"),
+                "transport",
+                "transport_configuration",
+                **metadata,
+            ) from None
         finally:
             if timer is not None:
                 timer.cancel()

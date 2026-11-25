@@ -194,7 +194,11 @@ async def review_operations(
     def worker() -> OperationsReviewRead:
         try:
             return service.review(
-                cookie, payload.selected_date, cancelled.is_set, started_at
+                cookie,
+                payload.selected_date,
+                cancelled.is_set,
+                started_at,
+                request_id=request.state.request_id,
             )
         finally:
             # A cancelled HTTP waiter is not a stopped worker/provider request.

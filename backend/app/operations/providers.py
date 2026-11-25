@@ -255,61 +255,151 @@ def parse_reply(
     tools: tuple[ToolContract, ...],
     max_bytes: int,
 ) -> ProviderResult:
+    # Keep metadata independently of ProviderResult: rejected replies have useful
+    # shape/status information too, but never expose their content.
+    from app.operations.diagnostics import (
+        FailureReason,
+        FailureStage,
+        annotate_failure,
+        bounded_size,
+        content_kind,
+        normalize_finish,
+        safe_diagnostic,
+        valid_usage,
+    )
+
+    metadata: dict[str, object] = {
+        "upstream_http_status": reply.status,
+        "response_bytes": bounded_size(len(reply.body)),
+    }
+
+    def failure(
+        stage: FailureStage,
+        reason: FailureReason,
+        code: Literal[
+            "invalid_provider_response", "forbidden_tool", "policy_refusal"
+        ] = "invalid_provider_response",
+        status: int = 502,
+    ) -> AgentFailure:
+        return annotate_failure(
+            AgentFailure(code, http_status=status), stage, reason, **metadata
+        )
+
     if not 200 <= reply.status < 300:
-        raise _status_failure(reply, provider)
+        raise annotate_failure(
+            _status_failure(reply, provider),
+            "transport",
+            "transport_status",
+            **metadata,
+        )
     if len(reply.body) > max_bytes:
-        raise AgentFailure("invalid_provider_response", http_status=502)
+        raise failure("transport", "response_size")
     try:
         data = json_object(reply.body)
-        choices = data["choices"]
-        if not isinstance(choices, list) or len(choices) != 1:
-            raise ValueError
-        choice = choices[0]
-        message = choice["message"]
-        if message.get("refusal") or choice.get("finish_reason") == "content_filter":
-            raise AgentFailure("policy_refusal", http_status=422)
-        finish = choice.get("finish_reason")
-        if finish not in {"stop", "tool_calls"}:
-            raise ValueError
-        usage_data = data.get("usage") or {}
+    except (TypeError, ValueError):
+        raise failure("envelope", "envelope_json") from None
+    # Usage belongs to the envelope, so retain valid numbers even if choices
+    # or the message is malformed. Rejection never turns unknown usage into zero.
+    usage_data = data.get("usage")
+    if isinstance(usage_data, dict):
+        metadata["prompt_tokens"] = valid_usage(usage_data.get("prompt_tokens"))
+        metadata["completion_tokens"] = valid_usage(usage_data.get("completion_tokens"))
+    choices = data.get("choices")
+    if not isinstance(choices, list) or len(choices) != 1:
+        raise failure("envelope", "invalid_choices")
+    choice = choices[0]
+    if not isinstance(choice, dict):
+        raise failure("envelope", "invalid_choices")
+    message = choice.get("message")
+    metadata["finish_reason"] = normalize_finish(choice.get("finish_reason"))
+    if not isinstance(message, dict):
+        raise failure("envelope", "message_type")
+    metadata["content_type"] = content_kind(message)
+    content = message.get("content")
+    if isinstance(content, str):
+        metadata["content_bytes"] = bounded_size(
+            len(content.encode("utf-8", errors="replace"))
+        )
+    calls = message.get("tool_calls")
+    if isinstance(calls, list):
+        metadata["tool_call_count"] = bounded_size(len(calls))
+    elif calls is None:
+        metadata["tool_call_count"] = 0
+    finish = metadata["finish_reason"]
+    if message.get("refusal") or finish == "content_filter":
+        raise failure("content", "content_filter", "policy_refusal", 422)
+    if finish == "length":
+        raise failure("content", "finish_length")
+    if finish not in {"stop", "tool_calls"}:
+        raise failure("envelope", "finish_reason")
+    if usage_data is None:
+        usage_data = {}
+    if not isinstance(usage_data, dict):
+        raise failure("usage", "usage_type")
+    try:
         usage = Usage(
             prompt_tokens=usage_data.get("prompt_tokens"),
             completion_tokens=usage_data.get("completion_tokens"),
         )
-        calls = message.get("tool_calls")
-        if finish == "tool_calls":
-            if not isinstance(calls, list) or len(calls) != 1:
-                raise ValueError
-            call = calls[0]
-            if call["type"] != "function":
-                raise ValueError
-            function = call["function"]
-            if function["name"] not in {tool.name for tool in tools}:
-                raise AgentFailure("forbidden_tool", http_status=422)
-            arguments = function["arguments"]
-            if not isinstance(arguments, str):
-                raise ValueError
+    except ValidationError:
+        raise failure("usage", "usage_type") from None
+    if finish == "tool_calls":
+        if not isinstance(calls, list) or len(calls) != 1:
+            raise failure("tool", "tool_count")
+        if not tools:
+            raise failure("tool", "tool_in_final", "forbidden_tool", 422)
+        call = calls[0]
+        if not isinstance(call, dict) or call.get("type") != "function":
+            raise failure("tool", "tool_shape")
+        function = call.get("function")
+        if not isinstance(function, dict):
+            raise failure("tool", "tool_shape")
+        if not isinstance(function.get("name"), str):
+            raise failure("tool", "tool_shape")
+        if function["name"] not in {tool.name for tool in tools}:
+            raise failure("tool", "tool_name", "forbidden_tool", 422)
+        arguments = function.get("arguments")
+        if not isinstance(arguments, str):
+            raise failure("tool", "tool_arguments")
+        try:
             json_object(arguments)
-            return ProviderResult(
-                provider=provider,
-                attempt=attempt,
-                tool_call=ToolCall(
-                    id=call["id"],
-                    name=function["name"],
-                    arguments_json=arguments,
-                ),
-                usage=usage,
+        except (TypeError, ValueError):
+            raise failure("tool", "tool_arguments") from None
+        call_id = call.get("id")
+        if not isinstance(call_id, str):
+            raise failure("tool", "tool_shape")
+        try:
+            parsed_call = ToolCall(
+                id=call_id,
+                name=function["name"],
+                arguments_json=arguments,
             )
-        if calls is not None and calls != []:
-            raise ValueError
-        content = message["content"]
-        if not isinstance(content, str):
-            raise ValueError
-        json_object(content)
+        except ValidationError:
+            raise failure("tool", "tool_shape") from None
         return ProviderResult(
-            provider=provider, attempt=attempt, content_json=content, usage=usage
+            provider=provider,
+            attempt=attempt,
+            tool_call=parsed_call,
+            usage=usage,
+            diagnostic=safe_diagnostic(**metadata),
         )
-    except AgentFailure:
-        raise
-    except (KeyError, TypeError, ValueError, AttributeError, ValidationError):
-        raise AgentFailure("invalid_provider_response", http_status=502) from None
+    if calls is not None and calls != []:
+        raise failure("tool", "finish_tool_conflict")
+    if not isinstance(content, str):
+        raise failure("content", "content_type")
+    try:
+        json_object(content)
+    except (TypeError, ValueError):
+        reason: FailureReason = "content_json"
+        if content.lstrip().startswith("```"):
+            reason = "content_fenced_json"
+        elif content.lstrip().startswith("["):
+            reason = "content_not_object"
+        raise failure("content", reason) from None
+    return ProviderResult(
+        provider=provider,
+        attempt=attempt,
+        content_json=content,
+        usage=usage,
+        diagnostic=safe_diagnostic(**metadata),
+    )

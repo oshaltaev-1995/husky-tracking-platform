@@ -11,11 +11,18 @@ from __future__ import annotations
 import math
 import time
 from collections.abc import Callable
-from typing import NoReturn
+from contextlib import suppress
+from typing import Literal, NoReturn
 from uuid import uuid4
 
 from pydantic import ValidationError
 
+from app.operations.diagnostics import (
+    ResponseDiagnostic,
+    annotate_failure,
+    safe_diagnostic,
+)
+from app.operations.final_request import build_final_request
 from app.operations.provider_models import (
     AgentFailure,
     ErrorCode,
@@ -93,12 +100,15 @@ class ProviderRun:
         }
         self._force_validate_day = force_validate_day
         self._validated_attempt: int | None = None
+        self._validation_output_json: str | None = None
         self._primary_error: ErrorCode | None = None
         self._last_request: HttpRequest | None = None
         self._last_reply_status: int | None = None
         self._quota_retry_used = False
         self._quota_retries = 0
         self.retry_after_seconds: int | None = None
+        self._diagnostics: list[dict[str, object]] = []
+        self._last_diagnostic: ResponseDiagnostic | None = None
         if not settings.enabled:
             self._fail("agent_disabled", 503)
         self._guard()
@@ -129,7 +139,82 @@ class ProviderRun:
         if self._clock() >= self._deadline:
             self._fail("timeout", 504)
 
+    def note_diagnostic(
+        self,
+        diagnostic: ResponseDiagnostic | None,
+        *,
+        phase: Literal["tool_review", "final_only"] | None = None,
+        merge_response: bool = True,
+        validation_completed: bool | None = None,
+    ) -> None:
+        """Content-free, best-effort observation; never changes the run outcome."""
+        try:
+            if (
+                diagnostic is None
+                or len(self._diagnostics) >= 2 * self.settings.max_http_calls + 2
+            ):
+                return
+            fields = (
+                self._last_diagnostic.model_dump()
+                if merge_response and self._last_diagnostic is not None
+                else {}
+            )
+            fields.update(diagnostic.model_dump(exclude_unset=True))
+            checked = safe_diagnostic(**fields)
+            if checked is None:
+                return
+            self._last_diagnostic = checked
+            self._diagnostics.append(
+                {
+                    **checked.model_dump(),
+                    "http_attempt": self.http_calls,
+                    "request_phase": phase or self.request_phase,
+                    "provider": self.provider,
+                    "mandatory_validation_completed": self.validated_current_attempt
+                    if validation_completed is None
+                    else validation_completed,
+                    "recorded_tools": self.tool_calls,
+                }
+            )
+        except Exception:
+            pass
+
+    @property
+    def diagnostics(self) -> tuple[dict[str, object], ...]:
+        return tuple(dict(item) for item in self._diagnostics)
+
     def _send(self, request: HttpRequest | None = None) -> ProviderResult:
+        before, phase = self.http_calls, self.request_phase
+        validated = self.validated_current_attempt
+        try:
+            result = self._dispatch(request)
+        except AgentFailure as failure:
+            reason = {
+                "provider_timeout": "transport_timeout",
+                "provider_transport": "transport_network",
+                "cancelled": "cancelled",
+                "context_changed": "context_changed",
+                "run_budget_exhausted": "budget",
+            }.get(failure.code, "unknown")
+            with suppress(Exception):
+                self.note_diagnostic(
+                    failure.diagnostic
+                    or safe_diagnostic(
+                        failure_stage="policy",
+                        failure_reason=reason,
+                        upstream_http_status=self._last_reply_status
+                        if self.http_calls > before
+                        else None,
+                    ),
+                    phase=phase,
+                    merge_response=False,
+                    validation_completed=validated,
+                )
+            raise
+        self.note_diagnostic(result.diagnostic, phase=phase, merge_response=False)
+        return result
+
+    def _dispatch(self, request: HttpRequest | None = None) -> ProviderResult:
         quota_retry = request is not None
         self._guard()
         if (
@@ -144,21 +229,36 @@ class ProviderRun:
             self._fail("timeout", 504)
         if request is None:
             try:
-                request = build_request(
-                    self.provider,
-                    self.settings,
-                    task=self._task,
-                    snapshot_json=self._snapshot_json,
-                    tools=self._tools,
-                    messages=self._messages,
-                    timeout_seconds=min(self.settings.http_timeout_seconds, remaining),
-                    required_tool=(
-                        "validate_day"
-                        if self._force_validate_day
-                        and not self.validated_current_attempt
-                        else None
-                    ),
-                )
+                if self.request_phase == "final_only":
+                    assert self._validation_output_json is not None
+                    request = build_final_request(
+                        self.settings,
+                        task=self._task,
+                        snapshot_json=self._snapshot_json,
+                        tools=self._tools,
+                        validation_output_json=self._validation_output_json,
+                        timeout_seconds=min(
+                            self.settings.http_timeout_seconds, remaining
+                        ),
+                    )
+                else:
+                    request = build_request(
+                        self.provider,
+                        self.settings,
+                        task=self._task,
+                        snapshot_json=self._snapshot_json,
+                        tools=self._tools,
+                        messages=self._messages,
+                        timeout_seconds=min(
+                            self.settings.http_timeout_seconds, remaining
+                        ),
+                        required_tool=(
+                            "validate_day"
+                            if self._force_validate_day
+                            and not self.validated_current_attempt
+                            else None
+                        ),
+                    )
             except ValidationError:
                 self._fail("provider_configuration")
         # Serialization and validation consume the SAME run deadline too. Never
@@ -192,7 +292,7 @@ class ProviderRun:
             reply,
             self.provider,
             self.attempt,
-            self._tools,
+            () if self.request_phase == "final_only" else self._tools,
             self.settings.max_response_bytes,
         )
         self._usage = result.usage
@@ -202,7 +302,19 @@ class ProviderRun:
             and not self.validated_current_attempt
             and (result.tool_call is None or result.tool_call.name != "validate_day")
         ):
-            raise AgentFailure("invalid_provider_response", http_status=502)
+            details = (
+                result.diagnostic.model_dump(
+                    exclude={"failure_stage", "failure_reason"}
+                )
+                if result.diagnostic is not None
+                else {}
+            )
+            raise annotate_failure(
+                AgentFailure("invalid_provider_response", http_status=502),
+                "policy",
+                "mandatory_tool",
+                **details,
+            )
         self._last_result = result
         self._pending_tool = result if result.tool_call else None
         return result
@@ -248,6 +360,7 @@ class ProviderRun:
                 self._messages = ()
                 self._last_result = None
                 self._validated_attempt = None
+                self._validation_output_json = None
                 try:
                     return self._send()
                 except AgentFailure as reserve_failure:
@@ -316,6 +429,8 @@ class ProviderRun:
     def check_tool(self, result: ProviderResult) -> None:
         """Preflight BEFORE executing even a read tool; no stale or ninth execution."""
         self._guard()
+        if self.request_phase == "final_only":
+            self._fail("forbidden_tool", 422)
         if result != self._pending_tool or result.tool_call is None:
             self._fail("stale_attempt", 409)
         if result.attempt != self.attempt or result.provider != self.provider:
@@ -341,6 +456,7 @@ class ProviderRun:
         self.tool_calls += 1
         if call.name == "validate_day":
             self._validated_attempt = self.attempt
+            self._validation_output_json = output_json
         self._messages += (
             Message(role="assistant", tool_call=call),
             Message(role="tool", tool_call_id=call.id, content=output_json),
@@ -363,7 +479,15 @@ class ProviderRun:
             self._fail("stale_attempt", 409)
         try:
             validate_evidence(result.content_json)
-        except (ValueError, AgentFailure):
+        except (ValueError, AgentFailure) as failure:
+            self.note_diagnostic(
+                failure.diagnostic
+                if isinstance(failure, AgentFailure) and failure.diagnostic is not None
+                else safe_diagnostic(
+                    failure_stage="reference_validation",
+                    failure_reason="reference_membership",
+                )
+            )
             self._fail("invalid_evidence", 422)
         self._guard()  # Never apply a result after reset/expiry during validation.
         self._finished = True
@@ -376,6 +500,19 @@ class ProviderRun:
     def cancel(self) -> None:
         self._cancelled = True
         self.attempt += 1
+
+    @property
+    def request_phase(self) -> Literal["tool_review", "final_only"]:
+        """Only the selected-day Groq-only path has a final-only second phase."""
+        if (
+            self._force_validate_day
+            and self.provider == "groq"
+            and not self.settings.openrouter_reserve_enabled
+            and self.validated_current_attempt
+            and self._validation_output_json is not None
+        ):
+            return "final_only"
+        return "tool_review"
 
     @property
     def validated_current_attempt(self) -> bool:

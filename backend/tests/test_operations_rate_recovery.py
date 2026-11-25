@@ -151,7 +151,11 @@ def test_one_short_quota_recovery_reuses_exact_request_and_counts_unknown_usage(
     assert rejected.url == repeated.url == transport.requests[0].url
     assert rejected.authorization == repeated.authorization
     assert repeated.retries == 0 and repeated.follow_redirects is False
-    assert json.loads(repeated.body_json)["tool_choice"] == "auto"
+    assert "tool_choice" not in json.loads(repeated.body_json)
+    assert (
+        json.loads(repeated.body_json)["response_format"]["json_schema"]["strict"]
+        is True
+    )
     assert sum(clock.waits) >= delay and clock.now < delay + 0.01
     metadata = run.metadata()
     assert metadata.known_run_usage.prompt_tokens == 30
@@ -184,22 +188,17 @@ def test_initial_turn_quota_is_terminal_without_wait_or_reserve() -> None:
     assert len(transport.requests) == 1 and run.tool_calls == 0 and not clock.waits
 
 
-def test_second_quota_on_a_later_turn_cannot_gain_another_recovery() -> None:
+def test_after_validation_retry_cannot_open_another_tool_turn() -> None:
     clock = Clock()
     transport = Transport(
-        tool(),
-        HttpReply(status=429, retry_after="1"),
-        tool("get_day_plan"),
-        HttpReply(status=429, retry_after="1"),
-        final(),
+        tool(), HttpReply(status=429, retry_after="1"), tool("get_day_plan"), final()
     )
     run = active(transport, clock)
     validate_once(run)
-    second_tool = run.call()
-    run.record_tool(second_tool, '{"activities":[]}')
-    with pytest.raises(AgentFailure, match="^ai_quota_exhausted$"):
+    with pytest.raises(AgentFailure, match="^forbidden_tool$"):
         run.call()
-    assert len(transport.requests) == 4 and run.tool_calls == 2
+    assert len(transport.requests) == 3 and run.tool_calls == 1
+    assert run.quota_retries == 1
     assert sum(clock.waits) >= 1 and clock.now < 1.01
 
 

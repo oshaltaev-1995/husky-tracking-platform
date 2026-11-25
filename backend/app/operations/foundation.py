@@ -6,6 +6,9 @@ from collections.abc import Callable
 from datetime import date
 from time import monotonic
 
+from pydantic import ValidationError
+
+from app.operations.diagnostics import annotate_failure, safe_diagnostic
 from app.operations.policy import ProviderRun
 from app.operations.provider_models import (
     AgentFailure,
@@ -13,9 +16,10 @@ from app.operations.provider_models import (
     ProviderResult,
     ProviderSettings,
     ToolContract,
+    json_object,
 )
 from app.operations.providers import Transport
-from app.operations.schemas import OperationError, ToolResult
+from app.operations.schemas import OperationError, ReferencedExplanation, ToolResult
 from app.operations.snapshot import RunContext, SnapshotReader
 from app.operations.tools import TOOL_DESCRIPTIONS, FrozenTools
 
@@ -57,6 +61,9 @@ class PreparedReview:
         try:
             result = self.tools.execute(call.name, call.arguments_json)
         except OperationError as error:
+            self.run.note_diagnostic(
+                safe_diagnostic(failure_stage="tool", failure_reason="tool_arguments")
+            )
             self.run.reject(
                 "forbidden_tool"
                 if error.code == "tool_not_allowed"
@@ -68,10 +75,25 @@ class PreparedReview:
 
     def finish(self, response: ProviderResult) -> str:
         def validate(value: str) -> None:
+            # Separate schema rejection from verified evidence membership without
+            # ever exposing Pydantic inputs or arbitrary exception strings.
+            try:
+                json_object(value)
+                ReferencedExplanation.model_validate_json(value)
+            except (ValidationError, ValueError, TypeError):
+                raise annotate_failure(
+                    AgentFailure("invalid_evidence", http_status=422),
+                    "final_schema",
+                    "final_schema",
+                ) from None
             try:
                 self.tools.validate_references(value)
             except OperationError:
-                raise AgentFailure("invalid_evidence", http_status=422) from None
+                raise annotate_failure(
+                    AgentFailure("invalid_evidence", http_status=422),
+                    "reference_validation",
+                    "reference_membership",
+                ) from None
 
         return self.run.finalize(response, validate)
 

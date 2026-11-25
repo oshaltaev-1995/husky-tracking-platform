@@ -17,6 +17,8 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.operations.diagnostics import ResponseDiagnostic
+
 ProviderName = Literal["groq", "openrouter"]
 ErrorCode = Literal[
     "agent_disabled",
@@ -142,10 +144,12 @@ class AgentFailure(Exception):
         *,
         http_status: int = 503,
         retry_after_seconds: int | None = None,
+        diagnostic: ResponseDiagnostic | None = None,
     ) -> None:
         self.code = code
         self.http_status = http_status
         self.retry_after_seconds = retry_after_seconds
+        self.diagnostic = diagnostic
         super().__init__(code)
 
 
@@ -189,6 +193,9 @@ class ProviderUsage(FrozenModel):
 
 
 class ProviderResult(FrozenModel):
+    diagnostic: ResponseDiagnostic | None = Field(
+        default=None, repr=False, exclude=True
+    )
     provider: ProviderName
     attempt: int = Field(ge=0)
     content_json: str | None = Field(default=None, repr=False)

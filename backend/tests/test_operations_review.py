@@ -150,7 +150,10 @@ class FakeModel:
         body = json.loads(request.body_json)
         snapshot = json.loads(body["messages"][2]["content"].split("\n", 1)[1])
         on_reserve = "openrouter" in request.url
-        had_tool = any(message["role"] == "tool" for message in body["messages"])
+        had_tool = (
+            any(message["role"] == "tool" for message in body["messages"])
+            or body.get("response_format", {}).get("type") == "json_schema"
+        )
         if self.mode == "midrun" and not on_reserve and had_tool:
             return HttpReply(status=429, retry_after="2")
         if (
@@ -417,7 +420,8 @@ def test_midrun_restart_uses_same_snapshot_without_primary_transcript_or_writes(
         ("invalid-arguments", 422, "invalid_provider_response", 1),
         ("invalid-evidence", 422, "invalid_evidence", 2),
         ("premature-final", 502, "invalid_provider_response", 1),
-        ("tool-loop", 429, "run_budget_exhausted", 6),
+        # Groq-only's second phase has no tools; another tool is rejected at once.
+        ("tool-loop", 422, "forbidden_tool", 2),
     ],
 )
 def test_loop_failures_are_typed_safe_and_not_safety_bypassed(
@@ -718,7 +722,10 @@ def test_short_after_tool_quota_retry_is_counted_once_in_same_read_only_review()
 
         def __call__(self, request: HttpRequest) -> HttpReply:
             body = json.loads(request.body_json)
-            after_tool = any(row["role"] == "tool" for row in body["messages"])
+            after_tool = (
+                any(row["role"] == "tool" for row in body["messages"])
+                or body.get("response_format", {}).get("type") == "json_schema"
+            )
             if after_tool and not self.sent_quota:
                 self.sent_quota = True
                 self.calls.append(request)
