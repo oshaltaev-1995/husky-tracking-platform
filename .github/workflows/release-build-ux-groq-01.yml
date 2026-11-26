@@ -1,0 +1,232 @@
+name: Husky UX-GROQ-01 exact accepted application build
+
+on:
+  push:
+    branches:
+      - codex/release-build-ux-groq-01
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: husky-release-build-ux-groq-01
+  cancel-in-progress: false
+
+jobs:
+  production-images:
+    if: github.repository == 'oshaltaev-1995/husky-tracking-platform' && github.ref == 'refs/heads/codex/release-build-ux-groq-01'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      APP_SHA: 6b6c659b748197e50357990fa1124b2272f1791a
+      IMAGE_PREFIX: ghcr.io/oshaltaev-1995/husky-tracking-platform
+      SOURCE_URL: https://github.com/oshaltaev-1995/husky-tracking-platform
+    steps:
+      - name: Checkout exact accepted application source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # official v4.2.2
+        with:
+          ref: 6b6c659b748197e50357990fa1124b2272f1791a
+          path: accepted-source
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: false
+          lfs: false
+          show-progress: false
+
+      - name: Bind and prepare clean production contexts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ARCH" = X64
+          test "$GITHUB_REPOSITORY" = oshaltaev-1995/husky-tracking-platform
+          test "$(uname -m)" = x86_64
+          test "$GITHUB_REF" = refs/heads/codex/release-build-ux-groq-01
+          test "$(git -C accepted-source rev-parse HEAD)" = "$APP_SHA"
+          test -z "$(git -C accepted-source status --porcelain)"
+          archive="$RUNNER_TEMP/husky-accepted-source.tar"
+          git -C accepted-source -c tar.umask=0022 archive --format=tar --output="$archive" "$APP_SHA"
+          test "$(git get-tar-commit-id < "$archive")" = "$APP_SHA"
+          export SOURCE_ARCHIVE="$archive"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, tarfile
+          archive = pathlib.Path(os.environ['SOURCE_ARCHIVE'])
+          context = pathlib.Path(os.environ['RUNNER_TEMP']) / 'husky-production-context'
+          context.mkdir(mode=0o755)
+          entries = {'backend': [], 'frontend': []}
+          forbidden = {'review-artifacts', '.git', '.venv', 'node_modules', 'dist', '.angular', '__pycache__'}
+          excluded = ['backend/tests/**', 'frontend/**/*.spec.ts', 'frontend/src/app/features/kennel-map/kennel-print-test-data.ts', '**/.env*']
+          with tarfile.open(archive) as source:
+              for member in source:
+                  parts = pathlib.PurePosixPath(member.name).parts
+                  if not parts or parts[0] not in entries:
+                      continue
+                  if parts[0] == 'backend' and len(parts) > 1 and parts[1] == 'tests':
+                      continue
+                  if parts[0] == 'frontend' and member.name.endswith('.spec.ts'):
+                      continue
+                  if member.name == 'frontend/src/app/features/kennel-map/kennel-print-test-data.ts':
+                      continue
+                  if any(p.startswith('.env') for p in parts):
+                      continue
+                  assert '..' not in parts and not member.name.startswith('/')
+                  assert not any(p in forbidden for p in parts)
+                  assert not any(p in {'.env', '.env.agent-qa', '.env.production'} for p in parts)
+                  target = context.joinpath(*parts)
+                  if member.isdir():
+                      target.mkdir(parents=True, exist_ok=True, mode=0o755)
+                      continue
+                  assert member.isfile(), 'Non-regular context entry rejected'
+                  handle = source.extractfile(member)
+                  assert handle is not None
+                  data = handle.read()
+                  target.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
+                  target.write_bytes(data)
+                  target.chmod(member.mode & 0o777)
+                  entries[parts[0]].append({'path': '/'.join(parts[1:]), 'mode': oct(member.mode & 0o777), 'sha256': hashlib.sha256(data).hexdigest()})
+          contexts = {}
+          for service, files in entries.items():
+              files.sort(key=lambda item: item['path'])
+              encoded = (json.dumps(files, sort_keys=True, separators=(',', ':')) + '\n').encode()
+              (pathlib.Path(os.environ['RUNNER_TEMP']) / f'{service}-context-manifest.json').write_bytes(encoded)
+              contexts[service] = {'files': len(files), 'manifest_sha256': hashlib.sha256(encoded).hexdigest(), 'target': 'production'}
+              assert (context / service / 'Dockerfile').is_file()
+          assert (context / 'backend/uv.lock').is_file()
+          assert (context / 'frontend/package-lock.json').is_file()
+          assert len(list((context / 'frontend/public/media/dogs').glob('*.webp'))) == 60
+          assert not list(context.rglob('*uxg-offline*'))
+          assert not list(context.rglob('*uxg-before*'))
+          binding = {'application_sha': os.environ['APP_SHA'], 'workflow_sha': os.environ['GITHUB_SHA'],
+                     'run_id': os.environ['GITHUB_RUN_ID'], 'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+                     'run_url': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+                     'source_archive_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
+                     'context_exclusions': excluded, 'contexts': contexts, 'images': []}
+          (pathlib.Path(os.environ['RUNNER_TEMP']) / 'husky-release-manifest.json').write_text(json.dumps(binding, sort_keys=True) + '\n')
+          print('HUSKY_SOURCE_BINDING=' + json.dumps(binding, sort_keys=True))
+          PY
+          printf 'IMAGE_TAG=%s-run-%s-attempt-%s\n' "$APP_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+          docker version --format '{{.Server.Os}}/{{.Server.Arch}}'
+          docker buildx version
+
+      - name: Authenticate scoped package publication
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          install -d -m 0700 "$DOCKER_CONFIG"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+      - name: Build and push backend then frontend serially
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
+        shell: bash
+        run: |
+          set -euo pipefail
+          for service in backend frontend; do
+            image="$IMAGE_PREFIX-$service:$IMAGE_TAG"
+            docker buildx build --platform linux/amd64 --target production \
+              --provenance=false --sbom=false --push \
+              --label "org.opencontainers.image.revision=$APP_SHA" \
+              --label "org.opencontainers.image.source=$SOURCE_URL" \
+              --label "io.huskytracking.workflow-sha=$GITHUB_SHA" \
+              --tag "$image" --metadata-file "$RUNNER_TEMP/$service-image-metadata.json" \
+              "$RUNNER_TEMP/husky-production-context/$service"
+          done
+
+      - name: Verify published digests and emit small release manifest
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib, re, subprocess
+          temporary = pathlib.Path(os.environ['RUNNER_TEMP'])
+          path = temporary / 'husky-release-manifest.json'
+          result = json.loads(path.read_text())
+          for service in ('backend', 'frontend'):
+              repository = os.environ['IMAGE_PREFIX'] + '-' + service
+              metadata = json.loads((temporary / f'{service}-image-metadata.json').read_text())
+              digest = metadata['containerimage.digest']
+              assert re.fullmatch(r'sha256:[a-f0-9]{64}', digest)
+              def manifest(value):
+                  return json.loads(subprocess.check_output(['docker', 'buildx', 'imagetools', 'inspect', '--raw', repository + '@' + value], text=True))
+              raw = manifest(digest)
+              child = digest
+              if 'manifests' in raw:
+                  candidates = [m for m in raw['manifests'] if m.get('platform', {}).get('os') == 'linux' and m.get('platform', {}).get('architecture') == 'amd64']
+                  assert len(candidates) == 1
+                  child = candidates[0]['digest']
+                  raw = manifest(child)
+              configuration_digest = raw['config']['digest']
+              assert re.fullmatch(r'sha256:[a-f0-9]{64}', child)
+              assert re.fullmatch(r'sha256:[a-f0-9]{64}', configuration_digest)
+              immutable = repository + '@' + child
+              subprocess.run(['docker', 'pull', immutable], check=True)
+              inspect_format = '{"id":{{json .Id}},"os":{{json .Os}},"architecture":{{json .Architecture}},"labels":{{json .Config.Labels}}}'
+              image = json.loads(subprocess.check_output(['docker', 'image', 'inspect', '--format', inspect_format, immutable], text=True))
+              assert image['id'] == configuration_digest
+              assert (image['os'], image['architecture']) == ('linux', 'amd64')
+              assert image['labels']['org.opencontainers.image.revision'] == os.environ['APP_SHA']
+              assert image['labels']['org.opencontainers.image.source'] == os.environ['SOURCE_URL']
+              assert image['labels']['io.huskytracking.workflow-sha'] == os.environ['GITHUB_SHA']
+              expected = json.loads((temporary / f'{service}-context-manifest.json').read_text())
+              if service == 'backend':
+                  check = '''import hashlib,json,pathlib,sys
+          expected=json.load(sys.stdin)
+          root=pathlib.Path('/app')
+          actual={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
+          expected={e['path']:e['sha256'] for e in expected}
+          assert not set(actual)-set(expected)
+          assert set(expected)-set(actual) <= {'Dockerfile','.dockerignore'}
+          assert all(actual[name]==expected[name] for name in actual)
+          assert not (root/'tests').exists()
+          assert not list(root.rglob('.env*'))
+          print(json.dumps({'exact_context_hashes':True,'files':len(actual),'source_context_files':len(expected),'optional_build_control_files':['Dockerfile','.dockerignore'],'tests_fixtures_absent':True,'private_env_absent':True}))
+          '''
+                  checked = subprocess.check_output(['docker', 'run', '--rm', '-i', '--entrypoint', '/opt/venv/bin/python', immutable, '-c', check], input=json.dumps(expected), text=True)
+                  filesystem = json.loads(checked)
+              else:
+                  check = '''set -eu
+          cd /usr/share/nginx/html
+          test -f index.html
+          test "$(find media/dogs -maxdepth 1 -type f -name '*.webp' | wc -l)" -eq 60
+          test ! -e /app
+          test ! -e kennel-print-test-data.ts
+          test -z "$(find . -type f -name '.env*' -print -quit)"
+          test -z "$(find . -type f -name '*.map' -print -quit)"
+          if grep -Eiq 'offline fixtures|P14D offline|offline presentation fixtures|SYNTHETIC / OFFLINE QA|SYNTHETIC / OFFLINE · NO PROVIDER|UX-GROQ-01 · Candidate' index.html main-*.js; then exit 1; fi
+          sha256sum index.html main-*.js styles-*.css media/dogs/*.webp
+          '''
+                  checked = subprocess.check_output(['docker', 'run', '--rm', '--entrypoint', 'sh', immutable, '-c', check], text=True)
+                  hashes = {line.split(None, 1)[1]: line.split(None, 1)[0] for line in checked.splitlines()}
+                  media = {e['path'].removeprefix('public/'):e['sha256'] for e in expected if e['path'].startswith('public/media/dogs/') and e['path'].endswith('.webp')}
+                  actual_media = {name:sha for name,sha in hashes.items() if name.startswith('media/dogs/')}
+                  assert len(media) == 60 and actual_media == media
+                  media_binding = (json.dumps(media, sort_keys=True, separators=(',', ':')) + '\n').encode()
+                  filesystem = {'media_count':60,'media_exact_source_hashes':True,'media_manifest_sha256':__import__('hashlib').sha256(media_binding).hexdigest(),'offline_fixture_marker_absent':True,'private_env_absent':True,'static_hashes':{name:sha for name,sha in hashes.items() if not name.startswith('media/')}}
+              result['images'].append({'service': service, 'repository': repository,
+                  'tag': os.environ['IMAGE_TAG'], 'registry_digest': digest,
+                  'amd64_manifest_digest': child, 'configuration_digest': configuration_digest,
+                  'actual_runner_image_id':image['id'], 'filesystem_checks':filesystem,
+                  'platform': 'linux/amd64', 'target': 'production'})
+          path.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
+          print('HUSKY_RELEASE_MANIFEST=' + json.dumps(result, sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('# Exact accepted Husky production images\n\n```json\n')
+              summary.write(json.dumps(result, indent=2, sort_keys=True) + '\n```\n')
+          PY
+
+      - name: Remove ephemeral registry authentication
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/husky-registry-config
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          if test -d "$DOCKER_CONFIG"; then
+            find "$DOCKER_CONFIG" -maxdepth 1 -type f -delete
+          fi
