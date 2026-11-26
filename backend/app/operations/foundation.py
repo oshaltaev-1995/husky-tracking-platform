@@ -9,6 +9,7 @@ from time import monotonic
 from pydantic import ValidationError
 
 from app.operations.diagnostics import annotate_failure, safe_diagnostic
+from app.operations.observations import ObservationCatalog, RenderedSelection
 from app.operations.policy import ProviderRun
 from app.operations.provider_models import (
     AgentFailure,
@@ -49,8 +50,17 @@ def context_failure(error: OperationError) -> AgentFailure:
 
 
 class PreparedReview:
-    def __init__(self, context: RunContext, tools: FrozenTools, run: ProviderRun):
+    def __init__(
+        self,
+        context: RunContext,
+        tools: FrozenTools,
+        run: ProviderRun,
+        *,
+        observation_selection: bool = False,
+    ):
         self.context, self.tools, self.run = context, tools, run
+        self._observation_selection = observation_selection
+        self._catalog: ObservationCatalog | None = None
 
     def execute_tool(self, response: ProviderResult) -> ToolResult:
         self.run.check_tool(response)
@@ -70,8 +80,57 @@ class PreparedReview:
                 else "invalid_provider_response"
             )
             raise AssertionError("unreachable") from None
-        self.run.record_tool(response, result.model_dump_json())
+        catalog: ObservationCatalog | None = None
+        if self._observation_selection and call.name == "validate_day":
+            try:
+                catalog = ObservationCatalog(
+                    self.context.snapshot,
+                    result,
+                    self.run.run_id,
+                    self.tools.link,
+                )
+            except OperationError:
+                self.run.note_diagnostic(
+                    safe_diagnostic(
+                        failure_stage="reference_validation",
+                        failure_reason="reference_membership",
+                    )
+                )
+                self.run.reject("invalid_evidence")
+        self.run.record_tool(
+            response,
+            result.model_dump_json(),
+            catalog_json=catalog.provider_json() if catalog is not None else None,
+        )
+        self._catalog = catalog
         return result
+
+    def finish_selection(self, response: ProviderResult) -> RenderedSelection:
+        """Decode issued IDs, never consume provider prose as a factual result."""
+        if not self._observation_selection or self._catalog is None:
+            self.run.reject("invalid_evidence")
+            raise AssertionError("unreachable")
+        rendered: RenderedSelection | None = None
+
+        def validate(value: str) -> None:
+            nonlocal rendered
+            assert self._catalog is not None
+            try:
+                rendered = self._catalog.select(value)
+                # Normal decoding expands previously bound references; validate
+                # against the very same frozen registry, with no DB fact reads.
+                self.tools.validate_references(rendered.answer.model_dump_json())
+            except OperationError as error:
+                schema = error.code == "invalid_selection"
+                raise annotate_failure(
+                    AgentFailure("invalid_evidence", http_status=422),
+                    "final_schema" if schema else "reference_validation",
+                    "final_schema" if schema else "reference_membership",
+                ) from None
+
+        self.run.finalize(response, validate)
+        assert rendered is not None
+        return rendered
 
     def finish(self, response: ProviderResult) -> str:
         def validate(value: str) -> None:
@@ -108,6 +167,7 @@ def prepare_review(
     transport: Transport,
     admit: Callable[[], bool],
     force_validate_day: bool = False,
+    observation_selection: bool = False,
     started_at: float | None = None,
 ) -> PreparedReview:
     started_at = monotonic() if started_at is None else started_at
@@ -115,6 +175,10 @@ def prepare_review(
     # No cookie resolution, snapshot work, or outbound request when disabled.
     if not settings.enabled:
         raise AgentFailure("agent_disabled")
+    if observation_selection and (
+        not force_validate_day or settings.openrouter_reserve_enabled
+    ):
+        raise AgentFailure("provider_configuration")
     # Admission is a required host boundary, not a per-process in-memory limiter.
     if not admit():
         raise AgentFailure("app_rate_limited", http_status=429)
@@ -155,5 +219,8 @@ def prepare_review(
         admit=lambda: True,  # Already admitted above; never re-admit on reserve.
         started_at=started_at,
         force_validate_day=force_validate_day,
+        observation_selection=observation_selection,
     )
-    return PreparedReview(context, tools, run)
+    return PreparedReview(
+        context, tools, run, observation_selection=observation_selection
+    )

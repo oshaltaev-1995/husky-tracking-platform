@@ -2,7 +2,7 @@
   <header class="review-heading">
     <div>
       <p class="eyebrow">Read-only assistance</p>
-      <h2 id="operations-review-title">Operations review</h2>
+      <h2 id="operations-review-title">AI-assisted review</h2>
       <p>Selected day · <strong>{{ (selectedDate() + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</strong></p>
     </div>
     @if (capabilities()?.enabled) {
@@ -62,6 +62,7 @@
               }
               @if (activity.omitted_selected_dogs) { <p class="review-context">{{ activity.omitted_selected_dogs }} selected {{ activity.omitted_selected_dogs === 1 ? 'dog has' : 'dogs have' }} no display details in this snapshot.</p> }
               <dl class="activity-state"><div><dt>Saved teams</dt><dd>{{ activity.saved_teams === null ? 'Not applicable' : activity.saved_teams === 0 ? 'Not saved' : activity.saved_teams }}</dd></div><div><dt>Actual</dt><dd>{{ actualLabel(activity.actual_status) }}</dd></div></dl>
+              @if (activity.actual_status === 'not_recorded') { <p class="review-context">Actual work for this activity has not been recorded. Saved records do not establish whether this activity occurred.</p> }
             </article>
           }
           @if (summary.omitted_activities) { <p class="review-message">{{ summary.omitted_activities }} additional {{ summary.omitted_activities === 1 ? 'activity is' : 'activities are' }} not shown in this compact result.</p> }
@@ -69,12 +70,12 @@
         } @else { <p class="review-message">The saved-day summary could not be verified. Use Daily Plan and Daily Entry to inspect the saved records.</p> }
       </section>
 
-      <section class="model-explanation" aria-label="AI explanation">
-        <h4>AI explanation</h4>
+      <section class="model-explanation" aria-label="AI-selected observations">
+        <h4>AI-selected observations</h4>
         @if (safePresentation(); as segments) {
           <p>@for (segment of segments; track $index) {@if (segment.link; as link) {<a [routerLink]="link.route" [queryParams]="link.query">{{ segment.text }}</a>} @else {<ng-container>{{ segment.text }}</ng-container>}}</p>
-        } @else { <p class="review-message">The AI explanation contains an unresolved reference and cannot be displayed. The saved-day facts remain available.</p> }
-        <small>AI explanation of saved data. References are checked; wording is not independently verified. This does not confirm execution or assess training safety.</small>
+        } @else { <p class="review-message">The selected observations could not be verified and cannot be displayed. The saved-day facts remain available.</p> }
+        <small>AI selects and prioritizes observations from the saved snapshot. The application writes and checks statements and links. These statements describe saved records, not unrecorded events or training safety.</small>
       </section>
 
       @for (group of current.finding_groups; track group.scope) {

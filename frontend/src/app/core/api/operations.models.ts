@@ -75,6 +75,7 @@ export interface ReviewFindingGroup {
 }
 
 export interface OperationsReview {
+  provenance: 'ai_selected_server_observations';
   snapshot_id: string;
   selected_date: string;
   captured_at: string;

@@ -18,6 +18,7 @@ from app.operations.api_schemas import ReviewTrace
 from app.operations.checks import evaluate
 from app.operations.display import FrozenDisplay
 from app.operations.foundation import PreparedReview
+from app.operations.observations import RenderedSelection
 from app.operations.provider_models import Usage
 from app.operations.review import OperationsReviewService
 from app.operations.schemas import ClaimReference, Entity, Snapshot
@@ -499,7 +500,10 @@ def test_response_keeps_verified_facts_when_explanation_cannot_be_presented(
     )
     result = OperationsReviewService._response(
         prepared,
-        answer,
+        RenderedSelection(
+            answer=answer.model_copy(update={"explanation": ""}),
+            presentation=display(frozen).explanation(answer.explanation),
+        ),
         (ReviewTrace(tool_name="validate_day", provider="groq", elapsed_ms=1),),
     )
     assert (
@@ -517,15 +521,33 @@ def test_response_keeps_verified_facts_when_explanation_cannot_be_presented(
     assert answer.references[0].entity == evidence.entities[0]
 
     # The actual response path supplies executed trace and validated references,
-    # while raw explanation and technical trace retain their existing contract.
+    # while DTO text now matches the actual server-formatted presentation.
     raw = f"validate_day did not record actual work; see {evidence.id}."
     accepted = answer.model_copy(update={"explanation": raw})
     presented = OperationsReviewService._response(
         prepared,
-        accepted,
+        RenderedSelection(
+            answer=accepted.model_copy(
+                update={
+                    "explanation": flattened(
+                        display(frozen).explanation(
+                            raw,
+                            executed_tools=("validate_day",),
+                            references=accepted.references,
+                        )
+                    )
+                }
+            ),
+            presentation=display(frozen).explanation(
+                raw, executed_tools=("validate_day",), references=accepted.references
+            ),
+        ),
         (ReviewTrace(tool_name="validate_day", provider="groq", elapsed_ms=1),),
     )
-    assert presented.explanation == raw and accepted.references == answer.references
+    assert (
+        presented.explanation == flattened(presented.presentation)
+        and accepted.references == answer.references
+    )
     assert flattened(presented.presentation) == (
         "saved-day check did not record actual work; see saved-plan record."
     )

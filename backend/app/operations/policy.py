@@ -60,6 +60,7 @@ class ProviderRun:
         waiter: Callable[[float], None] = time.sleep,
         started_at: float | None = None,
         force_validate_day: bool = False,
+        observation_selection: bool = False,
     ) -> None:
         self.settings = settings
         self._transport = transport
@@ -101,6 +102,8 @@ class ProviderRun:
         self._force_validate_day = force_validate_day
         self._validated_attempt: int | None = None
         self._validation_output_json: str | None = None
+        self._catalog_json: str | None = None
+        self._observation_selection = observation_selection
         self._primary_error: ErrorCode | None = None
         self._last_request: HttpRequest | None = None
         self._last_reply_status: int | None = None
@@ -111,6 +114,12 @@ class ProviderRun:
         self._last_diagnostic: ResponseDiagnostic | None = None
         if not settings.enabled:
             self._fail("agent_disabled", 503)
+        if observation_selection and (
+            not force_validate_day or settings.openrouter_reserve_enabled
+        ):
+            # The selected-day public contract is explicitly Groq-only. Keep
+            # the deferred generic adapter without a public legacy-prose bypass.
+            self._fail("provider_configuration")
         self._guard()
         if not admit():
             self._fail("app_rate_limited", 429)
@@ -231,6 +240,8 @@ class ProviderRun:
             try:
                 if self.request_phase == "final_only":
                     assert self._validation_output_json is not None
+                    if self._observation_selection and self._catalog_json is None:
+                        self._fail("provider_configuration")
                     request = build_final_request(
                         self.settings,
                         task=self._task,
@@ -240,6 +251,7 @@ class ProviderRun:
                         timeout_seconds=min(
                             self.settings.http_timeout_seconds, remaining
                         ),
+                        catalog_json=self._catalog_json,
                     )
                 else:
                     request = build_request(
@@ -258,6 +270,7 @@ class ProviderRun:
                             and not self.validated_current_attempt
                             else None
                         ),
+                        observation_selection=self._observation_selection,
                     )
             except ValidationError:
                 self._fail("provider_configuration")
@@ -361,6 +374,7 @@ class ProviderRun:
                 self._last_result = None
                 self._validated_attempt = None
                 self._validation_output_json = None
+                self._catalog_json = None
                 try:
                     return self._send()
                 except AgentFailure as reserve_failure:
@@ -438,7 +452,13 @@ class ProviderRun:
         if self.tool_calls >= self.settings.max_tool_calls:
             self._fail("run_budget_exhausted", 429)
 
-    def record_tool(self, result: ProviderResult, output_json: str) -> None:
+    def record_tool(
+        self,
+        result: ProviderResult,
+        output_json: str,
+        *,
+        catalog_json: str | None = None,
+    ) -> None:
         """Called only after a server tool succeeded; arguments validated by registry.
 
         The caller must terminally reject a registry/evidence error, using
@@ -451,12 +471,19 @@ class ProviderRun:
             self._fail("run_budget_exhausted", 422)
         try:
             json_object(output_json)
+            if self._observation_selection and call.name == "validate_day":
+                if catalog_json is None:
+                    self._fail("provider_configuration")
+                if len(catalog_json.encode()) > self.settings.max_tool_result_bytes:
+                    self._fail("run_budget_exhausted", 422)
+                json_object(catalog_json)
         except (TypeError, ValueError):
             self._fail("invalid_provider_response", 422)
         self.tool_calls += 1
         if call.name == "validate_day":
             self._validated_attempt = self.attempt
             self._validation_output_json = output_json
+            self._catalog_json = catalog_json
         self._messages += (
             Message(role="assistant", tool_call=call),
             Message(role="tool", tool_call_id=call.id, content=output_json),

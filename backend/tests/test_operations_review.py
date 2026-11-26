@@ -194,6 +194,16 @@ class FakeModel:
                 "reasoning": "secret-reasoning-sentinel",
             }
             finish = "stop"
+        if (
+            body.get("response_format", {}).get("json_schema", {}).get("name")
+            == "operations_observation_selection"
+            and finish == "stop"
+        ):
+            catalog = json.loads(body["messages"][4]["content"].split("\n", 1)[1])
+            selected = [item["id"] for item in catalog["observations"][:3]]
+            if self.mode == "invalid-evidence":
+                selected = ["unissued-observation"]
+            message = {"content": json.dumps({"observation_ids": selected})}
         return HttpReply(
             status=200,
             body=json.dumps(
@@ -367,7 +377,11 @@ def test_complete_model_tool_final_api_flow_is_read_only_and_has_safe_evidence(
     }
     assert all(row["selected_date"] == when for row in result["evidence"])
     assert all(row["path"].startswith("/demo/") for row in result["links"])
-    assert result["explanation"].startswith("<img")  # Text; never trusted HTML.
+    assert "<img" not in result["explanation"]  # Model text cannot enter statements.
+    assert result["provenance"] == "ai_selected_server_observations"
+    assert result["explanation"] == "".join(
+        row["text"] for row in result["presentation"]["segments"]
+    )
     assert (
         "secret-reasoning-sentinel" not in response.text
         and "secret-reasoning-sentinel" not in caplog.text
@@ -386,25 +400,15 @@ def test_complete_model_tool_final_api_flow_is_read_only_and_has_safe_evidence(
         assert semantic_checksum(session) == EXPECTED_SEMANTIC_CHECKSUM
 
 
-def test_midrun_restart_uses_same_snapshot_without_primary_transcript_or_writes() -> (
-    None
-):
+def test_public_selection_contract_refuses_deferred_reserve_before_capture() -> None:
     model = FakeModel("midrun")
     install(model, settings(openrouter_reserve_enabled=True))
     client = visitor()
     before = counts()
     response = client.post(REVIEW, json={"selected_date": DAY})
-    assert response.status_code == 200, response.text
-    result = response.json()
-    assert result["provider"] == "openrouter" and result["fallback"] is True
-    assert (result["http_calls"], result["tool_calls"]) == (4, 2)
-    assert result["usage"]["known_prompt_tokens"] == 30
-    assert result["usage"]["incomplete"] is True
-    bodies = [json.loads(call.body_json) for call in model.calls]
-    assert bodies[0]["messages"] == bodies[2]["messages"]
-    assert len(bodies[1]["messages"]) > len(bodies[2]["messages"])
-    assert [row["provider"] for row in result["trace"]] == ["groq", "openrouter"]
-    assert counts() == before
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "provider_configuration"
+    assert not model.calls and counts() == before
 
 
 @pytest.mark.parametrize(

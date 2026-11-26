@@ -109,6 +109,7 @@ class Model:
             "user",
             "user",
             "user",
+            "user",
         ]
         first = json.loads(self.calls[0].body_json)
         assert body["messages"][1:3] == first["messages"][1:3]
@@ -122,24 +123,19 @@ class Model:
             == expected.model_dump_json()
         )
         self.final_data = json.loads(self.tool_result["data_json"])
-        e = self.final_data["evidence"][0]
-        # Fixture prose follows supplied facts; this is not provider quality evidence.
+        catalog = parse_data_message(body["messages"][4])
+        assert catalog["snapshot_id"] == self.tool_result["snapshot_id"]
+        assert catalog["selected_date"] == self.tool_result["selected_date"]
+        assert (
+            body["response_format"]["json_schema"]["name"]
+            == "operations_observation_selection"
+        )
+        assert (
+            "explanation"
+            not in body["response_format"]["json_schema"]["schema"]["properties"]
+        )
         content = {
-            "explanation": (
-                "Selected pool: "
-                f"{self.final_data['plan']['selected_unique_dogs']} dogs. "
-                "Saved teams and actual work are independent. "
-                f"Actual sessions: {self.final_data['actual']['sessions']}. "
-                "Omitted details remain unknown, not proof that all checks passed."
-            ),
-            "references": [
-                {
-                    "snapshot_id": self.tool_result["snapshot_id"],
-                    "selected_date": self.tool_result["selected_date"],
-                    "evidence_id": e["id"],
-                    "entity": e["entities"][0],
-                }
-            ],
+            "observation_ids": [item["id"] for item in catalog["observations"][:3]]
         }
         self.final_mutation(content)
         return final(json.dumps(content))
@@ -199,26 +195,15 @@ def test_two_phase_full_service_accepts_real_frozen_references_and_preserves_fac
 @pytest.mark.parametrize(
     "invalid", ["snapshot", "date", "evidence", "entity_id", "kind", "extra"]
 )
-def test_strict_server_final_validation_still_rejects_bad_bindings(
+def test_selection_final_rejects_model_owned_identity_and_extra_fields(
     invalid: str,
 ) -> None:
     state = context_snapshot()
     reader, model = Reader(state), Model(state)
 
     def mutate(content: dict[str, Any]) -> None:
-        ref = content["references"][0]
-        if invalid == "snapshot":
-            ref["snapshot_id"] = "00000000-0000-0000-0000-000000000001"
-        elif invalid == "date":
-            ref["selected_date"] = "2026-03-28"
-        elif invalid == "evidence":
-            ref["evidence_id"] = "unknown-evidence"
-        elif invalid == "entity_id":
-            ref["entity"]["id"] = "unknown-entity"
-        elif invalid == "kind":
-            ref["entity"]["kind"] = "dog"
-        else:
-            content["extra"] = "not accepted"
+        # The new final cannot supply or repair its own evidence/identity fields.
+        content[invalid] = "untrusted-model-field"
 
     model.final_mutation = mutate
     service = OperationsReviewService(
@@ -292,6 +277,7 @@ def test_reset_context_fences_final_without_new_snapshot_or_dispatch(when: str) 
         transport=model,
         admit=lambda: True,
         force_validate_day=True,
+        observation_selection=True,
     )
     prepared.execute_tool(prepared.run.call())
     if when == "before_final":
@@ -333,7 +319,10 @@ def test_missing_actual_evidence_stays_unknown_instead_of_zero() -> None:
     assert model.final_data["actual"]["sessions"] is None
     assert model.final_data["actual"]["dog_starts"] is None
     assert model.final_data["actual"]["dog_km"] is None
-    assert "Actual sessions: None" in result.explanation  # Explicit offline unknown.
+    assert "0 recorded sessions" not in result.explanation
+    assert (
+        "not verified" in result.explanation or "not established" in result.explanation
+    )
 
 
 def test_invalid_mandatory_tool_arguments_never_unlock_final_phase() -> None:

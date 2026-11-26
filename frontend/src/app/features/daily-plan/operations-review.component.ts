@@ -150,7 +150,7 @@ export class OperationsReviewComponent {
           this.error.set('The review response did not match this day. No result was accepted.');
         } else {
           this.result.set(response);
-          this.notice.set(this.presentationFor(response) ? 'Operations review ready.' : 'Saved-day facts are ready. The AI explanation contains an unresolved reference and is not shown.');
+          this.notice.set(this.presentationFor(response) ? 'AI-assisted review ready.' : 'Saved-day facts are ready. The selected observations could not be verified and are not shown.');
         }
         if (restoreFocus) this.restoreReviewFocus(epoch);
       },
@@ -201,7 +201,9 @@ export class OperationsReviewComponent {
     return ({ not_recorded: 'Not recorded', matches_plan: 'Recorded · matches plan', modified: 'Recorded · modified', not_run: 'Not run', context_only: 'Context only' } as Record<string, string>)[status] ?? 'Not verified';
   }
   private presentationFor(response: OperationsReview | null): DisplaySegment[] | null {
-    const presentation = response?.presentation;
+    // Only the server-written selection contract is a factual review surface.
+    if (response?.provenance !== 'ai_selected_server_observations' || typeof response.explanation !== 'string') return null;
+    const presentation = response.presentation;
     if (!presentation || presentation.status !== 'ready' || !Array.isArray(presentation.segments) || !presentation.segments.length) return null;
     const output: DisplaySegment[] = [];
     for (const segment of presentation.segments) {
@@ -215,7 +217,8 @@ export class OperationsReviewComponent {
     // Segments render adjacently. Reject identifiers split across plain/link
     // segments as well as complete ones; adding spaces here would mask a bypass.
     const visibleText = output.map((segment) => segment.text).join('');
-    return visibleText.trim() && !UUID_TEXT.test(visibleText) ? output : null;
+    // The retained text field and visible linked text must describe one result.
+    return visibleText.trim() && visibleText === response.explanation && !UUID_TEXT.test(visibleText) ? output : null;
   }
   protected valueLabel(name: string): string { return VALUE_LABELS[name] ?? name.replaceAll('_', ' '); }
   protected statusLabel(status: ReviewStatus): string {

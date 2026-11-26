@@ -158,6 +158,15 @@ These instructions apply to the entire repository.
   Preserve private backend/no automatic POST replay. Cancel/date/session/Reset/expiry/
   navigation fence late results; already dispatched remote work can still use quota.
   Conditional Privacy must not promise universal zero retention or EEA-only processing.
+- Public AI-assisted review uses the REL-SEMANTICS observation-selection contract.
+  After the mandatory validate_day, build candidates only from its same issued bounded
+  frozen result and evidence. Groq returns only distinct issued observation IDs; the
+  server checks applicability/run/snapshot/evidence and renders all factual wording,
+  names/values/local links. Reject unknown/stale/extra/free-text fields without repair.
+  DTO provenance is ai_selected_server_observations and explanation equals presentation
+  text. Mandatory summary/findings/omitted qualifications remain independent of model
+  choices. not_recorded never means not_run; context/teams/plans do not prove Actual.
+  Preserve UUID defenses, diagnostics, lifecycle, Groq-only budgets and closed ledgers.
 - Dashboard is the fixed-reference `/demo/dashboard` operational home. Its projection must
   compose the existing Population, Kennel Map, Daily Plan, Daily Entry, and Analytics
   services; do not persist dashboard totals or create alternate KPI/attention rules.

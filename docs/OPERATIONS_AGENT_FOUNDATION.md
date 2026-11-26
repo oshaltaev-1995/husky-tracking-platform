@@ -704,3 +704,49 @@ Official contracts checked25November2026:
 Offline/fake-transport success is not genuine provider acceptance. The owner-authorized
 release run has its own one-POST/four-upstream ledger outside source; all prior
 campaigns remain closed and unused budget never transfers.
+
+## REL-SEMANTICS-01 — AI selection, application-authored statements
+
+The public Groq-only selected-day review now uses **AI-assisted review**. Groq
+selects and prioritizes opaque observation IDs; the application constructs the
+actual statements, values, names and local links. This replaces the free-prose final
+contract deliberately. A successfully parsed/ref-bound explanation at G was not
+client acceptance: absence of an Actual record did not prove non-occurrence.
+
+The mandatory model-requested `validate_day` still runs first. A finite bounded
+catalog is then built from that exact issued ToolResult, checked against the same
+frozen projection and its evidence. No domain facts are read again, no hidden detail
+becomes a candidate, and no new eligibility/safety rules are introduced. Catalog IDs
+bind run, snapshot and exact result; each selected ID expands only to prebound server
+statements/references. Unknown, stale, unissued, duplicate, excessive or malformed
+selections fail; nothing is guessed or repaired.
+
+The second request remains tool-free, non-streaming strict JSON Schema. Its sole
+output field is `observation_ids` (1–6 distinct issued IDs in priority order). There
+are no provider-owned explanation/reason/title/action/URL fields. The first request
+also describes this selection task, so no invalid prose is generated and hidden as
+fallback. Model ordering/subsets change the shown observations; mandatory server
+summary/findings and omitted/unverified qualifications stay visible independently.
+
+Actual wording follows the issued explicit state: not_recorded says recording is
+absent and occurrence is unknown; only not_run says marked not run; matches_plan and
+modified describe saved recording correspondence; context_only is contextual, not a
+Training confirmation. Recorded zero is not a claim about unrecorded occurrence;
+null/omitted is not zero, a selected pool is not a saved lineup, and eligibility is
+not medical/training-safety assurance. Related links remain read-only navigation.
+
+The public DTO adds required `provenance=ai_selected_server_observations` and retains
+`explanation` as exactly the same application-authored text as concatenated typed
+presentation segments. The client requires both provenance and equality, keeps the
+UUID/local-link defense and never displays raw text as fallback. The heading/caption
+identify AI selection and application-checked statements rather than attributing
+server wording to Groq. The existing freshness, Cancel, Reset, cooldown and keyboard
+behavior remain. Deferred generic adapters still have offline tests, but the public
+selection service refuses reserve opt-in rather than exposing a legacy prose path.
+
+Model, Groq-only mode, reserve OFF, output1024, deadline45s, production cap4, byte/tool
+limits, safe diagnostics and the single existing short429 retry remain unchanged.
+Retry reuses the identical serialized catalog/final request in the same run. No new
+LLM verifier, repair call or automatic UI POST exists. This boundary constrains what
+can be said; it does not claim arbitrary LLM prose is guaranteed true. Publication
+and the separately authorized one-POST genuine acceptance are recorded outside source.

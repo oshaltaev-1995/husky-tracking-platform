@@ -114,6 +114,7 @@ function savedVersion(fixture: ComponentFixture<DailyPlanPageComponent>): number
 
 function emptyReview(): OperationsReview {
   return {
+    provenance: 'ai_selected_server_observations',
     snapshot_id: '00000000-0000-0000-0000-000000000001', selected_date: '2026-03-31',
     captured_at: '2026-11-22T06:00:00Z', explanation: 'The saved day has no plan.',
     presentation: { status: 'ready', message: null, segments: [{ text: 'The saved day has no plan.', entity: null, path: null }] },
@@ -232,7 +233,7 @@ describe('DailyPlanPageComponent', () => {
     button(fixture, 'Review operations').click();
     http.expectOne('/api/v1/operations/review').flush(emptyReview());
     await fixture.whenStable(); fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).toContain('No saved plan for this date.');
     const previousVersion = savedVersion(fixture);
 
@@ -247,7 +248,7 @@ describe('DailyPlanPageComponent', () => {
     button(fixture, 'Cancel').click(); fixture.detectChanges();
     expect(savedVersion(fixture)).toBe(previousVersion);
     expect(fixture.nativeElement.textContent).not.toContain('The saved day changed after this review.');
-    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
 
     await openEditor();
     (fixture.nativeElement.querySelector('input[name="dog-atlas-id"]') as HTMLInputElement).click();
@@ -260,7 +261,7 @@ describe('DailyPlanPageComponent', () => {
     expect(savedVersion(fixture)).toBe(previousVersion + 1);
     await fixture.whenStable(); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
-    expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).not.toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).not.toContain('No saved plan for this date.');
     expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Review again to include your latest changes.');
     expect(button(fixture, 'Review again').disabled).toBe(false);

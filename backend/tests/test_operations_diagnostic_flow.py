@@ -94,9 +94,7 @@ def test_failure_keeps_safe_response_metadata_until_private_log(
     if mode == "schema":
         model.final_mutation = lambda value: value.update(explanation=42)
     if mode == "membership":
-        model.final_mutation = lambda value: value["references"][0].update(
-            evidence_id=SENTINEL
-        )
+        model.final_mutation = lambda value: value.update(observation_ids=[SENTINEL])
 
     def transport(request: HttpRequest) -> HttpReply:
         reply = model(request)

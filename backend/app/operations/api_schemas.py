@@ -114,6 +114,7 @@ class OperationsReviewRead(Frozen):
     selected_date: date
     captured_at: datetime
     explanation: str = Field(max_length=4000)
+    provenance: Literal["ai_selected_server_observations"]
     presentation: ReviewDisplay
     summary: ReviewOperationalSummary
     finding_groups: tuple[ReviewFindingGroup, ...] = Field(min_length=2, max_length=2)

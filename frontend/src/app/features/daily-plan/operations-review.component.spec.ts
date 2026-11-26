@@ -38,6 +38,7 @@ function result(): OperationsReview {
     selected_date: '2026-03-31', entities: [{ kind: 'day', id: '2026-03-31' }], evidence_ids: ['e-actual'],
   };
   return {
+    provenance: 'ai_selected_server_observations',
     snapshot_id: '00000000-0000-0000-0000-000000000001', selected_date: '2026-03-31',
     captured_at: '2026-11-22T06:00:00Z', explanation: 'No saved teams exist for the selected day.',
     presentation: { status: 'ready', message: null, segments: [{ text: 'No saved teams exist for the selected day.', entity: null, path: null }] },
@@ -172,12 +173,12 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('one brief pause and retry');
     request.flush(result());
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Operations review ready');
+    expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready');
     expect(fixture.nativeElement.textContent).toContain('Snapshot');
-    expect(fixture.nativeElement.textContent).toContain('AI explanation');
+    expect(fixture.nativeElement.textContent).toContain('AI-selected observations');
     expect(fixture.nativeElement.textContent).toContain('Saved-day facts');
     expect(fixture.nativeElement.textContent).toContain('80 km');
-    expect(fixture.nativeElement.textContent).toContain('not independently verified');
+    expect(fixture.nativeElement.textContent).toContain('application writes and checks');
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -261,13 +262,13 @@ describe('OperationsReviewComponent', () => {
       selected_unique_dogs: 0, selected_participations: 0, activities: [],
       actual: { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 } };
     start().flush(empty); fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).toContain('No saved plan for this date.');
     expect(fixture.nativeElement.textContent).toContain('Later changes are not included.');
 
     savedVersion.set(2); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
-    expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).not.toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).not.toContain('No saved plan for this date.');
     expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Review again to include your latest changes.');
     expect(button('Review again').disabled).toBe(false);
@@ -281,7 +282,7 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('The saved day changed after this review.');
     fresh.flush(result()); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('4 selected dogs');
-    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -403,11 +404,11 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
   });
 
-  it('renders model text safely, uses local links with query state and explains unknown usage', async () => {
+  it('renders server statement text safely, uses local links with query state and explains unknown usage', async () => {
     await setup();
     const response = result();
-    response.explanation = 'This raw model field must not be rendered';
-    response.presentation.segments = [{ text: '<img src=x onerror="alert(1)"> Untrusted text', entity: null, path: null }];
+    response.explanation = '<img src=x onerror="alert(1)"> Escaped server statement';
+    response.presentation.segments = [{ text: response.explanation, entity: null, path: null }];
     response.evidence[0].values.push({ name: 'roles', value: 'lead,team,wheel', unit: 'state' });
     response.links.push({ entity: { kind: 'day', id: '2026-03-31' }, label: 'External', path: 'https://untrusted.example' });
     start().flush(response); fixture.detectChanges();
@@ -561,7 +562,6 @@ describe('OperationsReviewComponent', () => {
   it('shows four linked names and saved pool, teams and actual facts without raw UUID prose', async () => {
     await setup();
     const response = result();
-    response.explanation = `Four eligible dogs (IDs ${dogs.map((dog) => dog.entity.id).join(', ')}).`;
     response.presentation.segments = [
       { text: 'Four eligible dogs (', entity: null, path: null },
       ...dogs.flatMap((dog, index) => [
@@ -571,6 +571,7 @@ describe('OperationsReviewComponent', () => {
       { text: 'Atlas', entity: dogs[0].entity, path: dogs[0].path },
       { text: ' is selected.', entity: null, path: null },
     ];
+    response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
     response.summary.actual = { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 };
     start().flush(response); fixture.detectChanges();
     const content = fixture.nativeElement as HTMLElement;
@@ -592,15 +593,15 @@ describe('OperationsReviewComponent', () => {
     http.expectNone('/api/v1/operations/review');
   });
 
-  it('retains saved facts but does not claim an unresolved AI explanation is ready', async () => {
+  it('retains saved facts but does not claim unresolved observations are ready', async () => {
     await setup();
     const response = result();
     response.explanation = 'Do not display this raw provider value';
     response.presentation = { status: 'unresolved', message: 'untrusted detail must not be rendered', segments: [] };
     start().flush(response); fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+    expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
     expect(fixture.nativeElement.textContent).toContain('Saved-day facts are ready');
-    expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).not.toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).not.toContain(response.explanation);
     expect(fixture.nativeElement.textContent).not.toContain(response.presentation.message);
     expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('Training');
@@ -614,8 +615,9 @@ describe('OperationsReviewComponent', () => {
       response.presentation.segments = malformed === 'unknown_uuid'
         ? [{ text: 'Unknown 11111111-1111-1111-1111-111111111111', entity: null, path: null }]
         : [{ text: 'Atlas', entity: dogs[0].entity, path: malformed === 'unsafe_path' ? 'https://untrusted.example/dog' : dogs[1].path }];
+      response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
       start().flush(response); fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
       expect(fixture.nativeElement.textContent).not.toContain('11111111-1111-1111-1111-111111111111');
       http.expectNone('/api/v1/operations/review');
     });
@@ -637,12 +639,12 @@ describe('OperationsReviewComponent', () => {
     it(`rejects residual ${name} identity prose without resolving or losing saved facts`, async () => {
       await setup();
       const response = result();
-      response.explanation = 'Raw explanation must not become the fallback';
       response.presentation.segments = [{ text: `Selected ${identity}.`, entity: null, path: null }];
+      response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
       start().flush(response); fixture.detectChanges();
       const content = fixture.nativeElement as HTMLElement;
-      expect(content.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
-      expect(content.textContent).not.toContain('Operations review ready.');
+      expect(content.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
+      expect(content.textContent).not.toContain('AI-assisted review ready.');
       expect(content.textContent).not.toContain(identity);
       expect(content.textContent).not.toContain(response.explanation);
       expect(content.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
@@ -662,10 +664,11 @@ describe('OperationsReviewComponent', () => {
         { text: `Selected ${identity.slice(0, 17)}`, entity: null, path: null },
         { text: identity.slice(17), entity: linked ? dogs[0].entity : null, path: linked ? dogs[0].path : null },
       ];
+      response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
       start().flush(response); fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('unresolved reference');
+      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
       expect(fixture.nativeElement.textContent).not.toContain(identity);
-      expect(fixture.nativeElement.textContent).not.toContain('Operations review ready.');
+      expect(fixture.nativeElement.textContent).not.toContain('AI-assisted review ready.');
       expect(fixture.nativeElement.querySelectorAll('.selected-dogs a').length).toBe(4);
       http.expectNone('/api/v1/operations/review');
     });
@@ -693,9 +696,10 @@ describe('OperationsReviewComponent', () => {
     const response = result();
     const prose = '29 March 2026 — 2026-03-29; 5–10 km. Снежный ветер — Åsa, A1-01.';
     response.presentation.segments = [{ text: prose, entity: null, path: null }];
+    response.explanation = prose;
     start().flush(response); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(prose);
-    expect(fixture.nativeElement.textContent).toContain('Operations review ready.');
+    expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -706,6 +710,7 @@ describe('OperationsReviewComponent', () => {
     const links = dogs.map((dog, index) => ({ ...dog, label: names[index] }));
     response.summary.activities[0].selected_dogs = links;
     response.presentation.segments = links.flatMap((dog) => [{ text: dog.label, entity: dog.entity, path: dog.path }, { text: ' ', entity: null, path: null }]);
+    response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
     start().flush(response); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.model-explanation b')).toBeNull();
     expect(fixture.nativeElement.querySelector('.selected-dogs b')).toBeNull();
@@ -752,6 +757,87 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('4 unique dogs · 8 planned participations across 2 activities');
     expect(fixture.nativeElement.textContent).toContain('Recorded · matches plan');
     expect(fixture.nativeElement.querySelectorAll('.activity-summary').length).toBe(2);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('describes AI selection and application-written statements without model authorship', async () => {
+    await setup(); start().flush(result()); fixture.detectChanges();
+    const content = fixture.nativeElement as HTMLElement;
+    expect(content.querySelector('#operations-review-title')?.textContent).toBe('AI-assisted review');
+    expect(content.querySelector('.model-explanation h4')?.textContent).toBe('AI-selected observations');
+    expect(content.querySelector('.model-explanation small')?.textContent).toContain('AI selects and prioritizes observations from the saved snapshot.');
+    expect(content.querySelector('.model-explanation small')?.textContent).toContain('The application writes and checks statements and links.');
+    expect(content.textContent).not.toContain('AI explanation of saved data');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  for (const provenance of [undefined, null, 'untrusted_model_prose', 'ai_generated']) {
+    it(`rejects ${String(provenance)} provenance while preserving facts, qualifications and findings`, async () => {
+      await setup(); const response = result();
+      const untrusted = 'Unissued provider sentence must never be displayed.';
+      response.explanation = untrusted;
+      response.presentation.segments = [{ text: untrusted, entity: null, path: null }];
+      response.finding_groups[0].omitted_findings = 3;
+      response.finding_groups[1].status_counts.unverified = 10;
+      start().flush({ ...response, provenance }); fixture.detectChanges();
+      const content = fixture.nativeElement as HTMLElement;
+      expect(content.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
+      expect(content.textContent).not.toContain(untrusted);
+      expect(content.textContent).not.toContain('AI-assisted review ready.');
+      expect(content.querySelectorAll('.selected-dogs a').length).toBe(4);
+      expect(content.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
+      expect(content.querySelector('.checked-facts')?.textContent).toContain('Saved records do not establish whether this activity occurred.');
+      expect(content.querySelector('.findings:not(.other-dog-findings) > header')?.textContent).toContain('1 attention');
+      expect(content.querySelector('.findings > .review-message')?.textContent).toContain('3 additional findings');
+      expect(content.querySelector('.other-dog-findings > header')?.textContent).toContain('10 not verified');
+      http.expectNone('/api/v1/operations/review');
+    });
+  }
+
+  it('rejects contradictory raw explanation instead of masking it as verified observations', async () => {
+    await setup(); const response = result();
+    const modelText = 'The activity did not occur. <script>raw provider prose</script>';
+    response.explanation = modelText;
+    start().flush(response); fixture.detectChanges();
+    const content = fixture.nativeElement as HTMLElement;
+    expect(content.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
+    expect(content.querySelector('.model-explanation')?.textContent).not.toContain('No saved teams exist');
+    expect(content.textContent).not.toContain('raw provider prose');
+    expect(content.textContent).not.toContain(modelText);
+    expect(content.textContent).not.toContain('AI-assisted review ready.');
+    expect(content.querySelector('.checked-facts')?.textContent).toContain('Not recorded');
+    expect(content.querySelectorAll('.selected-dogs a').length).toBe(4);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('never renders auxiliary prose or model URLs from unexpected response fields', async () => {
+    await setup(); const response = result(); const untrusted = 'Untrusted auxiliary model text';
+    start().flush({ ...response, reason: untrusted, title: untrusted, action_text: untrusted,
+      url: 'https://untrusted.example/model-action' }); fixture.detectChanges();
+    const content = fixture.nativeElement as HTMLElement;
+    expect(content.querySelector('.model-explanation > p')?.textContent).toBe(response.explanation);
+    expect(content.textContent).not.toContain(untrusted);
+    expect(content.querySelector('a[href="https://untrusted.example/model-action"]')).toBeNull();
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('preserves selected statement order without changing independent facts or findings', async () => {
+    await setup(); const response = result();
+    const statements = ['Actual work has not been recorded. ', 'No teams are saved for this activity.'];
+    response.presentation.segments = statements.map((text) => ({ text, entity: null, path: null }));
+    response.explanation = statements.join('');
+    response.summary.actual = { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 };
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(statements.join(''));
+    expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
+    expect(fixture.nativeElement.querySelector('.findings > header')?.textContent).toContain('1 attention');
+    button('Review again').click(); fixture.detectChanges();
+    const next = { ...response, presentation: { ...response.presentation, segments: [...response.presentation.segments].reverse() } };
+    next.explanation = next.presentation.segments.map((segment) => segment.text).join('');
+    http.expectOne('/api/v1/operations/review').flush(next); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(next.explanation);
+    expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
+    expect(fixture.nativeElement.querySelector('.findings > header')?.textContent).toContain('1 attention');
     http.expectNone('/api/v1/operations/review');
   });
 

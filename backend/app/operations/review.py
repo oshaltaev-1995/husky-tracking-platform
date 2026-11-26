@@ -20,9 +20,10 @@ from app.operations.api_schemas import (
 )
 from app.operations.display import FrozenDisplay
 from app.operations.foundation import PreparedReview, context_failure, prepare_review
+from app.operations.observations import RenderedSelection
 from app.operations.provider_models import AgentFailure, ProviderSettings
 from app.operations.providers import Transport
-from app.operations.schemas import Entity, OperationError, ReferencedExplanation
+from app.operations.schemas import Entity, OperationError
 from app.operations.snapshot import SnapshotReader
 
 logger = logging.getLogger("uvicorn.error")
@@ -65,6 +66,7 @@ class OperationsReviewService:
                     True
                 ),  # Worker slot and authoritative ingress admit first.
                 force_validate_day=True,
+                observation_selection=True,
                 started_at=started_at,
             )
             trace: list[ReviewTrace] = []
@@ -85,9 +87,8 @@ class OperationsReviewService:
                 # boundary explicit; a generated report without tools is not AI QA.
                 if not prepared.run.validated_current_attempt:
                     prepared.run.reject("invalid_provider_response")
-                final = prepared.finish(response)
-                answer = prepared.tools.validate_references(final)
-                result = self._response(prepared, answer, tuple(trace))
+                rendered = prepared.finish_selection(response)
+                result = self._response(prepared, rendered, tuple(trace))
                 self.reader.check(
                     prepared.context,
                     cookie,
@@ -153,10 +154,11 @@ class OperationsReviewService:
     @staticmethod
     def _response(
         prepared: PreparedReview,
-        answer: ReferencedExplanation,
+        rendered: RenderedSelection,
         trace: tuple[ReviewTrace, ...],
     ) -> OperationsReviewRead:
         snapshot = prepared.context.snapshot
+        answer = rendered.answer
         facts = tuple(
             row
             for row in snapshot.checks
@@ -206,11 +208,8 @@ class OperationsReviewService:
             selected_date=snapshot.selected_date,
             captured_at=snapshot.captured_at,
             explanation=answer.explanation,
-            presentation=display.explanation(
-                answer.explanation,
-                executed_tools=tuple(row.tool_name for row in trace),
-                references=answer.references,
-            ),
+            provenance="ai_selected_server_observations",
+            presentation=rendered.presentation,
             summary=display.summary(),
             finding_groups=groups,
             facts=facts,
