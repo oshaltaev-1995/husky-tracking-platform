@@ -41,9 +41,18 @@ export interface ReviewLink {
   path: string;
 }
 
+export interface ReviewPresentationSegment {
+  text: string;
+  entity: ReviewEntity | null;
+  path: string | null;
+}
+
 export interface ReviewPresentation {
   status: 'ready' | 'unresolved';
-  segments: { text: string; entity: ReviewEntity | null; path: string | null }[];
+  segments: ReviewPresentationSegment[];
+  // Optional for older accepted responses; boundaries are issued by the server,
+  // never inferred by splitting a statement into sentences in the browser.
+  observations?: { segments: ReviewPresentationSegment[] }[];
   message: string | null;
 }
 
@@ -55,6 +64,7 @@ export interface ReviewSummary {
   activities: {
     entity: ReviewEntity;
     kind: string;
+    label?: string | null;
     distance_km: number | null;
     selected_pool_count: number;
     selected_dogs: ReviewLink[];

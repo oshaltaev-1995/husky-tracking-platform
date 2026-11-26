@@ -167,6 +167,25 @@ async function setup(url = '/daily-entry') {
 describe('DailyEntryPageComponent', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
+  for (const [source, note, expected] of [
+    ['seeded', 'Deterministically generated canonical demo session.', 'Fictional example work record.'],
+    ['manual', 'Deterministically generated canonical demo session.', 'Deterministically generated canonical demo session.'],
+    ['seeded', 'My note: Deterministically generated canonical demo session.', 'My note: Deterministically generated canonical demo session.'],
+    ['seeded', 'Firm trail.', 'Firm trail.'],
+  ] as const) {
+    it(`presents the ${source} note without rewriting its stored value: ${note}`, async () => {
+      const { fixture, http } = await setup();
+      const saved = entry({ sessions: [{ ...session, source, note }] });
+      http.expectOne('/api/v1/daily-entry/2026-03-31').flush(saved);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.session-note').textContent).toBe(expected);
+      expect(saved.sessions[0].note).toBe(note);
+      expect(fixture.nativeElement.querySelector('#actual-sessions-title').parentElement.textContent).toContain('Recorded work');
+      http.expectNone((request) => request.method !== 'GET');
+    });
+  }
+
   it('reopens actual work, plan differences, totals, and zero-work residents', async () => {
     const { fixture, http } = await setup();
     expect(fixture.nativeElement.textContent).toContain('Loading actual work');

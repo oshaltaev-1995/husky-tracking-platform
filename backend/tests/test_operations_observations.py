@@ -82,6 +82,8 @@ def test_actual_status_comes_from_explicit_dated_state_not_check_pass(
         x.text for x in result.presentation.segments
     )
     assert result.presentation.status == "ready"
+    assert len(result.presentation.observations) == 1
+    assert result.presentation.observations[0].segments == result.presentation.segments
     if status == "not_recorded":
         assert (
             "Whether the activity took place is not established"
@@ -107,7 +109,7 @@ def test_context_activity_does_not_become_training_actual_work() -> None:
     state = recheck(state.model_copy(update={"activities": (activity,)}))
     value = catalog(state)
     result = value.select(select(value, "actual_status"))
-    assert result.answer.explanation.startswith("Rest:")
+    assert result.answer.explanation.startswith("Rest — activity 1:")
     assert "not a Training actual-work confirmation" in result.answer.explanation
     assert not any(row["type"] == "saved_teams" for row in rows(value))
 

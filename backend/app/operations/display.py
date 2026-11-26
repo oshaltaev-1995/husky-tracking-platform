@@ -131,21 +131,35 @@ class FrozenDisplay:
         entity = Entity(kind="dog", id=identity)
         return ReviewLink(entity=entity, label=label, path=self._link(entity))
 
+    def activity_label(self, identity: str) -> str | None:
+        """One frozen label for summary, findings and activity destinations.
+
+        The snapshot deliberately excludes private activity titles/notes and
+        time-of-day. Its saved sequence disambiguates even identical activities.
+        """
+        activity = next(
+            (row for row in self.snapshot.activities if str(row.id) == identity),
+            None,
+        )
+        if activity is None:
+            return None
+        kind = _KIND_LABELS.get(activity.kind, "Planned activity")
+        distance = (
+            f" · {activity.distance_km} km" if activity.distance_km is not None else ""
+        )
+        return f"{kind}{distance} — activity {activity.sequence}"
+
     def _entity_link(self, identity: str) -> ReviewLink | None:
         matches: list[ReviewLink] = []
         dog = self.dog_link(identity)
         if dog is not None:
             matches.append(dog)
         if identity in self._activity_order:
-            activity = next(
-                row for row in self.snapshot.activities if str(row.id) == identity
-            )
-            kind = _KIND_LABELS.get(activity.kind, "Planned activity")
             entity = Entity(kind="activity", id=identity)
             matches.append(
                 ReviewLink(
                     entity=entity,
-                    label=f"{kind} · activity {self._activity_order[identity]}",
+                    label=self.activity_label(identity) or "Planned activity",
                     path=self._link(entity),
                 )
             )
@@ -316,6 +330,7 @@ class FrozenDisplay:
             activities.append(
                 ReviewActivitySummary(
                     entity=Entity(kind="activity", id=str(activity.id)),
+                    label=self.activity_label(str(activity.id)),
                     kind=activity.kind,
                     distance_km=activity.distance_km,
                     selected_pool_count=len(activity.participants),

@@ -65,6 +65,14 @@ describe('Public pages', () => {
       'Dog records, pedigree and history',
     ]);
     expect(features.nativeElement.querySelector('a[href="/demo/analytics"]')).not.toBeNull();
+    expect(features.nativeElement.querySelector('.team-preview').textContent).toContain('Illustration, not a saved team');
+    const lineup = Array.from(features.nativeElement.querySelectorAll('.team-preview > div')).map(
+      (pair) => Array.from((pair as HTMLElement).querySelectorAll('small, span')).map((value) => value.textContent?.trim()),
+    );
+    expect(lineup).toEqual([
+      ['LEAD', 'Atlas', 'Clover'], ['TEAM 1', 'Aurora', 'Cosmo'],
+      ['TEAM 2', 'Delta', 'Drift'], ['WHEEL', 'Dune', 'Harbor'],
+    ]);
     expect(about.nativeElement.textContent).toContain('worked with sled dogs since 2019');
     expect(about.nativeElement.textContent).toContain('around 250 dogs');
     expect(about.nativeElement.textContent).toContain('Synthetic by design');

@@ -132,7 +132,7 @@
   </section>
 }
 
-<ht-map-legend [layer]="activeLayer" />
+<ht-map-legend [layer]="activeLayer" [class.compact-ground]="activeView === 'ground'" />
 
 @if (state$ | async; as state) {
   @switch (state.kind) {

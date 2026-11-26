@@ -8,6 +8,7 @@ h2 { margin: var(--space-1) 0; font-size: var(--font-section-title); }
 h3 { margin: 0 0 var(--space-1); font-size: 1.05rem; }
 h4, h5 { margin: 0; font-size: var(--font-body); }
 .review-heading p, .result-heading p { margin: 0; color: var(--text-secondary); font-size: var(--font-label); }
+.review-heading .review-scope { margin-top: var(--space-2); max-width: 46rem; line-height: 1.6; }
 .review-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .review-actions .button { min-height: var(--control-height); }
 .review-disclosure, .review-context, .snapshot-context { margin: var(--space-3) 0 0; color: var(--text-secondary); font-size: var(--font-label); line-height: 1.6; }
@@ -18,7 +19,10 @@ a { color: var(--brand-strong); }
 .review-result { min-width: 0; margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); }
 .provider-label { max-width: 100%; color: var(--text-secondary); font-size: var(--font-label); font-weight: 750; overflow-wrap: anywhere; }
 .model-explanation, .checked-facts, .findings { min-width: 0; margin-top: var(--space-5); }
-.model-explanation > p { margin: var(--space-2) 0; color: var(--text-primary); font-size: var(--font-body); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.observation-list { display: grid; gap: var(--space-2); margin: var(--space-3) 0; padding: 0; list-style: none; }
+.observation { min-width: 0; border-left: 2px solid var(--border); border-radius: var(--radius-control); padding: var(--space-3) var(--space-4); background: var(--surface-soft); }
+.observation-text { margin: 0; color: var(--text-primary); font-size: var(--font-body); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.new-tab-indicator { margin-inline-start: var(--space-1); font-size: .85em; white-space: nowrap; }
 small { display: block; color: var(--text-secondary); font-size: var(--font-caption); line-height: 1.6; }
 .checked-facts { display: grid; gap: var(--space-3); }
 .checked-facts > h4 { grid-column: 1 / -1; }
@@ -66,5 +70,8 @@ dd { margin: var(--space-1) 0 0; color: var(--text-primary); font-size: var(--fo
 .actual-summary { border-top: 1px solid var(--border); padding-top: var(--space-3); }
 .actual-summary > strong, .technical-fact > strong { font-size: var(--font-label); }
 .other-dog-findings { border-top: 1px solid var(--border); padding-top: var(--space-3); }
+.other-dog-findings > header h4 { font-size: var(--font-label); }
+.other-dog-findings > header > p { font-size: var(--font-caption); }
+.outside-plan-context { max-width: 46rem; }
 .technical-fact { margin-block: var(--space-3); }
 .technical-fact p { color: var(--text-secondary); font-size: var(--font-label); line-height: 1.6; }

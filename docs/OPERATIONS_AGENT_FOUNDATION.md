@@ -750,3 +750,23 @@ Retry reuses the identical serialized catalog/final request in the same run. No 
 LLM verifier, repair call or automatic UI POST exists. This boundary constrains what
 can be said; it does not claim arbitrary LLM prose is guaranteed true. Publication
 and the separately authorized one-POST genuine acceptance are recorded outside source.
+
+## UX-GROQ-01 — local presentation candidate
+
+Selected server observations now retain explicit per-observation segment boundaries
+in the compatible `presentation.observations` field. Their ordered flattening (one
+space between observations) must equal the existing segments including entities and
+paths, and therefore the same explanation. No sentence splitting or model-owned text
+is admitted. Legacy flat presentations stay one block; mismatched structures fail
+closed. Activity labels come from the same frozen kind/distance/saved sequence, so
+same-distance activities remain distinguishable without UUID labels or live refetches.
+Findings use those frozen summary labels; neutral Teams links preserve their original
+entity/date/path. Non-Training selected-pool copy makes no harness claim.
+
+The UI names the action Review this day and an explicit new review. Accepted-result
+links to other screens open accessible noopener tabs; current-page links remain local,
+and no result is persisted. Existing save/date/cancel/Reset/expiry/freshness controls
+still invalidate it. Outside-plan dogs remain a secondary collapsed group with their
+unchanged checks/evidence. Candidate Privacy defaults/templates and the Compose fallback are 2026-11-26,
+superseding the earlier local P14D candidate; actual publication date is configured
+separately. UX-GROQ-01 performs no live inference, provider/account change or deployment.

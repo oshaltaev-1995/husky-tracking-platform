@@ -108,3 +108,14 @@ P14D reuses earlier owner attestation; it does not assert a fresh ZDR-account in
 The candidate notice date is 2026-11-22 in settings/templates; confirm the actual effective
 date when publishing. Production environment and real controller/contact/hosting/mail/
 TTL values are untouched by this local package.
+
+## UX-GROQ-01 local notice candidate — 26 November 2026
+
+The conditional review notice now describes AI selection/prioritization of issued
+observations and application-generated, checked statements and links. Provider data,
+exclusions, processing/retention qualifications and the single necessary cookie are
+unchanged. Review links to other operational pages open a new tab to preserve the
+in-memory frozen result; this adds no conversation persistence or browser store.
+Candidate settings/templates use `PRIVACY_EFFECTIVE_DATE=2026-11-26`; publication
+must set the actual substantive notice date deliberately. This local package does
+not change the live production date, Groq ON/reserve OFF, or any private settings.

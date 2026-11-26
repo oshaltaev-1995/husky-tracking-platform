@@ -230,7 +230,7 @@ describe('DailyPlanPageComponent', () => {
     const { fixture, http } = await setup('/daily', true);
     http.expectOne('/api/v1/daily-plans/2026-03-31').flush(plan());
     await fixture.whenStable(); fixture.detectChanges();
-    button(fixture, 'Review operations').click();
+    button(fixture, 'Review this day').click();
     http.expectOne('/api/v1/operations/review').flush(emptyReview());
     await fixture.whenStable(); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
@@ -263,8 +263,8 @@ describe('DailyPlanPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).not.toContain('No saved plan for this date.');
-    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Review again to include your latest changes.');
-    expect(button(fixture, 'Review again').disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Start a new review to include your latest changes.');
+    expect(button(fixture, 'Start a new review').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 

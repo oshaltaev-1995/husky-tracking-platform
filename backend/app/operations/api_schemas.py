@@ -7,7 +7,7 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from app.operations.provider_models import ProviderName
 from app.operations.schemas import Check, Entity, Evidence, Frozen, ToolName
@@ -67,10 +67,31 @@ class ReviewDisplaySegment(Frozen):
     path: str | None = Field(default=None, max_length=240)
 
 
+class ReviewObservation(Frozen):
+    """One selected server-issued statement, without its internal selection ID."""
+
+    segments: tuple[ReviewDisplaySegment, ...] = Field(min_length=1, max_length=256)
+
+
 class ReviewDisplay(Frozen):
     status: Literal["ready", "unresolved"]
     segments: tuple[ReviewDisplaySegment, ...] = Field(max_length=256)
     message: str | None = Field(default=None, max_length=240)
+    # Legacy flat presentations remain readable; new selected statements carry
+    # their existing server boundaries rather than asking clients to split prose.
+    observations: tuple[ReviewObservation, ...] = Field(default=(), max_length=6)
+
+    @model_validator(mode="after")
+    def matching_observation_segments(self) -> ReviewDisplay:
+        if self.observations:
+            flattened: list[ReviewDisplaySegment] = []
+            for observation in self.observations:
+                if flattened:
+                    flattened.append(ReviewDisplaySegment(text=" "))
+                flattened.extend(observation.segments)
+            if self.status != "ready" or tuple(flattened) != self.segments:
+                raise ValueError("Observation segments must match the presentation.")
+        return self
 
 
 class ReviewActualSummary(Frozen):
@@ -82,6 +103,7 @@ class ReviewActualSummary(Frozen):
 
 class ReviewActivitySummary(Frozen):
     entity: Entity
+    label: str | None = Field(default=None, max_length=160)
     kind: str = Field(max_length=40)
     distance_km: int | None
     selected_pool_count: int = Field(ge=0, le=60)

@@ -104,6 +104,10 @@ describe('Privacy workspace disclosure', () => {
     expect(text).not.toContain('must remain disabled');
     expect(text).not.toMatch(/never retain|guaranteed zero retention|EEA-only processing is guaranteed/);
     expect(text).toContain('A request already sent may still finish');
+    expect(text).toContain('AI selects and prioritizes observations from the saved snapshot');
+    expect(text).toContain('The application generates and checks the displayed statements and links');
+    expect(text).not.toContain('The model explanation is separate');
+    expect(text).toContain('not a medical or training-safety assessment');
     TestBed.inject(HttpTestingController).expectNone((request) => request.url.startsWith('/api/v1/demo/'));
   });
 

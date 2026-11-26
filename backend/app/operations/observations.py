@@ -17,7 +17,12 @@ from urllib.parse import urlsplit
 
 from pydantic import Field, ValidationError
 
-from app.operations.api_schemas import ReviewDisplay, ReviewDisplaySegment
+from app.operations.api_schemas import (
+    ReviewDisplay,
+    ReviewDisplaySegment,
+    ReviewObservation,
+)
+from app.operations.display import FrozenDisplay
 from app.operations.provider_models import json_object
 from app.operations.schemas import (
     ClaimReference,
@@ -71,12 +76,6 @@ _ACTUAL = {
     "modified": "Recorded work differs from the saved plan.",
     "context_only": "This is a context-only activity; it is not a Training "
     "actual-work confirmation.",
-}
-_KIND = {
-    "training": "Training",
-    "open_space_walk": "Open-space walk",
-    "individual_exercise": "Individual exercise",
-    "rest": "Rest",
 }
 _AVAILABILITY = {
     "available": "Available",
@@ -155,6 +154,7 @@ class ObservationCatalog:
         self._snapshot = snapshot
         self._result = result
         self._link = link
+        self._display = FrozenDisplay(snapshot, link)
         self._canonical_link = FrozenTools(snapshot).link
         self._binding = hashlib.sha256(
             (
@@ -340,7 +340,7 @@ class ObservationCatalog:
             )
         )
         actual_text = (
-            "Actual ledger: "
+            "Recorded work: "
             + metric_text
             + ". These recorded totals do not establish whether "
             "unrecorded activity took place."
@@ -356,9 +356,9 @@ class ObservationCatalog:
         for raw in _rows(plan["activities"]):
             row = _object(raw)
             entity = Entity(kind="activity", id=row["id"])
-            label = _KIND.get(row["kind"], "Activity") + (
-                f" · {row['distance_km']} km" if row["distance_km"] is not None else ""
-            )
+            label = self._display.activity_label(row["id"])
+            if label is None:
+                raise OperationError("invalid_evidence")
             prefix = self._segment(label, entity)
             status = row["actual_status"]
             if status not in _ACTUAL:
@@ -380,6 +380,10 @@ class ObservationCatalog:
                 f"The selected pool contains {pool} "
                 + ("dog" if pool == 1 else "dogs")
                 + "; a selected pool is distinct from saved teams."
+                if row["kind"] == "training"
+                else f"{pool} "
+                + ("dog selected" if pool == 1 else "dogs selected")
+                + " for this planned activity."
             )
             self._add(
                 "selected_pool",
@@ -540,6 +544,7 @@ class ObservationCatalog:
             raise OperationError("invalid_selection") from None
         lookup = {row.id: row for row in self._observations}
         segments: list[ReviewDisplaySegment] = []
+        observations: list[ReviewObservation] = []
         refs: list[ClaimReference] = []
         for identity in selection.observation_ids:
             row = lookup.get(identity)
@@ -564,6 +569,7 @@ class ObservationCatalog:
             if segments:
                 segments.append(self._segment(" "))
             segments.extend(row.segments)
+            observations.append(ReviewObservation(segments=row.segments))
             refs.extend(row.references)
         unique_refs = tuple(dict.fromkeys(refs))
         if len(unique_refs) > 32:
@@ -574,7 +580,10 @@ class ObservationCatalog:
                 explanation=explanation, references=unique_refs
             )
             presentation = ReviewDisplay(
-                status="ready", segments=tuple(segments), message=None
+                status="ready",
+                segments=tuple(segments),
+                observations=tuple(observations),
+                message=None,
             )
             return RenderedSelection(answer=answer, presentation=presentation)
         except ValidationError:

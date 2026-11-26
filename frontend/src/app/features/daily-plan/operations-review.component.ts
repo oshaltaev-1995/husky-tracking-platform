@@ -6,11 +6,12 @@ import { NavigationStart, Router, RouterLink } from '@angular/router';
 import { Subscription, filter, timeout } from 'rxjs';
 
 import { DemoSession, DemoSessionService } from '../../core/api/demo-session.service';
-import { OperationsCapabilities, OperationsReview, ReviewCheck, ReviewEvidence, ReviewLink, ReviewProvider, ReviewStatus } from '../../core/api/operations.models';
+import { OperationsCapabilities, OperationsReview, ReviewCheck, ReviewEvidence, ReviewLink, ReviewPresentationSegment, ReviewProvider, ReviewStatus } from '../../core/api/operations.models';
 import { OperationsService } from '../../core/api/operations.service';
 
-interface LocalLink { label: string; route: string; query: Record<string, string> }
+interface LocalLink { label: string; route: string; query: Record<string, string>; newTab: boolean }
 interface DisplaySegment { text: string; link: Omit<LocalLink, 'label'> | null }
+type ReviewActivity = OperationsReview['summary']['activities'][number];
 
 // Detection only: the server resolves identities from its frozen snapshot. Keep
 // the same bounded dash family as that boundary, including mixed separators.
@@ -40,7 +41,7 @@ const VALUE_LABELS: Record<string, string> = {
   recording_status: 'Recording state', total: 'Total', starts_or_activities: 'Starts or activities',
   sessions: 'Sessions', dog_starts: 'Dog starts', dog_km: 'Dog-km', residents: 'Residents',
   nominal_capacity: 'Nominal capacity', class: 'Class', availability: 'Availability',
-  housing: 'Housing', lifecycle: 'Lifecycle', born: 'Born on selected date', roles: 'Capabilities',
+  housing: 'Housing', lifecycle: 'Lifecycle', born: 'Born by selected date', roles: 'Recorded roles',
   housing_source: 'Housing source', km_7d_before: 'Previous 7 days', km_14d_before: 'Previous 14 days',
   season_km_before: 'Season before date', starts_14d_before: 'Previous 14-day starts',
   days_since_work_before: 'Days since previous work', actual_km_on_date: 'Actual on this date',
@@ -178,47 +179,89 @@ export class OperationsReviewComponent {
   protected ruleLabel(rule: string): string { return RULE_LABELS[rule] ?? 'Operational check'; }
   protected findingTitle(check: ReviewCheck): string {
     const current = this.result();
+    const activities = [...new Set(check.entities.filter((entity) => entity.kind === 'activity').map((entity) => entity.id))]
+      .flatMap((id) => {
+        const activity = current?.summary?.activities.find((item) => item.entity.id === id);
+        return activity ? [this.savedActivityLabel(activity)] : [];
+      });
     const links = [...(current?.links ?? []), ...(current?.summary?.activities.flatMap((activity) => activity.selected_dogs) ?? []), ...(current?.finding_groups?.flatMap((group) => group.links) ?? [])];
     const names = [...new Set(check.entities.filter((entity) => entity.kind === 'dog').map((entity) => entity.id))]
       .flatMap((id) => {
         const link = links.find((item) => item.entity.kind === 'dog' && item.entity.id === id && this.localLink(item.path));
         return link && typeof link.label === 'string' && !UUID_TEXT.test(link.label) ? [link.label] : [];
       });
-    return names.length ? `${this.ruleLabel(check.rule)} · ${names.join(', ')}` : this.ruleLabel(check.rule);
+    const context = [...activities, ...names];
+    return context.length ? `${this.ruleLabel(check.rule)} · ${context.join(' · ')}` : this.ruleLabel(check.rule);
   }
   protected localLinks(links: ReviewLink[]): LocalLink[] {
     return links.flatMap((link) => {
       if (typeof link.label !== 'string' || UUID_TEXT.test(link.label)) return [];
       const parsed = this.localLink(link.path);
       if (!parsed || (link.entity.kind === 'dog' && parsed.route !== `/demo/dogs/${link.entity.id}`)) return [];
-      return [{ ...parsed, label: link.label }];
+      const activity = link.entity.kind === 'activity' ? this.result()?.summary?.activities.find((item) => item.entity.id === link.entity.id) : null;
+      // Compatible older responses used an ambiguous label; only replace that
+      // exact server label, from the already accepted frozen activity summary.
+      const label = activity && link.label === 'Saved teams' ? `Teams for ${this.savedActivityLabel(activity)}` : link.label;
+      return [{ ...parsed, label }];
     });
   }
   protected activityLabel(kind: string): string {
     return ({ training: 'Training', open_space_walk: 'Open-space walk', individual_exercise: 'Individual exercise', rest: 'Rest' } as Record<string, string>)[kind] ?? 'Activity';
   }
+  protected savedActivityLabel(activity: ReviewActivity): string {
+    if (typeof activity.label === 'string' && activity.label.trim() && !UUID_TEXT.test(activity.label)) return activity.label;
+    const order = this.result()?.summary?.activities.findIndex((item) => item.entity.id === activity.entity.id) ?? -1;
+    const distance = activity.distance_km === null ? '' : ` · ${activity.distance_km} km`;
+    return `${this.activityLabel(activity.kind)}${distance}${order < 0 ? '' : ` — activity ${order + 1}`}`;
+  }
+  protected linkDescription(label: string, link: Omit<LocalLink, 'label'>): string | null {
+    return link.newTab ? `${label} (opens in a new tab)` : null;
+  }
   protected actualLabel(status: string): string {
     return ({ not_recorded: 'Not recorded', matches_plan: 'Recorded · matches plan', modified: 'Recorded · modified', not_run: 'Not run', context_only: 'Context only' } as Record<string, string>)[status] ?? 'Not verified';
   }
-  private presentationFor(response: OperationsReview | null): DisplaySegment[] | null {
+  private presentationFor(response: OperationsReview | null): DisplaySegment[][] | null {
     // Only the server-written selection contract is a factual review surface.
     if (response?.provenance !== 'ai_selected_server_observations' || typeof response.explanation !== 'string') return null;
     const presentation = response.presentation;
-    if (!presentation || presentation.status !== 'ready' || !Array.isArray(presentation.segments) || !presentation.segments.length) return null;
+    if (!presentation || presentation.status !== 'ready' || !Array.isArray(presentation.segments) || !presentation.segments.length || presentation.segments.length > 64) return null;
+    const flat = this.displaySegments(presentation.segments);
+    if (!flat) return null;
+    // Segments render adjacently. Preserve the whole-result guard, including
+    // identifiers split across plain/link segments and structured boundaries.
+    const visibleText = flat.map((segment) => segment.text).join('');
+    if (!visibleText.trim() || visibleText !== response.explanation || UUID_TEXT.test(visibleText)) return null;
+    const observations = presentation.observations;
+    if (observations === undefined || Array.isArray(observations) && !observations.length) return [flat];
+    if (!Array.isArray(observations) || observations.length > 6) return null;
+    const groups: DisplaySegment[][] = [];
+    const expected: ReviewPresentationSegment[] = [];
+    for (const observation of observations) {
+      if (!observation || !Array.isArray(observation.segments) || !observation.segments.length || observation.segments.length > 64) return null;
+      const group = this.displaySegments(observation.segments);
+      if (!group || !group.map((segment) => segment.text).join('').trim()) return null;
+      if (expected.length) expected.push({ text: ' ', entity: null, path: null });
+      expected.push(...observation.segments);
+      groups.push(group);
+    }
+    if (expected.length !== presentation.segments.length || expected.some((segment, index) => {
+      const original = presentation.segments[index];
+      return segment.text !== original.text || segment.path !== original.path || segment.entity?.kind !== original.entity?.kind || segment.entity?.id !== original.entity?.id;
+    })) return null;
+    if (UUID_TEXT.test(groups.map((group) => group.map((segment) => segment.text).join('')).join(''))) return null;
+    return groups;
+  }
+  private displaySegments(segments: ReviewPresentationSegment[]): DisplaySegment[] | null {
     const output: DisplaySegment[] = [];
-    for (const segment of presentation.segments) {
-      if (typeof segment.text !== 'string' || UUID_TEXT.test(segment.text)) return null;
+    for (const segment of segments) {
+      if (!segment || typeof segment.text !== 'string' || UUID_TEXT.test(segment.text)) return null;
       if (segment.entity === null && segment.path === null) { output.push({ text: segment.text, link: null }); continue; }
       if (!segment.entity || typeof segment.path !== 'string') return null;
       const link = this.localLink(segment.path);
       if (!link || (segment.entity.kind === 'dog' && link.route !== `/demo/dogs/${segment.entity.id}`)) return null;
       output.push({ text: segment.text, link });
     }
-    // Segments render adjacently. Reject identifiers split across plain/link
-    // segments as well as complete ones; adding spaces here would mask a bypass.
-    const visibleText = output.map((segment) => segment.text).join('');
-    // The retained text field and visible linked text must describe one result.
-    return visibleText.trim() && visibleText === response.explanation && !UUID_TEXT.test(visibleText) ? output : null;
+    return output;
   }
   protected valueLabel(name: string): string { return VALUE_LABELS[name] ?? name.replaceAll('_', ' '); }
   protected statusLabel(status: ReviewStatus): string {
@@ -238,8 +281,12 @@ export class OperationsReviewComponent {
     if (value.unit === 'km') return `${data} km`;
     if (value.unit === 'days') return `${data} days`;
     if (value.name === 'roles' && typeof data === 'string') {
+      if (!data.trim()) return 'No recorded roles';
       return data.split(',').map((role) => ROLE_LABELS[role.trim()] ?? role.trim()).join(' · ');
     }
+    if (value.name === 'lifecycle' && data === 'archived') return 'Archived';
+    if (value.name === 'lifecycle' && data === 'active') return 'Active';
+    if (value.name === 'housing_source' && data === 'unhoused') return 'No housing assignment for this date';
     return typeof data === 'string' ? data.replaceAll('_', ' ') : String(data);
   }
 
@@ -256,7 +303,7 @@ export class OperationsReviewComponent {
       this.contextSavedVersion = savedVersion;
       if (hadReview) {
         this.savedDayChanged.set(true);
-        this.notice.set('The saved day changed after this review. Review again to include your latest changes.');
+        this.notice.set('The saved day changed after this review. Start a new review to include your latest changes.');
         if (restoreFocus) this.restoreReviewFocus(this.epoch);
       }
     }
@@ -350,7 +397,10 @@ export class OperationsReviewComponent {
         const value = url.searchParams.get(key);
         if (value !== null) query[key] = value;
       }
-      return { route: url.pathname, query };
+      const current = new URL(this.router.url, 'https://huskytracking.invalid');
+      const normalized = (entries: URLSearchParams) => { const sorted = new URLSearchParams(entries); sorted.sort(); return sorted.toString(); };
+      const newTab = url.pathname !== current.pathname || normalized(new URLSearchParams(query)) !== normalized(current.searchParams);
+      return { route: url.pathname, query, newTab };
     } catch { return null; }
   }
 }

@@ -89,3 +89,16 @@ logging/training requirements are documented outside visitor policy. Candidate n
 revision 2026-11-22 must be reconciled with the actual effective date before future
 publication; no real production settings are changed in D. Independent UX/UI acceptance
 and deployment remain future gates, not completed security acceptance claims.
+
+## UX-GROQ-01 local presentation review
+
+Observation groups are application-issued boundaries over the same selected IDs,
+frozen evidence and factual segments; the flat explanation remains identical. No
+provider prompt/protocol, semantic checks, budgets, retry or lifecycle guard changes.
+Off-page links in accepted results use `target="_blank" rel="noopener"` with an
+accessible notice. Current-page navigation stays local. No localStorage/sessionStorage/
+IndexedDB or shared result cache is introduced. The notice now honestly distinguishes
+AI selection from application-generated statements; no new retention, transfer,
+medical/safety or billing guarantee. Candidate notice date is 26 November 2026,
+subject to explicit effective-date configuration at a future publication. This is
+local review preparation only; production and provider flags remain untouched.

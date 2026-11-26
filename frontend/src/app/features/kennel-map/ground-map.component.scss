@@ -232,3 +232,11 @@
   border-radius: var(--radius-control);
   background: var(--surface-card);
 }
+
+@include mixins.phone {
+  .ground-controls { gap: var(--space-1); margin-block-end: var(--space-2); }
+  .ground-controls p { font-size: var(--font-caption); line-height: 1.4; }
+  .zoom-controls { gap: var(--space-1); }
+  .zoom-controls .button { min-block-size: 2.75rem; padding: var(--space-2); }
+  .zoom-controls .zoom-step { min-inline-size: 2.75rem; }
+}

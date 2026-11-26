@@ -71,7 +71,7 @@ describe('OperationsReviewComponent', () => {
   async function setup(enabled = true, hasSession = true, capabilitiesAvailable = true) {
     await TestBed.configureTestingModule({
       imports: [OperationsReviewComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([{ path: 'elsewhere', component: OtherPageComponent }])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([{ path: 'elsewhere', component: OtherPageComponent }, { path: 'demo/daily', component: OtherPageComponent }, { path: 'demo/dogs/:dogId', component: OtherPageComponent }])],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
     session = TestBed.inject(DemoSessionService);
@@ -97,8 +97,17 @@ describe('OperationsReviewComponent', () => {
     return found;
   }
 
+  function statementText(): string {
+    return [...fixture.nativeElement.querySelectorAll('.observation-text') as NodeListOf<HTMLElement>]
+      .map((paragraph) => [...paragraph.querySelectorAll('.segment-text')].map((span) => span.textContent).join('')).join(' ');
+  }
+
+  function linkLabel(link: HTMLAnchorElement): string {
+    return link.querySelector('.review-link-label, .segment-text')?.textContent?.trim() ?? link.textContent?.trim() ?? '';
+  }
+
   function start() {
-    button('Review operations').click();
+    button('Review this day').click();
     fixture.detectChanges();
     return http.expectOne('/api/v1/operations/review');
   }
@@ -132,7 +141,7 @@ describe('OperationsReviewComponent', () => {
 
   it('requires an existing current session without initializing a new one', async () => {
     await setup(true, false);
-    expect(button('Review operations').disabled).toBe(true);
+    expect(button('Review this day').disabled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Open a current demo session');
     http.expectNone('/api/v1/demo/session');
   });
@@ -144,7 +153,7 @@ describe('OperationsReviewComponent', () => {
     http.expectNone('/api/v1/operations/review');
     button('Check review availability').click(); fixture.detectChanges();
     http.expectOne('/api/v1/operations/capabilities').flush(capabilities); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(false);
+    expect(button('Review this day').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -162,7 +171,7 @@ describe('OperationsReviewComponent', () => {
 
   it('sends only the selected date after an explicit click and prevents duplicate submission', async () => {
     await setup();
-    const trigger = button('Review operations');
+    const trigger = button('Review this day');
     trigger.click(); trigger.click();
     fixture.detectChanges();
     const request = http.expectOne('/api/v1/operations/review');
@@ -196,7 +205,7 @@ describe('OperationsReviewComponent', () => {
     await fixture.whenStable();
     expect(request.cancelled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Cancelling does not return provider quota');
-    expect(document.activeElement).toBe(button('Review operations'));
+    expect(document.activeElement).toBe(button('Review this day'));
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
     http.expectNone('/api/v1/operations/review');
   });
@@ -211,7 +220,7 @@ describe('OperationsReviewComponent', () => {
     await Promise.resolve();
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(document.activeElement).toBe(button('Review again'));
+    expect(document.activeElement).toBe(button('Start a new review'));
     expect(fixture.nativeElement.querySelector('.review-result')).not.toBeNull();
   });
 
@@ -270,13 +279,13 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('AI-assisted review ready.');
     expect(fixture.nativeElement.textContent).not.toContain('No saved plan for this date.');
-    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Review again to include your latest changes.');
-    expect(button('Review again').disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review. Start a new review to include your latest changes.');
+    expect(button('Start a new review').disabled).toBe(false);
     savedVersion.set(3); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
     http.expectNone('/api/v1/operations/review');
 
-    button('Review again').click(); fixture.detectChanges();
+    button('Start a new review').click(); fixture.detectChanges();
     const fresh = http.expectOne('/api/v1/operations/review');
     expect(fresh.request.body).toEqual({ selected_date: '2026-03-31' });
     expect(fixture.nativeElement.textContent).not.toContain('The saved day changed after this review.');
@@ -304,7 +313,7 @@ describe('OperationsReviewComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
-    expect(button('Review again').disabled).toBe(false);
+    expect(button('Start a new review').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -321,7 +330,7 @@ describe('OperationsReviewComponent', () => {
     http.expectNone('/api/v1/operations/review');
   });
 
-  it('preserves known Retry-After across saved changes and waits for manual Review again', async () => {
+  it('preserves known Retry-After across saved changes and waits for manual Start a new review', async () => {
     await setup();
     const savedVersion = signal(1);
     fixture.componentRef.setInput('savedContextVersion', savedVersion);
@@ -334,12 +343,12 @@ describe('OperationsReviewComponent', () => {
     savedVersion.set(2); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('The saved day changed after this review.');
     expect(fixture.nativeElement.textContent).toContain('You can start another review after');
-    expect(button('Review again').disabled).toBe(true);
+    expect(button('Start a new review').disabled).toBe(true);
     vi.advanceTimersByTime(1500);
     savedVersion.set(3); fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(true);
+    expect(button('Start a new review').disabled).toBe(true);
     vi.advanceTimersByTime(501); fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(false);
+    expect(button('Start a new review').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -391,7 +400,7 @@ describe('OperationsReviewComponent', () => {
     vi.advanceTimersByTime(50_001); fixture.detectChanges();
     expect(request.cancelled).toBe(true);
     expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('review timed out');
-    expect(button('Review again').disabled).toBe(false);
+    expect(button('Start a new review').disabled).toBe(false);
     expect(fixture.nativeElement.querySelector('.review-result')).toBeNull();
     http.expectNone('/api/v1/operations/review');
   });
@@ -487,13 +496,13 @@ describe('OperationsReviewComponent', () => {
     vi.useFakeTimers();
     start().flush({ detail: { code: 'ai_quota_exhausted' } }, { status: 429, statusText: 'Too Many Requests', headers: new HttpHeaders({ 'Retry-After': '2' }) });
     fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(true);
+    expect(button('Start a new review').disabled).toBe(true);
     fixture.componentRef.setInput('selectedDate', '2026-03-30'); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(true);
+    expect(button('Review this day').disabled).toBe(true);
     vi.advanceTimersByTime(2001); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(false);
+    expect(button('Review this day').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
-    button('Review operations').click(); fixture.detectChanges();
+    button('Review this day').click(); fixture.detectChanges();
     const request = http.expectOne('/api/v1/operations/review');
     expect(request.request.body).toEqual({ selected_date: '2026-03-30' });
     request.flush({ ...result(), selected_date: '2026-03-30' }); fixture.detectChanges();
@@ -504,15 +513,15 @@ describe('OperationsReviewComponent', () => {
     vi.useFakeTimers();
     start().flush({ detail: 'Too many requests' }, { status: 429, statusText: 'Too Many Requests' });
     fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(true);
+    expect(button('Start a new review').disabled).toBe(true);
     expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('Too many reviews');
     fixture.componentRef.setInput('selectedDate', '2026-03-30');
     session.resetStarted$.next(); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(true);
+    expect(button('Review this day').disabled).toBe(true);
     vi.advanceTimersByTime(29_999); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(true);
+    expect(button('Review this day').disabled).toBe(true);
     vi.advanceTimersByTime(2); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(false);
+    expect(button('Review this day').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -522,7 +531,7 @@ describe('OperationsReviewComponent', () => {
       status: 429, statusText: 'Too Many Requests', headers: new HttpHeaders({ 'Retry-After': '0' }),
     });
     fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(false);
+    expect(button('Start a new review').disabled).toBe(false);
     expect(fixture.nativeElement.textContent).not.toContain('You can start another review after');
     http.expectNone('/api/v1/operations/review');
   });
@@ -534,9 +543,9 @@ describe('OperationsReviewComponent', () => {
       status: 429, statusText: 'Too Many Requests', headers: new HttpHeaders({ 'Retry-After': 'invalid' }),
     });
     fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(true);
+    expect(button('Start a new review').disabled).toBe(true);
     vi.advanceTimersByTime(2001); fixture.detectChanges();
-    expect(button('Review again').disabled).toBe(false);
+    expect(button('Start a new review').disabled).toBe(false);
     http.expectNone('/api/v1/operations/review');
   });
 
@@ -548,14 +557,14 @@ describe('OperationsReviewComponent', () => {
     const request = start();
     vi.advanceTimersByTime(1001); fixture.detectChanges();
     expect(request.cancelled).toBe(true);
-    expect(button('Review operations').disabled).toBe(true);
+    expect(button('Review this day').disabled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('session expired');
   });
 
   it('prevents a review while a saved-data editor is busy', async () => {
     await setup();
     fixture.componentRef.setInput('blocked', true); fixture.detectChanges();
-    expect(button('Review operations').disabled).toBe(true);
+    expect(button('Review this day').disabled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Finish the current edit');
     http.expectNone('/api/v1/operations/review');
   });
@@ -581,12 +590,12 @@ describe('OperationsReviewComponent', () => {
     expect(content.textContent).toContain('Not recorded');
     expect(content.textContent).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
     expect(content.querySelector('.model-explanation')?.textContent).not.toContain('IDs Atlas');
-    expect(content.querySelector('.model-explanation > p')?.textContent).toBe(response.presentation.segments.map((segment) => segment.text).join(''));
+    expect(statementText()).toBe(response.presentation.segments.map((segment) => segment.text).join(''));
     for (const [index, dog] of dogs.entries()) {
-      const links = [...content.querySelectorAll<HTMLAnchorElement>('.selected-dogs a, .model-explanation a')].filter((link) => link.textContent?.trim() === dog.label);
+      const links = [...content.querySelectorAll<HTMLAnchorElement>('.selected-dogs a, .model-explanation a')].filter((link) => linkLabel(link) === dog.label);
       expect(links.length).toBe(index === 0 ? 3 : 2);
       expect(links.every((link) => link.getAttribute('href') === dog.path)).toBe(true);
-      expect(links.every((link) => !link.hasAttribute('aria-label'))).toBe(true);
+      expect(links.every((link) => link.getAttribute('target') === '_blank' && link.getAttribute('rel') === 'noopener' && link.getAttribute('aria-label') === `${dog.label} (opens in a new tab)`)).toBe(true);
     }
     expect(content.querySelector('.review-links')?.textContent).not.toContain('Atlas');
     expect(content.querySelector('.review-trace')?.hasAttribute('open')).toBe(false);
@@ -698,7 +707,7 @@ describe('OperationsReviewComponent', () => {
     response.presentation.segments = [{ text: prose, entity: null, path: null }];
     response.explanation = prose;
     start().flush(response); fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(prose);
+    expect(statementText()).toBe(prose);
     expect(fixture.nativeElement.textContent).toContain('AI-assisted review ready.');
     http.expectNone('/api/v1/operations/review');
   });
@@ -716,7 +725,7 @@ describe('OperationsReviewComponent', () => {
     expect(fixture.nativeElement.querySelector('.selected-dogs b')).toBeNull();
     for (const [index, name] of names.entries()) {
       const link = fixture.nativeElement.querySelectorAll('.selected-dogs a')[index] as HTMLAnchorElement;
-      expect(link.textContent?.trim()).toBe(name); expect(link.getAttribute('href')).toBe(dogs[index].path);
+      expect(linkLabel(link)).toBe(name); expect(link.getAttribute('href')).toBe(dogs[index].path);
     }
     expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('<b>Bright snow</b>');
     http.expectNone('/api/v1/operations/review');
@@ -731,7 +740,7 @@ describe('OperationsReviewComponent', () => {
     const main = fixture.nativeElement.querySelector('.findings:not(.other-dog-findings)');
     const other = fixture.nativeElement.querySelector('.other-dog-findings');
     expect(main.textContent).not.toContain('Coast');
-    expect(other.textContent).toContain('Other dogs in this snapshot');
+    expect(other.textContent).toContain('Other dogs — outside this plan');
     expect(other.textContent).toContain('10 not verified');
     expect(other.textContent).toContain('9 additional findings');
     expect(other.querySelector('details').open).toBe(false);
@@ -747,7 +756,7 @@ describe('OperationsReviewComponent', () => {
     start().flush(response); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No saved plan for this date.');
     expect(fixture.nativeElement.querySelector('.actual-summary')?.textContent).toContain('120 km');
-    button('Review again').click(); fixture.detectChanges();
+    button('Start a new review').click(); fixture.detectChanges();
     const request = http.expectOne('/api/v1/operations/review');
     const next = result();
     const activity = next.summary.activities[0];
@@ -815,7 +824,7 @@ describe('OperationsReviewComponent', () => {
     start().flush({ ...response, reason: untrusted, title: untrusted, action_text: untrusted,
       url: 'https://untrusted.example/model-action' }); fixture.detectChanges();
     const content = fixture.nativeElement as HTMLElement;
-    expect(content.querySelector('.model-explanation > p')?.textContent).toBe(response.explanation);
+    expect(statementText()).toBe(response.explanation);
     expect(content.textContent).not.toContain(untrusted);
     expect(content.querySelector('a[href="https://untrusted.example/model-action"]')).toBeNull();
     http.expectNone('/api/v1/operations/review');
@@ -828,17 +837,154 @@ describe('OperationsReviewComponent', () => {
     response.explanation = statements.join('');
     response.summary.actual = { sessions: 0, dogs_worked: 0, dog_starts: 0, dog_km: 0 };
     start().flush(response); fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(statements.join(''));
+    expect(statementText()).toBe(statements.join(''));
     expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
     expect(fixture.nativeElement.querySelector('.findings > header')?.textContent).toContain('1 attention');
-    button('Review again').click(); fixture.detectChanges();
+    button('Start a new review').click(); fixture.detectChanges();
     const next = { ...response, presentation: { ...response.presentation, segments: [...response.presentation.segments].reverse() } };
     next.explanation = next.presentation.segments.map((segment) => segment.text).join('');
     http.expectOne('/api/v1/operations/review').flush(next); fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.model-explanation > p')?.textContent).toBe(next.explanation);
+    expect(statementText()).toBe(next.explanation);
     expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
     expect(fixture.nativeElement.querySelector('.findings > header')?.textContent).toContain('1 attention');
     http.expectNone('/api/v1/operations/review');
+  });
+
+
+  it('renders dated evidence without turning absent recorded values into capabilities or housing claims', async () => {
+    await setup(); const response = result();
+    const state = { ...response.findings[0], rule: 'DOG_STATE', entities: [dogs[0].entity], evidence_ids: ['dated-state'] };
+    response.finding_groups[1] = { ...response.finding_groups[1], findings: [state], links: [dogs[0]], status_counts: { passed: 0, violations: 0, attention: 0, unverified: 1 } };
+    response.evidence.push({ id: 'dated-state', selected_date: response.selected_date, entities: [dogs[0].entity], values: [
+      { name: 'born', value: true, unit: 'state' }, { name: 'born', value: false, unit: 'state' },
+      { name: 'lifecycle', value: 'archived', unit: 'state' }, { name: 'housing_source', value: 'unhoused', unit: 'state' },
+      { name: 'roles', value: '', unit: 'state' }, { name: 'roles', value: null, unit: 'state' },
+    ] });
+    start().flush(response); fixture.detectChanges();
+    const other = fixture.nativeElement.querySelector('.other-dog-findings') as HTMLElement;
+    expect(other.textContent).toContain('Born by selected date');
+    expect(other.textContent).not.toContain('Born on selected date');
+    expect([...other.querySelectorAll('dd')].map((item) => item.textContent?.trim())).toEqual([
+      'Yes', 'No', 'Archived', 'No housing assignment for this date', 'No recorded roles', 'Not recorded',
+    ]);
+    expect(other.querySelector('details')?.open).toBe(false);
+    expect(other.textContent).toContain('outside the selected plan pool');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('identifies same-distance Training activities in findings and dated team links from the frozen result', async () => {
+    await setup(); const response = result(); const first = response.summary.activities[0];
+    const second = { ...first, entity: { kind: 'activity' as const, id: '00000000-0000-0000-0000-000000000011' }, label: 'Training · 5 km — activity 2' };
+    response.summary.activities = [{ ...first, label: 'Training · 5 km — activity 1' }, second];
+    response.summary.activity_count = 2; response.summary.selected_participations = 8;
+    response.finding_groups[0].findings = response.summary.activities.flatMap((activity) => [
+      { ...response.findings[0], rule: 'SAVED_LINEUP', entities: [activity.entity] },
+      { ...response.findings[0], rule: 'ACTUAL_RECORDING', entities: [activity.entity] },
+    ]);
+    response.finding_groups[0].status_counts.attention = 4;
+    response.links = response.summary.activities.map((activity) => ({ entity: activity.entity, label: 'Saved teams', path: `/demo/daily/2026-03-31/activities/${activity.entity.id}/teams` }));
+    start().flush(response); fixture.detectChanges();
+    const titles = [...fixture.nativeElement.querySelectorAll('.finding h5') as NodeListOf<HTMLElement>].map((item) => item.textContent);
+    expect(titles).toEqual([
+      'Saved teams · Training · 5 km — activity 1', 'Actual recording · Training · 5 km — activity 1',
+      'Saved teams · Training · 5 km — activity 2', 'Actual recording · Training · 5 km — activity 2',
+    ]);
+    const links = [...fixture.nativeElement.querySelectorAll('[aria-label="Related operational screens"] a') as NodeListOf<HTMLAnchorElement>];
+    expect(links.map(linkLabel)).toEqual(['Teams for Training · 5 km — activity 1', 'Teams for Training · 5 km — activity 2']);
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(response.links.map((link) => link.path));
+    expect(fixture.nativeElement.textContent).not.toContain(second.entity.id);
+    expect(fixture.nativeElement.textContent).toContain('4 unique dogs · 8 planned participations');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('keeps accepted results when off-page review links open separately and keeps same-page links in place', async () => {
+    await setup(); const router = TestBed.inject(Router);
+    await router.navigateByUrl('/demo/daily?date=2026-03-31'); fixture.detectChanges();
+    start().flush(result()); fixture.detectChanges();
+    const profile = fixture.nativeElement.querySelector('.selected-dogs a') as HTMLAnchorElement;
+    expect(profile.getAttribute('target')).toBe('_blank');
+    expect(profile.getAttribute('rel')).toBe('noopener');
+    expect(profile.getAttribute('aria-label')).toBe('Atlas (opens in a new tab)');
+    expect(profile.querySelector('[aria-hidden="true"]')?.textContent).toContain('↗');
+    const navigate = vi.spyOn(router, 'navigateByUrl');
+    profile.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    profile.click(); fixture.detectChanges();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('.review-result')).not.toBeNull();
+    const samePage = fixture.nativeElement.querySelector('[aria-label="Related operational screens"] a') as HTMLAnchorElement;
+    expect(samePage.getAttribute('href')).toBe('/demo/daily?date=2026-03-31');
+    expect(samePage.getAttribute('target')).toBeNull();
+    expect(samePage.getAttribute('rel')).toBeNull();
+    expect(samePage.getAttribute('aria-label')).toBeNull();
+    expect(samePage.querySelector('[aria-hidden="true"]')).toBeNull();
+    const details = fixture.nativeElement.querySelector('.review-trace summary') as HTMLElement;
+    details.click(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.review-result')).not.toBeNull();
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('renders server-issued observation boundaries as separate blocks without splitting sentences', async () => {
+    await setup(); const response = result();
+    const first = [{ text: 'Recorded work: 5.5 km. Saved records do not establish unrecorded events.', entity: null, path: null }];
+    const second = [{ text: 'Atlas', entity: dogs[0].entity, path: dogs[0].path }, { text: ' is in the selected pool; this is not a medical assessment.', entity: null, path: null }];
+    response.presentation.observations = [{ segments: first }, { segments: second }];
+    response.presentation.segments = [...first, { text: ' ', entity: null, path: null }, ...second];
+    response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.observation-list > li').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.observation-text .segment-text').length).toBe(3);
+    expect(statementText()).toBe(response.explanation);
+    expect(fixture.nativeElement.querySelector('.observation-text')?.textContent).toContain('5.5 km. Saved records');
+    expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
+    expect(fixture.nativeElement.querySelector('.findings')?.textContent).toContain('No saved teams');
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  for (const invalid of ['text', 'path', 'entity', 'empty', 'over-limit', 'not-array']) {
+    it(`refuses ${invalid} grouping mismatches without losing facts or making another request`, async () => {
+      await setup(); const response = result();
+      const segment = { text: 'Atlas', entity: dogs[0].entity, path: dogs[0].path };
+      response.presentation.segments = [segment]; response.explanation = 'Atlas';
+      response.presentation.observations = [{ segments: [{ ...segment }] }];
+      if (invalid === 'text') response.presentation.observations[0].segments[0].text = 'Unverified claim';
+      if (invalid === 'path') response.presentation.observations[0].segments[0].path = dogs[1].path;
+      if (invalid === 'entity') response.presentation.observations[0].segments[0].entity = dogs[1].entity;
+      if (invalid === 'empty') response.presentation.observations[0].segments = [];
+      if (invalid === 'over-limit') response.presentation.observations = Array.from({ length: 7 }, () => ({ segments: [segment] }));
+      if (invalid === 'not-array') response.presentation.observations = null as unknown as NonNullable<typeof response.presentation.observations>;
+      start().flush(response); fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
+      expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).not.toContain('Unverified claim');
+      expect(fixture.nativeElement.querySelectorAll('.observation').length).toBe(0);
+      expect(fixture.nativeElement.querySelector('.checked-facts')?.textContent).toContain('4 selected dogs');
+      expect(fixture.nativeElement.querySelector('.findings')?.textContent).toContain('No saved teams');
+      http.expectNone('/api/v1/operations/review');
+    });
+  }
+
+  it('keeps the UUID guard across structured observation boundaries as well as segments', async () => {
+    await setup(); const response = result(); const uuid = dogs[0].entity.id.replaceAll('-', '−');
+    const first = { text: uuid.slice(0, 17), entity: null, path: null };
+    const second = { text: uuid.slice(17), entity: null, path: null };
+    response.presentation.observations = [{ segments: [first] }, { segments: [second] }];
+    response.presentation.segments = [first, { text: ' ', entity: null, path: null }, second];
+    response.explanation = response.presentation.segments.map((segment) => segment.text).join('');
+    start().flush(response); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-explanation')?.textContent).toContain('could not be verified');
+    expect(fixture.nativeElement.textContent).not.toContain(uuid.slice(0, 17));
+    expect(fixture.nativeElement.querySelectorAll('.selected-dogs a').length).toBe(4);
+    http.expectNone('/api/v1/operations/review');
+  });
+
+  it('describes one saved day and an explicitly new review without loading neighbouring plans', async () => {
+    await setup();
+    expect(button('Review this day').textContent?.trim()).toBe('Review this day');
+    expect(fixture.nativeElement.textContent).toContain('Reviews saved plans, teams and recorded work for this date. Earlier recorded workload adds context.');
+    http.expectNone('/api/v1/operations/review');
+    start().flush(result()); fixture.detectChanges();
+    expect(button('Start a new review').textContent?.trim()).toBe('Start a new review');
+    http.expectNone('/api/v1/operations/review');
+    http.expectNone((request) => request.url.includes('daily-plans'));
   });
 
 });

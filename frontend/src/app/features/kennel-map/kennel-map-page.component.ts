@@ -77,6 +77,7 @@ interface HighlightedDog {
   ],
   templateUrl: './kennel-map-page.component.html',
   styleUrl: './kennel-map-page.component.scss',
+  host: { '[class.ground-view]': "activeView === 'ground'" },
   providers: [KennelMapPrintService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

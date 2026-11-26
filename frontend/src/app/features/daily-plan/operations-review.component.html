@@ -4,19 +4,20 @@
       <p class="eyebrow">Read-only assistance</p>
       <h2 id="operations-review-title">AI-assisted review</h2>
       <p>Selected day · <strong>{{ (selectedDate() + 'T12:00:00Z') | date: 'd MMMM y':'UTC' }}</strong></p>
+      <p class="review-scope">Reviews saved plans, teams and recorded work for this date. Earlier recorded workload adds context.</p>
     </div>
     @if (capabilities()?.enabled) {
       <div class="review-actions">
         <button #reviewButton class="button secondary" type="button"
           [disabled]="pending() || blocked() || sessionExpired() || retryAt() !== null"
-          (click)="review()">{{ pending() ? 'Reviewing…' : result() || error() || savedDayChanged() ? 'Review again' : 'Review operations' }}</button>
+          (click)="review()">{{ pending() ? 'Reviewing…' : result() || error() || savedDayChanged() ? 'Start a new review' : 'Review this day' }}</button>
         @if (pending()) { <button #cancelButton class="button quiet" type="button" (click)="cancel()">Cancel review</button> }
       </div>
     }
   </header>
 
   @if (capabilities()?.enabled) {
-    <p class="review-disclosure">When you choose Review operations, selected fictional kennel data is processed by Groq@if (capabilities()?.providers?.includes('openrouter')) { or the free OpenRouter reserve}. Notes, Contact messages and session details are excluded. The review does not change your saved day. <a routerLink="/privacy" fragment="operations-review">Privacy details</a></p>
+    <p class="review-disclosure">When you choose Review this day, selected fictional kennel data is processed by Groq@if (capabilities()?.providers?.includes('openrouter')) { or the free OpenRouter reserve}. Notes, Contact messages and session details are excluded. The review does not change your saved day. <a routerLink="/privacy" fragment="operations-review">Privacy details</a></p>
     @if (sessionExpired()) {
       <p class="review-message" role="status">Open a current demo session before reviewing. Reload the demo if your session expired.</p>
     } @else if (blocked() && !pending()) {
@@ -53,11 +54,11 @@
           @else { <p class="plan-context">{{ summary.selected_unique_dogs }} unique {{ summary.selected_unique_dogs === 1 ? 'dog' : 'dogs' }} · {{ summary.selected_participations }} planned {{ summary.selected_participations === 1 ? 'participation' : 'participations' }} across {{ summary.activity_count }} {{ summary.activity_count === 1 ? 'activity' : 'activities' }}</p> }
           @for (activity of summary.activities; track activity.entity.id) {
             <article class="activity-summary">
-              <header><h5>{{ activityLabel(activity.kind) }}@if (activity.distance_km !== null) { · {{ activity.distance_km }} km }</h5><span>{{ activity.selected_pool_count }} selected {{ activity.selected_pool_count === 1 ? 'dog' : 'dogs' }}</span></header>
+              <header><h5>{{ savedActivityLabel(activity) }}</h5><span>{{ activity.selected_pool_count }} selected {{ activity.selected_pool_count === 1 ? 'dog' : 'dogs' }}</span></header>
               @if (activity.selected_pool_count === 0) { <p>No dogs selected.</p> }
               @if (activity.selected_dogs.length) {
                 <ul class="selected-dogs" aria-label="Selected dogs">
-                  @for (link of localLinks(activity.selected_dogs); track link.route) { <li><a [routerLink]="link.route" [queryParams]="link.query">{{ link.label }}</a></li> }
+                  @for (link of localLinks(activity.selected_dogs); track link.route) { <li><a [routerLink]="link.route" [queryParams]="link.query" [target]="link.newTab ? '_blank' : undefined" [attr.rel]="link.newTab ? 'noopener' : null" [attr.aria-label]="linkDescription(link.label, link)"><span class="review-link-label">{{ link.label }}</span>@if (link.newTab) { <span class="new-tab-indicator" aria-hidden="true">↗</span> }</a></li> }
                 </ul>
               }
               @if (activity.omitted_selected_dogs) { <p class="review-context">{{ activity.omitted_selected_dogs }} selected {{ activity.omitted_selected_dogs === 1 ? 'dog has' : 'dogs have' }} no display details in this snapshot.</p> }
@@ -72,20 +73,24 @@
 
       <section class="model-explanation" aria-label="AI-selected observations">
         <h4>AI-selected observations</h4>
-        @if (safePresentation(); as segments) {
-          <p>@for (segment of segments; track $index) {@if (segment.link; as link) {<a [routerLink]="link.route" [queryParams]="link.query">{{ segment.text }}</a>} @else {<ng-container>{{ segment.text }}</ng-container>}}</p>
+        @if (safePresentation(); as observations) {
+          <ol class="observation-list">
+            @for (segments of observations; track $index) {
+              <li class="observation"><p class="observation-text">@for (segment of segments; track $index) {@if (segment.link; as link) {<a [routerLink]="link.route" [queryParams]="link.query" [target]="link.newTab ? '_blank' : undefined" [attr.rel]="link.newTab ? 'noopener' : null" [attr.aria-label]="linkDescription(segment.text, link)"><span class="segment-text">{{ segment.text }}</span>@if (link.newTab) { <span class="new-tab-indicator" aria-hidden="true">↗</span> }</a>} @else {<span class="segment-text">{{ segment.text }}</span>}}</p></li>
+            }
+          </ol>
         } @else { <p class="review-message">The selected observations could not be verified and cannot be displayed. The saved-day facts remain available.</p> }
         <small>AI selects and prioritizes observations from the saved snapshot. The application writes and checks statements and links. These statements describe saved records, not unrecorded events or training safety.</small>
       </section>
 
       @for (group of current.finding_groups; track group.scope) {
-        <section class="findings" [class.other-dog-findings]="group.scope === 'other_dogs'" [attr.aria-label]="group.scope === 'plan' ? 'Plan and selected dog findings' : 'Other dogs in this snapshot'">
-          <header><h4>{{ group.scope === 'plan' ? 'Plan and selected dogs' : 'Other dogs in this snapshot' }}</h4><p>{{ group.status_counts.violations }} {{ group.status_counts.violations === 1 ? 'issue' : 'issues' }} · {{ group.status_counts.attention }} attention · {{ group.status_counts.unverified }} not verified</p></header>
+        <section class="findings" [class.other-dog-findings]="group.scope === 'other_dogs'" [attr.aria-label]="group.scope === 'plan' ? 'Plan and selected dog findings' : 'Other dogs — outside this plan'">
+          <header><h4>{{ group.scope === 'plan' ? 'Plan and selected dogs' : 'Other dogs — outside this plan' }}</h4><p>{{ group.status_counts.violations }} {{ group.status_counts.violations === 1 ? 'issue' : 'issues' }} · {{ group.status_counts.attention }} attention · {{ group.status_counts.unverified }} not verified</p></header>
+          @if (group.scope === 'other_dogs') { <p class="review-context outside-plan-context">These snapshot dogs are outside the selected plan pool. Their checks do not describe the selected participants.</p> }
           @if (!group.findings.length && !group.omitted_findings) { <p class="review-context">No attention or violation was found by these checks.</p> }
           @if (group.findings.length || group.links.length) {
             <details class="finding-details">
               <summary>{{ group.scope === 'plan' ? 'View' : 'View other-dog' }} {{ group.findings.length }} detailed {{ group.findings.length === 1 ? 'finding' : 'findings' }}</summary>
-              @if (group.scope === 'other_dogs') { <p class="review-context">These dogs are outside the selected plan pool. Their states do not describe the selected participants.</p> }
               @for (finding of group.findings; track $index) {
                 <article class="finding" [attr.data-status]="finding.status">
                   <header><h5>{{ findingTitle(finding) }}</h5><span class="finding-status">{{ statusLabel(finding.status) }}</span></header>
@@ -95,7 +100,7 @@
                   }
                 </article>
               }
-              @if (group.links.length) { <nav class="review-links" aria-label="Related dogs for these findings">@for (link of localLinks(group.links); track link.route) { <a [routerLink]="link.route" [queryParams]="link.query">{{ link.label }}</a> }</nav> }
+              @if (group.links.length) { <nav class="review-links" aria-label="Related dogs for these findings">@for (link of localLinks(group.links); track link.route) { <a [routerLink]="link.route" [queryParams]="link.query" [target]="link.newTab ? '_blank' : undefined" [attr.rel]="link.newTab ? 'noopener' : null" [attr.aria-label]="linkDescription(link.label, link)"><span class="review-link-label">{{ link.label }}</span>@if (link.newTab) { <span class="new-tab-indicator" aria-hidden="true">↗</span> }</a> }</nav> }
             </details>
           }
           @if (group.omitted_findings) { <p class="review-message">{{ group.omitted_findings }} additional {{ group.omitted_findings === 1 ? 'finding is' : 'findings are' }} not shown in this group.</p> }
@@ -104,7 +109,7 @@
 
       @if (safeLinks().length) {
         <nav class="review-links" aria-label="Related operational screens">
-          @for (link of safeLinks(); track $index) { <a [routerLink]="link.route" [queryParams]="link.query">{{ link.label }} <span aria-hidden="true">↗</span></a> }
+          @for (link of safeLinks(); track $index) { <a [routerLink]="link.route" [queryParams]="link.query" [target]="link.newTab ? '_blank' : undefined" [attr.rel]="link.newTab ? 'noopener' : null" [attr.aria-label]="linkDescription(link.label, link)"><span class="review-link-label">{{ link.label }}</span>@if (link.newTab) { <span class="new-tab-indicator" aria-hidden="true">↗</span> }</a> }
         </nav>
       }
 

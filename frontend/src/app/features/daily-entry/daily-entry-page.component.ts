@@ -53,6 +53,12 @@ export class DailyEntryPageComponent {
   protected readonly highlightedDogId = signal<string | null>(null);
   protected readonly countLabel = countLabel;
 
+  protected sessionNote(session: ActualSession): string | null {
+    return session.source === 'seeded' && session.note === 'Deterministically generated canonical demo session.'
+      ? 'Fictional example work record.'
+      : session.note;
+  }
+
   constructor() {
     this.route.queryParamMap.subscribe((params) => {
       const requested = params.get('date');

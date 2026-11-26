@@ -192,14 +192,16 @@ class OperationsReviewService:
                 if path in known_paths:
                     continue
                 known_paths.add(path)
-                label = {
-                    "activity": "Saved teams"
-                    if path.endswith("/teams")
-                    else "Daily Plan",
-                    "actual": "Daily Entry",
-                    "location": "Kennel Map",
-                    "day": "Daily Plan",
-                }[entity.kind]
+                label = (
+                    "Teams for " + (display.activity_label(entity.id) or "activity")
+                    if entity.kind == "activity" and path.endswith("/teams")
+                    else {
+                        "activity": "Daily Plan",
+                        "actual": "Daily Entry",
+                        "location": "Kennel Map",
+                        "day": "Daily Plan",
+                    }[entity.kind]
+                )
                 links.append(ReviewLink(entity=entity, label=label, path=path))
         counts = Counter(row.status for row in snapshot.checks)
         metadata = prepared.run.metadata()

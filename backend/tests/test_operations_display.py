@@ -110,7 +110,7 @@ def test_mentions_repeat_and_exact_typed_entities_keep_distinct_local_identity()
     result = display(frozen).explanation(text)
     assert result.status == "ready"
     assert flattened(result) == (
-        "Dog Atlas; again Atlas. Activity Training · activity 1. "
+        "Dog Atlas; again Atlas. Activity Training · 5 km — activity 1. "
         "Session Recorded work. 30 km."
     )
     assert [part.entity.kind for part in result.segments if part.entity] == [

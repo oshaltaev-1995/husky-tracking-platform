@@ -60,7 +60,7 @@ def test_candidate_privacy_date_is_explicit_and_publication_can_override_it(
     if published_date is not None:
         values["privacy_effective_date"] = published_date
     configuration = Settings(**values)  # type: ignore[arg-type]
-    expected = published_date or date(2026, 11, 22)
+    expected = published_date or date(2026, 11, 26)
     assert configuration.privacy_effective_date == expected
     monkeypatch.setitem(app.dependency_overrides, get_settings, lambda: configuration)
     monkeypatch.setattr(
